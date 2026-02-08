@@ -23,9 +23,10 @@ npx clearify init
 ```
 
 This creates:
-- `docs/index.md` — your home page
-- `docs/getting-started.md` — a starter guide
-- `clearify.config.ts` — project configuration
+- `docs/public/index.md` — your home page
+- `docs/public/getting-started.md` — a starter guide
+- `docs/internal/index.md` — internal docs section (use `--no-internal` to skip)
+- `clearify.config.ts` — project configuration with sections
 - `CHANGELOG.md` — a Keep a Changelog formatted changelog
 
 ## Start the dev server
@@ -46,15 +47,18 @@ npx clearify dev --port 9999
 
 ## Adding pages
 
-Create `.md` or `.mdx` files in the `docs/` folder. Each file becomes a page. Subfolders become navigation groups.
+Create `.md` or `.mdx` files in the `docs/public/` folder. Each file becomes a page. Subfolders become navigation groups.
 
 ```
 docs/
-├── index.md              # Home page (/)
-├── getting-started.md    # /getting-started
-└── guides/
-    ├── installation.md   # /guides/installation
-    └── configuration.md  # /guides/configuration
+├── public/                 # User-facing docs
+│   ├── index.md            # Home page (/)
+│   ├── getting-started.md  # /getting-started
+│   └── guides/
+│       ├── installation.md # /guides/installation
+│       └── configuration.md
+└── internal/               # Design docs, roadmaps (draft)
+    └── index.md
 ```
 
 ## Frontmatter
@@ -82,8 +86,10 @@ import { defineConfig } from 'clearify';
 
 export default defineConfig({
   name: 'My Project',
-  port: 4747,
-  exclude: ['ROADMAP.md', '**/design-*.md'],
+  sections: [
+    { label: 'Docs', docsDir: './docs/public' },
+    { label: 'Internal', docsDir: './docs/internal', basePath: '/internal', draft: true },
+  ],
   theme: {
     primaryColor: '#3B82F6',
     mode: 'auto',
@@ -97,7 +103,8 @@ export default defineConfig({
 |--------|---------|-------------|
 | `name` | Auto-detected from `package.json` | Site name shown in header |
 | `port` | `4747` | Dev server port |
-| `docsDir` | `./docs` | Docs folder path |
+| `docsDir` | `./docs` | Docs folder path (single-section mode) |
+| `sections` | — | Array of `{ label, docsDir, basePath?, draft? }` for multi-section |
 | `outDir` | `./docs-dist` | Build output path |
 | `exclude` | `[]` | Glob patterns to exclude from navigation |
 | `theme.primaryColor` | `#3B82F6` | Accent color |

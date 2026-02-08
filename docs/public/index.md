@@ -10,7 +10,7 @@ Clearify turns your markdown files into a beautiful documentation site.
 
 ## Features
 
-- **Zero config** — just drop markdown files in `docs/` and go
+- **Zero config** — just drop markdown files in `docs/public/` and go
 - **MDX support** — use React components in your docs (Callout, Tabs, Steps, Cards, CodeGroup)
 - **Mermaid diagrams** — fenced `mermaid` code blocks render as SVG, theme-aware
 - **Built-in search** — instant full-text search across all pages
@@ -29,7 +29,7 @@ npx clearify dev
 
 That's it! Your docs are live at `http://localhost:4747`.
 
-`clearify init` scaffolds everything you need: a `docs/` folder, starter pages, `clearify.config.ts`, and a `CHANGELOG.md`.
+`clearify init` scaffolds everything you need: a `docs/public/` folder (plus `docs/internal/` for private docs), starter pages, `clearify.config.ts`, and a `CHANGELOG.md`.
 
 ## Configuration
 
@@ -40,7 +40,9 @@ import { defineConfig } from 'clearify';
 
 export default defineConfig({
   name: 'My Project',
-  port: 4747,
-  exclude: ['ROADMAP.md', '**/design-*.md'],
+  sections: [
+    { label: 'Docs', docsDir: './docs/public' },
+    { label: 'Internal', docsDir: './docs/internal', basePath: '/internal', draft: true },
+  ],
 });
 ```

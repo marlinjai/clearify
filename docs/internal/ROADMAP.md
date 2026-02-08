@@ -1,6 +1,6 @@
 # Clearify Roadmap
 
-> Last updated: 2026-02-08 — after Mintlify feature audit
+> Last updated: 2026-02-08 — full audit of implemented vs planned
 
 ## v0.2.0 — Done
 
@@ -11,7 +11,7 @@
 - [x] Dev server with hot reload (`clearify dev`)
 - [x] Static export (`clearify build`)
 - [x] Scaffolding command (`clearify init` — includes CHANGELOG.md)
-- [x] Client-side full-text search (FlexSearch)
+- [x] Client-side full-text search (custom scored search: title/description/content)
 - [x] Responsive default theme with light/dark mode
 - [x] Code blocks with copy button + CodeGroup language tabs
 - [x] Built-in MDX components: Callout, CodeGroup, Steps, Card, Tabs
@@ -34,10 +34,11 @@ The gap between v0.2 and v1.0 is **SEO and polish**. Everything below is needed 
 - [x] Structured data (JSON-LD for articles)
 
 ### Navigation Polish
+- [x] Active page highlighting in sidebar (color + border indicator)
+- [ ] Scroll active sidebar item into view on page load
 - [ ] Breadcrumbs component
-- [ ] Icon support in sidebar navigation (use frontmatter `icon` field)
-- [ ] Logo rendering in header (config `logo.light` / `logo.dark`)
-- [ ] Active page highlighting in sidebar (scroll into view)
+- [ ] Icon support in sidebar navigation (frontmatter `icon` field is parsed but not rendered)
+- [ ] Logo rendering in header (config schema exists but Header doesn't render it)
 
 ### Additional Components (Mintlify parity)
 - [ ] Accordion / AccordionGroup — expandable sections
@@ -71,9 +72,9 @@ The gap between v0.2 and v1.0 is **SEO and polish**. Everything below is needed 
 - [ ] Dropdown menus in header navigation
 
 ### Search & Discovery
+- [x] Keyboard navigation in search results (arrow keys + Enter)
+- [x] Section-scoped search result badges
 - [ ] Search analytics — track what users search for
-- [ ] Search result ranking improvements
-- [ ] Keyboard navigation in search results
 - [ ] `llms.txt` auto-generation for AI discoverability
 
 ### Analytics
