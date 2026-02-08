@@ -1,6 +1,11 @@
 import React from 'react';
-import { createRoot } from 'react-dom/client';
+import { hydrateRoot, createRoot } from 'react-dom/client';
 import { App } from './App.js';
 
-const root = createRoot(document.getElementById('root')!);
-root.render(<App />);
+const container = document.getElementById('root')!;
+
+if (container.dataset.clearifySsr) {
+  hydrateRoot(container, <App />);
+} else {
+  createRoot(container).render(<App />);
+}

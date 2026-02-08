@@ -7,7 +7,7 @@ import remarkMdxFrontmatter from 'remark-mdx-frontmatter';
 import rehypeShiki from '@shikijs/rehype';
 import tailwindcss from '@tailwindcss/vite';
 import { resolve } from 'path';
-import { writeFileSync, existsSync, readFileSync } from 'fs';
+import { writeFileSync, readFileSync, existsSync, mkdirSync, rmSync } from 'fs';
 import { fileURLToPath } from 'url';
 import matter from 'gray-matter';
 import { clearifyPlugin } from '../vite-plugin/index.js';
@@ -31,15 +31,95 @@ function resolveClientPath(...segments: string[]) {
   return resolve(packageRoot, 'src', 'client', ...segments);
 }
 
-function generateSitemap(routes: { path: string }[]): string {
-  const urls = routes.map(
-    (r) =>
-      `  <url><loc>${r.path === '/' ? '/' : r.path + '/'}</loc></url>`
-  );
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function generateSitemap(routes: { path: string }[], siteUrl?: string): string {
+  const base = siteUrl?.replace(/\/$/, '') ?? '';
+  const urls = routes.map((r) => {
+    const loc = base
+      ? `${base}${r.path === '/' ? '/' : r.path + '/'}`
+      : r.path === '/' ? '/' : r.path + '/';
+    return `  <url><loc>${loc}</loc></url>`;
+  });
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls.join('\n')}
 </urlset>`;
+}
+
+function generateRobotsTxt(siteUrl?: string): string {
+  const lines = ['User-agent: *', 'Allow: /'];
+  if (siteUrl) {
+    const base = siteUrl.replace(/\/$/, '');
+    lines.push(`Sitemap: ${base}/sitemap.xml`);
+  }
+  return lines.join('\n') + '\n';
+}
+
+function injectSSR(template: string, opts: {
+  html: string;
+  title: string;
+  description: string;
+  url: string;
+  siteName: string;
+  siteUrl?: string;
+}): string {
+  const siteBase = opts.siteUrl?.replace(/\/$/, '') ?? '';
+  const canonical = siteBase ? `${siteBase}${opts.url}` : opts.url;
+  const escapedTitle = escapeHtml(opts.title);
+  const escapedDesc = escapeHtml(opts.description);
+  const escapedSiteName = escapeHtml(opts.siteName);
+
+  const headTags = [
+    `<title>${escapedTitle}</title>`,
+    `<meta name="description" content="${escapedDesc}" />`,
+    `<link rel="canonical" href="${canonical}" />`,
+    `<meta property="og:title" content="${escapedTitle}" />`,
+    `<meta property="og:description" content="${escapedDesc}" />`,
+    `<meta property="og:url" content="${canonical}" />`,
+    `<meta property="og:type" content="article" />`,
+    `<meta property="og:site_name" content="${escapedSiteName}" />`,
+    `<meta name="twitter:card" content="summary" />`,
+    `<meta name="twitter:title" content="${escapedTitle}" />`,
+    `<meta name="twitter:description" content="${escapedDesc}" />`,
+    `<script type="application/ld+json">${JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Article",
+      headline: opts.title,
+      description: opts.description,
+      url: canonical,
+    })}</script>`,
+  ].join('\n    ');
+
+  return template
+    .replace('<title>Documentation</title>', '')
+    .replace('<!--clearify-head-->', headTags)
+    .replace('<!--clearify-outlet-->', opts.html)
+    .replace('<div id="root">', '<div id="root" data-clearify-ssr="true">');
+}
+
+function getSharedPlugins(userRoot: string) {
+  return [
+    tailwindcss(),
+    ...clearifyPlugin({ root: userRoot }),
+    { enforce: 'pre' as const, ...mdx({
+      providerImportSource: '@mdx-js/react',
+      remarkPlugins: [remarkMermaidToComponent, remarkGfm, remarkFrontmatter, [remarkMdxFrontmatter, { name: 'frontmatter' }]],
+      rehypePlugins: [
+        [rehypeShiki, {
+          themes: { light: 'github-light', dark: 'github-dark' },
+          defaultColor: false,
+        }],
+      ],
+    }) },
+    react({ include: /\.(jsx|tsx|md|mdx)$/ }),
+  ];
 }
 
 export async function buildSite() {
@@ -49,28 +129,17 @@ export async function buildSite() {
   const config = resolveConfig(userConfig);
   const outDir = resolve(userRoot, config.outDir);
   const docsDir = resolve(userRoot, config.docsDir);
+  const ssrOutDir = resolve(outDir, '.ssr');
 
-  const viteConfig: InlineConfig = {
+  // --- Step 1: Client Build ---
+  console.log('Building documentation site...\n');
+  console.log('  Step 1: Client build...');
+
+  const clientConfig: InlineConfig = {
     root,
-    plugins: [
-      tailwindcss(),
-      ...clearifyPlugin({ root: userRoot }),
-      {enforce: 'pre', ...mdx({
-        providerImportSource: '@mdx-js/react',
-        remarkPlugins: [remarkMermaidToComponent, remarkGfm, remarkFrontmatter, [remarkMdxFrontmatter, { name: 'frontmatter' }]],
-        rehypePlugins: [
-          [rehypeShiki, {
-            themes: { light: 'github-light', dark: 'github-dark' },
-            defaultColor: false,
-          }],
-        ],
-      })},
-      react({ include: /\.(jsx|tsx|md|mdx)$/ }),
-    ],
+    plugins: getSharedPlugins(userRoot),
     resolve: {
-      alias: {
-        '@clearify': resolve(root, '..'),
-      },
+      alias: { '@clearify': resolve(root, '..') },
     },
     build: {
       outDir,
@@ -78,10 +147,35 @@ export async function buildSite() {
     },
   };
 
-  console.log('Building documentation site...\n');
-  await viteBuild(viteConfig);
+  await viteBuild(clientConfig);
+  console.log('  Client build complete.');
 
-  // Generate sitemap.xml
+  // --- Step 2: SSR Build ---
+  console.log('  Step 2: SSR build...');
+
+  const ssrConfig: InlineConfig = {
+    root,
+    plugins: getSharedPlugins(userRoot),
+    resolve: {
+      alias: { '@clearify': resolve(root, '..') },
+    },
+    build: {
+      outDir: ssrOutDir,
+      ssr: resolveClientPath('entry-server.tsx'),
+      emptyOutDir: true,
+    },
+  };
+
+  await viteBuild(ssrConfig);
+  console.log('  SSR build complete.');
+
+  // --- Step 3: Pre-render ---
+  console.log('  Step 3: Pre-rendering pages...');
+
+  const template = readFileSync(resolve(outDir, 'index.html'), 'utf-8');
+  const ssrModule = await import(resolve(ssrOutDir, 'entry-server.js'));
+  const { render } = ssrModule;
+
   const docs = scanDocs(docsDir, config.exclude);
 
   // Auto-detect CHANGELOG.md at project root
@@ -101,9 +195,47 @@ export async function buildSite() {
   }
 
   const routes = buildRoutes(docs);
-  const sitemap = generateSitemap(routes);
+
+  for (const route of routes) {
+    try {
+      const { html, head } = await render(route.path);
+      const page = injectSSR(template, {
+        html,
+        title: head.title,
+        description: head.description,
+        url: route.path,
+        siteName: head.siteName,
+        siteUrl: config.siteUrl,
+      });
+
+      if (route.path === '/') {
+        // Overwrite the SPA shell index.html
+        writeFileSync(resolve(outDir, 'index.html'), page);
+      } else {
+        // /getting-started → outDir/getting-started/index.html
+        const dir = resolve(outDir, route.path.replace(/^\//, ''));
+        mkdirSync(dir, { recursive: true });
+        writeFileSync(resolve(dir, 'index.html'), page);
+      }
+
+      console.log(`    Pre-rendered: ${route.path}`);
+    } catch (err) {
+      console.warn(`    Failed to pre-render ${route.path}:`, err instanceof Error ? err.message : err);
+    }
+  }
+
+  // --- Step 4: Generate robots.txt ---
+  writeFileSync(resolve(outDir, 'robots.txt'), generateRobotsTxt(config.siteUrl));
+  console.log('  Generated robots.txt');
+
+  // --- Step 5: Generate sitemap.xml ---
+  const sitemap = generateSitemap(routes, config.siteUrl);
   writeFileSync(resolve(outDir, 'sitemap.xml'), sitemap);
   console.log('  Generated sitemap.xml');
+
+  // --- Step 6: Cleanup SSR build ---
+  rmSync(ssrOutDir, { recursive: true, force: true });
+  console.log('  Cleaned up SSR build artifacts.');
 
   console.log(`\nBuild complete! Output in ${config.outDir}/\n`);
 }

@@ -17,6 +17,7 @@ const ClearifyConfigSchema = z.object({
   docsDir: z.string().default('./docs'),
   outDir: z.string().default('./docs-dist'),
   port: z.number().default(4747),
+  siteUrl: z.string().optional(),
   theme: z
     .object({
       primaryColor: z.string().default('#3B82F6'),

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { MDXProvider } from '@mdx-js/react';
 // @ts-expect-error virtual module
@@ -22,9 +22,27 @@ interface RouteEntry {
 function PageWrapper({ loader, fallbackFrontmatter }: { loader: () => Promise<any>; fallbackFrontmatter: any }) {
   const location = useLocation();
   const [page, setPage] = useState<{ Component: React.ComponentType; fm: any } | null>(null);
+  const isInitialRender = useRef(true);
 
   useEffect(() => {
     let cancelled = false;
+
+    // On SSR-hydrated pages, the initial route's content is already visible.
+    // Still load the module so subsequent SPA navigations work, but don't
+    // flash "Loading..." by clearing state only on navigation changes.
+    if (isInitialRender.current) {
+      isInitialRender.current = false;
+      // Load eagerly but don't clear existing DOM content
+      loader().then((mod) => {
+        if (cancelled) return;
+        setPage({
+          Component: mod.default,
+          fm: mod.frontmatter ?? fallbackFrontmatter,
+        });
+      });
+      return () => { cancelled = true; };
+    }
+
     setPage(null);
     loader().then((mod) => {
       if (cancelled) return;
@@ -37,13 +55,19 @@ function PageWrapper({ loader, fallbackFrontmatter }: { loader: () => Promise<an
   }, [location.pathname]);
 
   if (!page) {
+    // If we're hydrating an SSR page, don't show loading — the HTML is already there.
+    // The browser will display the server-rendered content until React hydrates.
+    const isSSR = typeof document !== 'undefined' && document.getElementById('root')?.dataset.clearifySsr;
+    if (isSSR && isInitialRender.current) {
+      return null;
+    }
     return <div style={{ padding: '2rem', color: 'var(--clearify-text-secondary)' }}>Loading...</div>;
   }
 
   const { Component, fm } = page;
   return (
     <article>
-      <Head title={fm?.title} description={fm?.description} />
+      <Head title={fm?.title} description={fm?.description} url={location.pathname} />
       <Component />
     </article>
   );

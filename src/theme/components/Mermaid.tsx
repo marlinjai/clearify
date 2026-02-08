@@ -8,6 +8,11 @@ interface MermaidProps {
 }
 
 export function Mermaid({ children }: MermaidProps) {
+  // SSR: render a plain code block as fallback (mermaid requires DOM)
+  if (typeof window === 'undefined') {
+    return <pre><code className="language-mermaid">{children}</code></pre>;
+  }
+
   const { theme } = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
   const [svg, setSvg] = useState<string | null>(null);

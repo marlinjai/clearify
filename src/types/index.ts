@@ -3,6 +3,7 @@ export interface ClearifyConfig {
   docsDir: string;
   outDir: string;
   port: number;
+  siteUrl?: string;
   theme: {
     primaryColor: string;
     mode: 'light' | 'dark' | 'auto';
