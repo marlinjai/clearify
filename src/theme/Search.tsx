@@ -9,6 +9,8 @@ interface SearchEntry {
   title: string;
   description: string;
   content: string;
+  sectionId?: string;
+  sectionLabel?: string;
 }
 
 function search(query: string, entries: SearchEntry[]): SearchEntry[] {
@@ -223,8 +225,23 @@ export function Search() {
                   }}
                   onMouseEnter={() => setSelected(i)}
                 >
-                  <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.25rem' }}>
+                  <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     {result.title}
+                    {result.sectionLabel && (
+                      <span
+                        style={{
+                          fontSize: '0.625rem',
+                          fontWeight: 600,
+                          padding: '0.125rem 0.375rem',
+                          borderRadius: '9999px',
+                          backgroundColor: 'var(--clearify-bg-secondary)',
+                          color: 'var(--clearify-text-secondary)',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {result.sectionLabel}
+                      </span>
+                    )}
                   </div>
                   <div style={{ fontSize: '0.8125rem', color: 'var(--clearify-text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {getExcerpt(result.content, query)}

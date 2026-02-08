@@ -12,6 +12,14 @@ COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // empty' 2>/dev/null)
 
 # Check if this was a git commit (not amend, not just git commit --help, etc.)
 if echo "$COMMAND" | grep -qE 'git commit\b' && ! echo "$COMMAND" | grep -qE '\-\-help|log|show'; then
+
+  # Skip if the commit only touches docs/changelog (prevents infinite hook loop)
+  CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || echo "")
+  NON_DOC_FILES=$(echo "$CHANGED_FILES" | grep -vE '^(docs/|CHANGELOG\.md$|internal/|\.claude/)' | head -1)
+  if [ -z "$NON_DOC_FILES" ]; then
+    exit 0
+  fi
+
   cat <<'EOF'
 {
   "hookSpecificOutput": {

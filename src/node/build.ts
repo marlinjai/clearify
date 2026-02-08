@@ -9,11 +9,11 @@ import tailwindcss from '@tailwindcss/vite';
 import { resolve } from 'path';
 import { writeFileSync, readFileSync, existsSync, mkdirSync, rmSync } from 'fs';
 import { fileURLToPath } from 'url';
-import matter from 'gray-matter';
 import { clearifyPlugin } from '../vite-plugin/index.js';
-import { loadUserConfig, resolveConfig } from '../core/config.js';
-import { scanDocs, buildRoutes } from '../core/navigation.js';
+import { loadUserConfig, resolveConfig, resolveSections } from '../core/config.js';
+import { buildSectionData, type SectionData } from '../core/navigation.js';
 import { remarkMermaidToComponent } from '../core/remark-mermaid.js';
+import type { RouteEntry } from '../types/index.js';
 
 function findPackageRoot(): string {
   let dir = fileURLToPath(new URL('.', import.meta.url));
@@ -128,8 +128,21 @@ export async function buildSite() {
   const userConfig = await loadUserConfig(userRoot);
   const config = resolveConfig(userConfig);
   const outDir = resolve(userRoot, config.outDir);
-  const docsDir = resolve(userRoot, config.docsDir);
   const ssrOutDir = resolve(outDir, '.ssr');
+
+  // Resolve sections, filter out drafts for production
+  const allSections = resolveSections(config, userRoot);
+  const productionSections = allSections.filter((s) => !s.draft);
+
+  const changelogPath = resolve(userRoot, 'CHANGELOG.md');
+
+  // Build SectionData[] for production sections
+  const sectionDataList: SectionData[] = productionSections.map((section) =>
+    buildSectionData(section, changelogPath, config.navigation)
+  );
+
+  // Merge all routes for pre-rendering
+  const allRoutes: RouteEntry[] = sectionDataList.flatMap((sd) => sd.routes);
 
   // --- Step 1: Client Build ---
   console.log('Building documentation site...\n');
@@ -176,27 +189,7 @@ export async function buildSite() {
   const ssrModule = await import(resolve(ssrOutDir, 'entry-server.js'));
   const { render } = ssrModule;
 
-  const docs = scanDocs(docsDir, config.exclude);
-
-  // Auto-detect CHANGELOG.md at project root
-  const changelogPath = resolve(userRoot, 'CHANGELOG.md');
-  if (existsSync(changelogPath)) {
-    const changelogContent = readFileSync(changelogPath, 'utf-8');
-    const { data } = matter(changelogContent);
-    docs.push({
-      filePath: changelogPath,
-      routePath: '/changelog',
-      frontmatter: {
-        title: data.title ?? 'Changelog',
-        description: data.description ?? 'Release history',
-        order: 9999,
-      },
-    });
-  }
-
-  const routes = buildRoutes(docs);
-
-  for (const route of routes) {
+  for (const route of allRoutes) {
     try {
       const { html, head } = await render(route.path);
       const page = injectSSR(template, {
@@ -209,10 +202,8 @@ export async function buildSite() {
       });
 
       if (route.path === '/') {
-        // Overwrite the SPA shell index.html
         writeFileSync(resolve(outDir, 'index.html'), page);
       } else {
-        // /getting-started → outDir/getting-started/index.html
         const dir = resolve(outDir, route.path.replace(/^\//, ''));
         mkdirSync(dir, { recursive: true });
         writeFileSync(resolve(dir, 'index.html'), page);
@@ -229,7 +220,14 @@ export async function buildSite() {
   console.log('  Generated robots.txt');
 
   // --- Step 5: Generate sitemap.xml ---
-  const sitemap = generateSitemap(routes, config.siteUrl);
+  // Only include routes from sections where sitemap is true
+  const sitemapSections = new Set(
+    productionSections.filter((s) => s.sitemap).map((s) => s.id)
+  );
+  const sitemapRoutes = allRoutes.filter(
+    (r) => !r.sectionId || sitemapSections.has(r.sectionId)
+  );
+  const sitemap = generateSitemap(sitemapRoutes, config.siteUrl);
   writeFileSync(resolve(outDir, 'sitemap.xml'), sitemap);
   console.log('  Generated sitemap.xml');
 

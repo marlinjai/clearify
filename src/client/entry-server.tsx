@@ -7,7 +7,7 @@ import routes from 'virtual:clearify/routes';
 // @ts-expect-error virtual module
 import config from 'virtual:clearify/config';
 // @ts-expect-error virtual module
-import navigation from 'virtual:clearify/navigation';
+import sections from 'virtual:clearify/navigation';
 import { Layout } from '../theme/Layout.js';
 import { Head } from '../theme/Head.js';
 import { mdxComponents } from '../theme/MDXComponents.js';
@@ -50,7 +50,7 @@ export async function render(url: string): Promise<{ html: string; head: HeadDat
     <HeadProvider onCollect={onCollect}>
       <MemoryRouter initialEntries={[url]}>
         <MDXProvider components={mdxComponents}>
-          <Layout config={config} navigation={navigation}>
+          <Layout config={config} sections={sections}>
             <Routes>
               <Route
                 path={url}

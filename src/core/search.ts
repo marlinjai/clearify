@@ -8,6 +8,8 @@ export interface SearchEntry {
   title: string;
   description: string;
   content: string;
+  sectionId?: string;
+  sectionLabel?: string;
 }
 
 function stripMarkdown(md: string): string {
@@ -33,7 +35,7 @@ function stripMarkdown(md: string): string {
     .trim();
 }
 
-export function buildSearchIndex(docs: DocFile[]): SearchEntry[] {
+export function buildSearchIndex(docs: DocFile[], sectionId?: string, sectionLabel?: string): SearchEntry[] {
   return docs.map((doc, i) => {
     const raw = readFileSync(doc.filePath, 'utf-8');
     const { content } = matter(raw);
@@ -44,6 +46,8 @@ export function buildSearchIndex(docs: DocFile[]): SearchEntry[] {
       title: doc.frontmatter.title ?? '',
       description: doc.frontmatter.description ?? '',
       content: stripMarkdown(content),
+      ...(sectionId ? { sectionId } : {}),
+      ...(sectionLabel ? { sectionLabel } : {}),
     };
   });
 }

@@ -5,15 +5,15 @@ import { Content } from './Content.js';
 import { TableOfContents } from './TableOfContents.js';
 import { Footer } from './Footer.js';
 import { ThemeProvider } from './ThemeProvider.js';
-import type { ClearifyConfig, NavigationItem } from '../types/index.js';
+import type { ClearifyConfig, SectionNavigation } from '../types/index.js';
 
 interface LayoutProps {
   config: ClearifyConfig;
-  navigation: NavigationItem[];
+  sections: SectionNavigation[];
   children: React.ReactNode;
 }
 
-export function Layout({ config, navigation, children }: LayoutProps) {
+export function Layout({ config, sections, children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -26,7 +26,7 @@ export function Layout({ config, navigation, children }: LayoutProps) {
         />
         <div style={{ display: 'flex', flex: 1 }}>
           <Sidebar
-            navigation={navigation}
+            sections={sections}
             open={sidebarOpen}
             onClose={() => setSidebarOpen(false)}
           />

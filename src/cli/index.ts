@@ -27,9 +27,10 @@ cli
 
 cli
   .command('init', 'Scaffold a docs folder')
-  .action(async () => {
+  .option('--no-internal', 'Skip creating the internal docs section')
+  .action(async (options: { noInternal?: boolean }) => {
     const { init } = await import('../node/index.js');
-    await init();
+    await init({ noInternal: options.noInternal });
   });
 
 cli.help();

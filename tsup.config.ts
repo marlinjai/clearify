@@ -19,5 +19,5 @@ export default defineConfig({
   splitting: true,
   clean: true,
   target: 'node20',
-  external: ['vite', 'react', 'react-dom'],
+  external: ['vite', 'react', 'react-dom', 'esbuild'],
 });

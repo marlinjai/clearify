@@ -1,23 +1,28 @@
 import { resolve } from 'path';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 
-export async function init() {
+export interface InitOptions {
+  noInternal?: boolean;
+}
+
+export async function init(options: InitOptions = {}) {
   const cwd = process.cwd();
-  const docsDir = resolve(cwd, 'docs');
+  const publicDir = resolve(cwd, 'docs/public');
+  const internalDir = resolve(cwd, 'docs/internal');
   const configPath = resolve(cwd, 'clearify.config.ts');
 
   console.log('\n  Initializing Clearify...\n');
 
-  // Create docs directory
-  if (!existsSync(docsDir)) {
-    mkdirSync(docsDir, { recursive: true });
-    console.log('  Created docs/');
+  // Create docs/public directory
+  if (!existsSync(publicDir)) {
+    mkdirSync(publicDir, { recursive: true });
+    console.log('  Created docs/public/');
   } else {
-    console.log('  docs/ already exists, skipping');
+    console.log('  docs/public/ already exists, skipping');
   }
 
-  // Create docs/index.md
-  const indexPath = resolve(docsDir, 'index.md');
+  // Create docs/public/index.md
+  const indexPath = resolve(publicDir, 'index.md');
   if (!existsSync(indexPath)) {
     writeFileSync(
       indexPath,
@@ -33,7 +38,7 @@ Welcome to your documentation site, powered by **Clearify**.
 
 ## Getting Started
 
-Edit this file at \`docs/index.md\` to update your home page.
+Edit this file at \`docs/public/index.md\` to update your home page.
 
 ## Features
 
@@ -45,16 +50,16 @@ Edit this file at \`docs/index.md\` to update your home page.
 
 ## Next Steps
 
-- Add more pages to the \`docs/\` folder
+- Add more pages to the \`docs/public/\` folder
 - Create subfolders for organized navigation
 - Customize with \`clearify.config.ts\`
 `
     );
-    console.log('  Created docs/index.md');
+    console.log('  Created docs/public/index.md');
   }
 
-  // Create docs/getting-started.md
-  const gettingStartedPath = resolve(docsDir, 'getting-started.md');
+  // Create docs/public/getting-started.md
+  const gettingStartedPath = resolve(publicDir, 'getting-started.md');
   if (!existsSync(gettingStartedPath)) {
     writeFileSync(
       gettingStartedPath,
@@ -68,7 +73,7 @@ order: 1
 
 ## Adding Pages
 
-Create \`.md\` or \`.mdx\` files in the \`docs/\` folder. Each file becomes a page.
+Create \`.md\` or \`.mdx\` files in the \`docs/public/\` folder. Each file becomes a page.
 
 ## Organizing with Folders
 
@@ -76,11 +81,14 @@ Create subfolders to group related pages:
 
 \`\`\`
 docs/
-├── index.md              # Home page
-├── getting-started.md    # This page
-└── guides/
-    ├── installation.md
-    └── configuration.md
+├── public/
+│   ├── index.md              # Home page
+│   ├── getting-started.md    # This page
+│   └── guides/
+│       ├── installation.md
+│       └── configuration.md
+└── internal/                 # Design docs, roadmaps
+    └── index.md
 \`\`\`
 
 Folders automatically become navigation groups.
@@ -112,7 +120,44 @@ npx clearify build
 This outputs a static site to \`docs-dist/\`.
 `
     );
-    console.log('  Created docs/getting-started.md');
+    console.log('  Created docs/public/getting-started.md');
+  }
+
+  // Create docs/internal section (unless --no-internal)
+  if (!options.noInternal) {
+    if (!existsSync(internalDir)) {
+      mkdirSync(internalDir, { recursive: true });
+      console.log('  Created docs/internal/');
+    } else {
+      console.log('  docs/internal/ already exists, skipping');
+    }
+
+    const internalIndexPath = resolve(internalDir, 'index.md');
+    if (!existsSync(internalIndexPath)) {
+      writeFileSync(
+        internalIndexPath,
+        `---
+title: Internal Docs
+description: Internal documentation — design docs, roadmaps, and architecture
+order: 0
+---
+
+# Internal Docs
+
+This section is for internal documentation that isn't published to your public site.
+
+## What goes here?
+
+- **Design documents** — technical designs and proposals
+- **Roadmaps** — planned features and milestones
+- **Architecture decisions** — ADRs and context for past choices
+- **Meeting notes** — decisions and action items
+
+> This section is marked as \`draft\` and won't be included in production builds.
+`
+      );
+      console.log('  Created docs/internal/index.md');
+    }
   }
 
   // Create CHANGELOG.md at project root
@@ -145,19 +190,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   // Create clearify.config.ts
   if (!existsSync(configPath)) {
-    writeFileSync(
-      configPath,
-      `import { defineConfig } from 'clearify';
+    if (options.noInternal) {
+      writeFileSync(
+        configPath,
+        `import { defineConfig } from 'clearify';
 
 export default defineConfig({
   name: 'My Documentation',
+  docsDir: './docs/public',
   theme: {
     primaryColor: '#3B82F6',
     mode: 'auto',
   },
 });
 `
-    );
+      );
+    } else {
+      writeFileSync(
+        configPath,
+        `import { defineConfig } from 'clearify';
+
+export default defineConfig({
+  name: 'My Documentation',
+  sections: [
+    { label: 'Docs', docsDir: './docs/public' },
+    { label: 'Internal', docsDir: './docs/internal', basePath: '/internal', draft: true },
+  ],
+  theme: {
+    primaryColor: '#3B82F6',
+    mode: 'auto',
+  },
+});
+`
+      );
+    }
     console.log('  Created clearify.config.ts');
   } else {
     console.log('  clearify.config.ts already exists, skipping');

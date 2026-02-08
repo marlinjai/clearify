@@ -1,15 +1,117 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import clsx from 'clsx';
-import type { NavigationItem } from '../types/index.js';
+import type { NavigationItem, SectionNavigation } from '../types/index.js';
 
 interface SidebarProps {
-  navigation: NavigationItem[];
+  sections: SectionNavigation[];
   open: boolean;
   onClose: () => void;
 }
 
-export function Sidebar({ navigation, open, onClose }: SidebarProps) {
+function findActiveSection(pathname: string, sections: SectionNavigation[]): string {
+  // Longest matching basePath wins
+  let bestMatch = sections[0]?.id ?? '';
+  let bestLen = 0;
+
+  for (const section of sections) {
+    const bp = section.basePath;
+    if (bp === '/' && pathname === '/') {
+      // Exact root match — only wins if no deeper match
+      if (bestLen === 0) {
+        bestMatch = section.id;
+        bestLen = 1;
+      }
+    } else if (bp !== '/' && pathname.startsWith(bp)) {
+      // Ensure it's a proper prefix (matches /internal but not /internalfoo)
+      const rest = pathname.slice(bp.length);
+      if (rest === '' || rest.startsWith('/')) {
+        if (bp.length > bestLen) {
+          bestMatch = section.id;
+          bestLen = bp.length;
+        }
+      }
+    }
+  }
+
+  // If nothing matched beyond root, default to first section
+  if (bestLen === 0 && sections.length > 0) {
+    bestMatch = sections[0].id;
+  }
+
+  return bestMatch;
+}
+
+function SectionSwitcher({
+  sections,
+  activeId,
+  onSelect,
+}: {
+  sections: SectionNavigation[];
+  activeId: string;
+  onSelect: (id: string) => void;
+}) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        gap: '0.25rem',
+        padding: '0.5rem 1rem',
+        marginBottom: '0.5rem',
+        borderBottom: '1px solid var(--clearify-border)',
+      }}
+    >
+      {sections.map((section) => (
+        <button
+          key={section.id}
+          onClick={() => onSelect(section.id)}
+          style={{
+            padding: '0.25rem 0.75rem',
+            borderRadius: '9999px',
+            border: 'none',
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            backgroundColor:
+              activeId === section.id ? 'var(--clearify-primary)' : 'var(--clearify-bg-secondary)',
+            color: activeId === section.id ? '#fff' : 'var(--clearify-text-secondary)',
+            transition: 'background-color 0.15s, color 0.15s',
+          }}
+        >
+          {section.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export function Sidebar({ sections, open, onClose }: SidebarProps) {
+  const location = useLocation();
+
+  // Detect valid SectionNavigation[] shape (has id + basePath + navigation array)
+  const isSectionData = sections.length > 0 && sections[0]?.id != null && Array.isArray(sections[0]?.navigation);
+
+  // If sections data is actually legacy NavigationItem[], render it directly
+  const legacyNavigation = !isSectionData ? (sections as unknown as NavigationItem[]) : null;
+
+  const [selectedSectionId, setSelectedSectionId] = useState(() =>
+    isSectionData ? findActiveSection(location.pathname, sections) : ''
+  );
+
+  // Sync selected section when URL changes (e.g., clicking a search result in another section)
+  useEffect(() => {
+    if (isSectionData) {
+      const active = findActiveSection(location.pathname, sections);
+      setSelectedSectionId(active);
+    }
+  }, [location.pathname, sections, isSectionData]);
+
+  const activeSection = isSectionData
+    ? (sections.find((s) => s.id === selectedSectionId) ?? sections[0])
+    : null;
+  const navigation = legacyNavigation ?? activeSection?.navigation ?? [];
+  const showSwitcher = isSectionData && sections.length > 1;
+
   return (
     <>
       {/* Mobile overlay */}
@@ -41,6 +143,13 @@ export function Sidebar({ navigation, open, onClose }: SidebarProps) {
         }}
         className={clsx('clearify-sidebar', open && 'clearify-sidebar-open')}
       >
+        {showSwitcher && (
+          <SectionSwitcher
+            sections={sections}
+            activeId={selectedSectionId}
+            onSelect={setSelectedSectionId}
+          />
+        )}
         <nav>
           {navigation.map((item, i) => (
             <NavItem key={i} item={item} depth={0} onNavigate={onClose} />

@@ -1,9 +1,36 @@
+export interface SectionConfig {
+  label: string;
+  docsDir: string;
+  basePath?: string;
+  draft?: boolean;
+  sitemap?: boolean;
+  exclude?: string[];
+}
+
+export interface ResolvedSection {
+  id: string;
+  label: string;
+  docsDir: string;
+  basePath: string;
+  draft: boolean;
+  sitemap: boolean;
+  exclude: string[];
+}
+
+export interface SectionNavigation {
+  id: string;
+  label: string;
+  basePath: string;
+  navigation: NavigationItem[];
+}
+
 export interface ClearifyConfig {
   name: string;
   docsDir: string;
   outDir: string;
   port: number;
   siteUrl?: string;
+  sections?: SectionConfig[];
   theme: {
     primaryColor: string;
     mode: 'light' | 'dark' | 'auto';
@@ -37,6 +64,7 @@ export interface RouteEntry {
   path: string;
   filePath: string;
   frontmatter: PageFrontmatter;
+  sectionId?: string;
 }
 
 export function defineConfig(config: Partial<ClearifyConfig>): Partial<ClearifyConfig> {

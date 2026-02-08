@@ -6,7 +6,7 @@ import routes from 'virtual:clearify/routes';
 // @ts-expect-error virtual module
 import config from 'virtual:clearify/config';
 // @ts-expect-error virtual module
-import navigation from 'virtual:clearify/navigation';
+import sections from 'virtual:clearify/navigation';
 import { Layout } from '../theme/Layout.js';
 import { Head } from '../theme/Head.js';
 import { NotFound } from '../theme/NotFound.js';
@@ -75,7 +75,7 @@ function PageWrapper({ loader, fallbackFrontmatter }: { loader: () => Promise<an
 
 function AppRoutes() {
   return (
-    <Layout config={config} navigation={navigation}>
+    <Layout config={config} sections={sections}>
       <Routes>
         {(routes as RouteEntry[]).map((route) => (
           <Route

@@ -1,11 +1,10 @@
-import type { Plugin, ViteDevServer } from 'vite';
+import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite';
 import { resolve } from 'path';
-import { existsSync, readFileSync } from 'fs';
-import matter from 'gray-matter';
-import { loadUserConfig, resolveConfig } from '../core/config.js';
-import { scanDocs, buildNavigation, buildRoutes, type DocFile } from '../core/navigation.js';
-import { buildSearchIndex, type SearchEntry } from '../core/search.js';
-import type { ClearifyConfig, RouteEntry, NavigationItem } from '../types/index.js';
+import { existsSync } from 'fs';
+import { loadUserConfig, resolveConfig, resolveSections } from '../core/config.js';
+import { buildSectionData, type SectionData } from '../core/navigation.js';
+import type { ClearifyConfig, ResolvedSection, RouteEntry, SectionNavigation } from '../types/index.js';
+import type { SearchEntry } from '../core/search.js';
 
 const VIRTUAL_CONFIG = 'virtual:clearify/config';
 const RESOLVED_VIRTUAL_CONFIG = '\0' + VIRTUAL_CONFIG;
@@ -21,42 +20,37 @@ const RESOLVED_VIRTUAL_SEARCH_INDEX = '\0' + VIRTUAL_SEARCH_INDEX;
 
 export function clearifyPlugin(options: { root?: string } = {}): Plugin[] {
   let config: ClearifyConfig;
-  let docs: DocFile[];
-  let routes: RouteEntry[];
-  let navigation: NavigationItem[];
-  let searchIndex: SearchEntry[];
-  let docsDir: string;
   let userRoot: string;
+  let resolvedViteConfig: ResolvedConfig;
+  let visibleSections: ResolvedSection[];
+  let sectionDataList: SectionData[];
+  let allRoutes: RouteEntry[];
+  let allSectionNavigations: SectionNavigation[];
+  let allSearchEntries: SearchEntry[];
 
   function refreshDocs() {
-    docs = scanDocs(docsDir, config.exclude);
-
-    // Auto-detect CHANGELOG.md at project root
     const changelogPath = resolve(userRoot, 'CHANGELOG.md');
-    if (existsSync(changelogPath)) {
-      const content = readFileSync(changelogPath, 'utf-8');
-      const { data } = matter(content);
-      docs.push({
-        filePath: changelogPath,
-        routePath: '/changelog',
-        frontmatter: {
-          title: data.title ?? 'Changelog',
-          description: data.description ?? 'Release history',
-          order: 9999,
-        },
-      });
-    }
 
-    routes = buildRoutes(docs);
-    navigation = config.navigation ?? buildNavigation(docs);
-    searchIndex = buildSearchIndex(docs);
+    sectionDataList = visibleSections.map((section) =>
+      buildSectionData(section, changelogPath, config.navigation)
+    );
+
+    // Flatten all sections' data
+    allRoutes = sectionDataList.flatMap((sd) => sd.routes);
+    allSectionNavigations = sectionDataList.map((sd) => sd.navigation);
+
+    // Merge search entries with re-indexed IDs
+    let idCounter = 0;
+    allSearchEntries = sectionDataList.flatMap((sd) =>
+      sd.searchEntries.map((entry) => ({ ...entry, id: idCounter++ }))
+    );
   }
 
   function generateRoutesCode(): string {
     const imports: string[] = [];
     const routeEntries: string[] = [];
 
-    routes.forEach((route, i) => {
+    allRoutes.forEach((route, i) => {
       const varName = `Route${i}`;
       imports.push(`const ${varName} = () => import(/* @vite-ignore */ '${route.filePath}');`);
       routeEntries.push(
@@ -71,11 +65,20 @@ export function clearifyPlugin(options: { root?: string } = {}): Plugin[] {
     name: 'clearify',
     enforce: 'pre',
 
-    async configResolved() {
+    async configResolved(viteConfig) {
+      resolvedViteConfig = viteConfig;
       userRoot = options.root ?? process.cwd();
       const userConfig = await loadUserConfig(userRoot);
       config = resolveConfig(userConfig, userRoot);
-      docsDir = resolve(userRoot, config.docsDir);
+
+      const allSections = resolveSections(config, userRoot);
+      const isDev = resolvedViteConfig.command === 'serve';
+
+      // Draft sections included in dev, excluded in build
+      visibleSections = isDev
+        ? allSections
+        : allSections.filter((s) => !s.draft);
+
       refreshDocs();
     },
 
@@ -95,16 +98,19 @@ export function clearifyPlugin(options: { root?: string } = {}): Plugin[] {
         return generateRoutesCode();
       }
       if (id === RESOLVED_VIRTUAL_NAVIGATION) {
-        return `export default ${JSON.stringify(navigation)};`;
+        return `export default ${JSON.stringify(allSectionNavigations)};`;
       }
       if (id === RESOLVED_VIRTUAL_SEARCH_INDEX) {
-        return `export default ${JSON.stringify(searchIndex)};`;
+        return `export default ${JSON.stringify(allSearchEntries)};`;
       }
       return null;
     },
 
     configureServer(server: ViteDevServer) {
-      server.watcher.add(docsDir);
+      // Watch all section directories
+      for (const section of visibleSections) {
+        server.watcher.add(section.docsDir);
+      }
 
       // Also watch CHANGELOG.md at project root
       const changelogPath = resolve(userRoot, 'CHANGELOG.md');
@@ -114,7 +120,8 @@ export function clearifyPlugin(options: { root?: string } = {}): Plugin[] {
 
       server.watcher.on('all', (event, path) => {
         const isChangelog = path === changelogPath;
-        if (!isChangelog && !path.startsWith(docsDir)) return;
+        const isInSection = visibleSections.some((s) => path.startsWith(s.docsDir));
+        if (!isChangelog && !isInSection) return;
         if (!path.endsWith('.md') && !path.endsWith('.mdx')) return;
 
         if (event === 'add' || event === 'unlink' || event === 'change') {

@@ -1,8 +1,10 @@
 import { z } from 'zod';
 import { resolve, basename } from 'path';
 import { pathToFileURL } from 'url';
-import { existsSync, readFileSync } from 'fs';
-import type { ClearifyConfig } from '../types/index.js';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync } from 'fs';
+import { tmpdir } from 'os';
+import { randomBytes } from 'crypto';
+import type { ClearifyConfig, ResolvedSection } from '../types/index.js';
 
 const NavigationItemSchema: z.ZodType<any> = z.lazy(() =>
   z.object({
@@ -11,6 +13,15 @@ const NavigationItemSchema: z.ZodType<any> = z.lazy(() =>
     children: z.array(NavigationItemSchema).optional(),
   })
 );
+
+const SectionConfigSchema = z.object({
+  label: z.string(),
+  docsDir: z.string(),
+  basePath: z.string().optional(),
+  draft: z.boolean().optional(),
+  sitemap: z.boolean().optional(),
+  exclude: z.array(z.string()).optional(),
+});
 
 const ClearifyConfigSchema = z.object({
   name: z.string().default('Documentation'),
@@ -30,6 +41,7 @@ const ClearifyConfigSchema = z.object({
       dark: z.string().optional(),
     })
     .optional(),
+  sections: z.array(SectionConfigSchema).optional(),
   navigation: z.array(NavigationItemSchema).nullable().default(null),
   exclude: z.array(z.string()).default([]),
   links: z.record(z.string(), z.string()).optional(),
@@ -72,6 +84,28 @@ function detectProjectName(root: string): string {
     .replace(/\b\w/g, (c: string) => c.toUpperCase());
 }
 
+async function loadTsConfig(configPath: string): Promise<Partial<ClearifyConfig>> {
+  const { build } = await import('esbuild');
+  const tmpId = randomBytes(4).toString('hex');
+  const outFile = resolve(tmpdir(), `clearify-config-${tmpId}.mjs`);
+
+  try {
+    await build({
+      entryPoints: [configPath],
+      outfile: outFile,
+      bundle: true,
+      format: 'esm',
+      platform: 'node',
+      write: true,
+      packages: 'external',
+    });
+    const mod = await import(pathToFileURL(outFile).href);
+    return mod.default ?? mod;
+  } finally {
+    try { rmSync(outFile, { force: true }); } catch {}
+  }
+}
+
 export async function loadUserConfig(root: string): Promise<Partial<ClearifyConfig>> {
   const configFiles = [
     'clearify.config.ts',
@@ -83,6 +117,9 @@ export async function loadUserConfig(root: string): Promise<Partial<ClearifyConf
     const configPath = resolve(root, file);
     if (existsSync(configPath)) {
       try {
+        if (file.endsWith('.ts')) {
+          return await loadTsConfig(configPath);
+        }
         const mod = await import(pathToFileURL(configPath).href);
         return mod.default ?? mod;
       } catch {
@@ -101,6 +138,58 @@ export function resolveConfig(userConfig: Partial<ClearifyConfig> = {}, root?: s
     parsed.name = detectProjectName(root);
   }
   return parsed as ClearifyConfig;
+}
+
+function slugify(str: string): string {
+  return str
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+export function resolveSections(config: ClearifyConfig, root: string): ResolvedSection[] {
+  if (config.sections && config.sections.length > 0) {
+    const sections: ResolvedSection[] = config.sections.map((s, i) => {
+      const id = slugify(s.label);
+      const draft = s.draft ?? false;
+      const basePath = s.basePath ?? (i === 0 ? '/' : '/' + id);
+      const sitemap = s.sitemap ?? !draft;
+      const exclude = [...(config.exclude ?? []), ...(s.exclude ?? [])];
+      return {
+        id,
+        label: s.label,
+        docsDir: resolve(root, s.docsDir),
+        basePath,
+        draft,
+        sitemap,
+        exclude,
+      };
+    });
+
+    // Validate no duplicate basePaths
+    const seen = new Set<string>();
+    for (const s of sections) {
+      if (seen.has(s.basePath)) {
+        throw new Error(`Duplicate section basePath: "${s.basePath}"`);
+      }
+      seen.add(s.basePath);
+    }
+
+    return sections;
+  }
+
+  // Synthesize single default section from docsDir
+  return [
+    {
+      id: 'default',
+      label: config.name,
+      docsDir: resolve(root, config.docsDir),
+      basePath: '/',
+      draft: false,
+      sitemap: true,
+      exclude: config.exclude ?? [],
+    },
+  ];
 }
 
 export { defineConfig } from '../types/index.js';

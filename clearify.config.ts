@@ -2,5 +2,8 @@ import { defineConfig } from './src/types/index.js';
 
 export default defineConfig({
   name: 'Clearify',
-  exclude: ['ROADMAP.md', '**/design-*.md'],
+  sections: [
+    { label: 'Documentation', docsDir: './docs/public' },
+    { label: 'Internal', docsDir: './docs/internal', basePath: '/internal', draft: true },
+  ],
 });
