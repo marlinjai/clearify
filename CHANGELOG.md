@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Draft section exclusion in production builds
 - Loop prevention in post-commit hook (doc-only commits skip the update reminder)
 
+### Fixed
+
+- Dev server now auto-reloads the browser when markdown files are edited (previously only reloaded on file add/delete)
+
 ### Changed
 
 - `clearify init` now creates `docs/public/` and `docs/internal/` instead of flat `docs/`
