@@ -27,11 +27,11 @@
 The gap between v0.2 and v1.0 is **SEO and polish**. Everything below is needed before recommending Clearify for public-facing docs.
 
 ### SSG (Static Site Generation) — Critical
-- [ ] Pre-render HTML per route (`/getting-started/index.html`, etc.)
-- [ ] Proper `<head>` with title, description, canonical URL per page
-- [ ] Open Graph + Twitter Card meta tags
-- [ ] Auto-generated `robots.txt`
-- [ ] Structured data (JSON-LD for articles)
+- [x] Pre-render HTML per route (`/getting-started/index.html`, etc.)
+- [x] Proper `<head>` with title, description, canonical URL per page
+- [x] Open Graph + Twitter Card meta tags
+- [x] Auto-generated `robots.txt`
+- [x] Structured data (JSON-LD for articles)
 
 ### Navigation Polish
 - [ ] Breadcrumbs component
