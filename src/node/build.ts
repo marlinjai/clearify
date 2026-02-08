@@ -55,7 +55,7 @@ export async function buildSite() {
     plugins: [
       tailwindcss(),
       ...clearifyPlugin({ root: userRoot }),
-      mdx({
+      {enforce: 'pre', ...mdx({
         providerImportSource: '@mdx-js/react',
         remarkPlugins: [remarkMermaidToComponent, remarkGfm, remarkFrontmatter, [remarkMdxFrontmatter, { name: 'frontmatter' }]],
         rehypePlugins: [
@@ -64,7 +64,7 @@ export async function buildSite() {
             defaultColor: false,
           }],
         ],
-      }),
+      })},
       react({ include: /\.(jsx|tsx|md|mdx)$/ }),
     ],
     resolve: {

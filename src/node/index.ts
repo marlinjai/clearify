@@ -39,7 +39,7 @@ function createDevConfig(overrides: { userRoot?: string } & Partial<InlineConfig
     plugins: [
       tailwindcss(),
       ...clearifyPlugin({ root: userRoot ?? process.cwd() }),
-      mdx({
+      {enforce: 'pre', ...mdx({
         providerImportSource: '@mdx-js/react',
         remarkPlugins: [remarkMermaidToComponent, remarkGfm, remarkFrontmatter, [remarkMdxFrontmatter, { name: 'frontmatter' }]],
         rehypePlugins: [
@@ -48,7 +48,7 @@ function createDevConfig(overrides: { userRoot?: string } & Partial<InlineConfig
             defaultColor: false,
           }],
         ],
-      }),
+      })},
       react({ include: /\.(jsx|tsx|md|mdx)$/ }),
     ],
     server: {
