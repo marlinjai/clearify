@@ -61,10 +61,13 @@ The gap between v0.2 and v1.0 is **SEO and polish**. Everything below is needed 
 - [ ] Request/response schema display with nested types
 
 ### Content Management
+- [x] Multi-section support — pill-based section switcher (Guides / Internal / etc.)
+- [x] Unified `docs/public/` + `docs/internal/` folder structure
+- [x] Draft sections excluded from production builds
+- [x] `clearify init --no-internal` flag
 - [ ] Versioned docs — version switcher, separate content per version
 - [ ] Reusable snippets — define once, `<Snippet file="path" />` anywhere
 - [ ] Conditional content — show/hide based on context (version, audience)
-- [ ] Top-level tabs — separate navigation sections (Guides / API / SDK)
 - [ ] Dropdown menus in header navigation
 
 ### Search & Discovery

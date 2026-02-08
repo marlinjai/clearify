@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Multi-section support — pill-based section switcher in sidebar, per-section navigation and search
+- Unified `docs/public/` + `docs/internal/` folder structure (replaces separate `docs/` and `internal/`)
+- `--no-internal` flag for `clearify init` to skip internal docs section
+- Internal docs section scaffolded by default with starter content
+- Draft section exclusion in production builds
+- Loop prevention in post-commit hook (doc-only commits skip the update reminder)
+
+### Changed
+
+- `clearify init` now creates `docs/public/` and `docs/internal/` instead of flat `docs/`
+- Generated config uses `sections` array by default (single `docsDir` with `--no-internal`)
+
 ## [0.2.0] - 2026-02-08
 
 ### Added
