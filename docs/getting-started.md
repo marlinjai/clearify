@@ -14,15 +14,19 @@ Install Clearify as a dev dependency:
 npm install clearify --save-dev
 ```
 
-## Create your first docs
+## Scaffold your project
 
-Create a `docs/` folder in your project root and add an `index.md`:
+The fastest way to get started:
 
-```markdown
-# My Project
-
-Welcome to my project documentation!
+```bash
+npx clearify init
 ```
+
+This creates:
+- `docs/index.md` — your home page
+- `docs/getting-started.md` — a starter guide
+- `clearify.config.ts` — project configuration
+- `CHANGELOG.md` — a Keep a Changelog formatted changelog
 
 ## Start the dev server
 
@@ -30,4 +34,79 @@ Welcome to my project documentation!
 npx clearify dev
 ```
 
-Open `http://localhost:4747` to see your docs.
+Open `http://localhost:4747` to see your docs. The server hot-reloads on every file change.
+
+### Custom port
+
+Override the port with `--port` or in your config:
+
+```bash
+npx clearify dev --port 9999
+```
+
+## Adding pages
+
+Create `.md` or `.mdx` files in the `docs/` folder. Each file becomes a page. Subfolders become navigation groups.
+
+```
+docs/
+├── index.md              # Home page (/)
+├── getting-started.md    # /getting-started
+└── guides/
+    ├── installation.md   # /guides/installation
+    └── configuration.md  # /guides/configuration
+```
+
+## Frontmatter
+
+Control page metadata with YAML frontmatter:
+
+```yaml
+---
+title: My Page Title
+description: A brief description
+order: 1
+---
+```
+
+- `title` — page title (defaults to filename)
+- `description` — meta description for search
+- `order` — sort position in sidebar (lower = higher)
+
+## Configuration
+
+Create a `clearify.config.ts` in your project root:
+
+```typescript
+import { defineConfig } from 'clearify';
+
+export default defineConfig({
+  name: 'My Project',
+  port: 4747,
+  exclude: ['ROADMAP.md', '**/design-*.md'],
+  theme: {
+    primaryColor: '#3B82F6',
+    mode: 'auto',
+  },
+});
+```
+
+### Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `name` | Auto-detected from `package.json` | Site name shown in header |
+| `port` | `4747` | Dev server port |
+| `docsDir` | `./docs` | Docs folder path |
+| `outDir` | `./docs-dist` | Build output path |
+| `exclude` | `[]` | Glob patterns to exclude from navigation |
+| `theme.primaryColor` | `#3B82F6` | Accent color |
+| `theme.mode` | `auto` | `light`, `dark`, or `auto` |
+
+## Building for production
+
+```bash
+npx clearify build
+```
+
+Outputs a static site to `docs-dist/` with a `sitemap.xml`. Deploy anywhere that serves static files.

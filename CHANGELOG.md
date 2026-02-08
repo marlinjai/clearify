@@ -20,8 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `port` config option — configurable dev server port (default: 4747)
 - Component showcase page (`docs/components.mdx`) exercising all built-in MDX components
 - Local development guide (`docs/guides/local-development.md`) documenting `npm link` workflow
-- Auto-detection of `CHANGELOG.md` at project root, served as `/changelog` page
-- Claude Code hook for automatic changelog updates after git commits
+- Auto-detection of `CHANGELOG.md` at project root, served as `/changelog` page with HMR
+- `clearify init` now scaffolds a starter `CHANGELOG.md` with Keep a Changelog format
+- Claude Code hook for automatic changelog + documentation updates after git commits
+- Changelog & docs automation guide (`docs/guides/changelog.md`)
 
 ### Changed
 
