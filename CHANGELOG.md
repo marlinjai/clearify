@@ -29,6 +29,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- SSG pre-rendering — each route gets its own `index.html` with full server-rendered content
+- SEO meta tags per page: `<title>`, `<meta description>`, `<link rel="canonical">`
+- Open Graph tags (`og:title`, `og:description`, `og:url`, `og:type`, `og:site_name`)
+- Twitter Card tags (`twitter:card`, `twitter:title`, `twitter:description`)
+- JSON-LD structured data (Article schema) per page
+- Auto-generated `robots.txt` with sitemap reference
+- Auto-generated `sitemap.xml` with section-aware filtering (draft sections excluded)
+- Client hydration of SSR-rendered pages (no flash of loading state)
 - Mermaid diagram support — fenced `mermaid` code blocks render as SVG diagrams client-side
 - Remark plugin (`remarkMermaidToComponent`) transforms mermaid blocks before Shiki processes them
 - `<Mermaid>` React component with dynamic import (~800KB code-split, loads only on pages with diagrams)
