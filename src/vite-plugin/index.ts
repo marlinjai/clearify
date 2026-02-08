@@ -133,9 +133,7 @@ export function clearifyPlugin(options: { root?: string } = {}): Plugin[] {
           if (navMod) server.moduleGraph.invalidateModule(navMod);
           if (searchMod) server.moduleGraph.invalidateModule(searchMod);
 
-          if (event === 'add' || event === 'unlink') {
-            server.ws.send({ type: 'full-reload' });
-          }
+          server.ws.send({ type: 'full-reload' });
         }
       });
     },
