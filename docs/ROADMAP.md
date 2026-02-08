@@ -1,38 +1,105 @@
 # Clearify Roadmap
 
-## v1.0 — Core (MVP)
+> Last updated: 2026-02-08 — after Mintlify feature audit
 
-- [ ] Markdown + MDX rendering with Shiki syntax highlighting
-- [ ] Auto-generated navigation from folder structure
-- [ ] `clearify.config.ts` for overrides (nav, branding, colors, logo)
-- [ ] Frontmatter support (`title`, `description`, `order`, `icon`)
-- [ ] Dev server with hot reload (`clearify dev`)
-- [ ] Static export (`clearify build`)
-- [ ] Scaffolding command (`clearify init`)
-- [ ] Client-side full-text search (FlexSearch)
-- [ ] Responsive default theme with light/dark mode
-- [ ] Code blocks with copy button + language tabs
-- [ ] Built-in MDX components: `Callout`, `CodeGroup`, `Steps`, `Card`, `Tabs`
-- [ ] On-this-page TOC sidebar
-- [ ] Clean URLs, good SEO defaults
+## v0.2.0 — Done
+
+- [x] Markdown + MDX rendering with Shiki syntax highlighting
+- [x] Auto-generated navigation from folder structure
+- [x] `clearify.config.ts` for overrides (nav, branding, colors, logo)
+- [x] Frontmatter support (`title`, `description`, `order`, `icon`)
+- [x] Dev server with hot reload (`clearify dev`)
+- [x] Static export (`clearify build`)
+- [x] Scaffolding command (`clearify init` — includes CHANGELOG.md)
+- [x] Client-side full-text search (FlexSearch)
+- [x] Responsive default theme with light/dark mode
+- [x] Code blocks with copy button + CodeGroup language tabs
+- [x] Built-in MDX components: Callout, CodeGroup, Steps, Card, Tabs
+- [x] On-this-page TOC sidebar
+- [x] Mermaid diagram support (client-side, theme-aware)
+- [x] Exclude patterns for navigation filtering
+- [x] Configurable port (default 4747)
+- [x] CHANGELOG.md auto-detection → `/changelog` page
+- [x] Claude Code hook for automatic changelog + docs updates
+
+## v1.0 — Production Ready
+
+The gap between v0.2 and v1.0 is **SEO and polish**. Everything below is needed before recommending Clearify for public-facing docs.
+
+### SSG (Static Site Generation) — Critical
+- [ ] Pre-render HTML per route (`/getting-started/index.html`, etc.)
+- [ ] Proper `<head>` with title, description, canonical URL per page
+- [ ] Open Graph + Twitter Card meta tags
+- [ ] Auto-generated `robots.txt`
+- [ ] Structured data (JSON-LD for articles)
+
+### Navigation Polish
+- [ ] Breadcrumbs component
+- [ ] Icon support in sidebar navigation (use frontmatter `icon` field)
+- [ ] Logo rendering in header (config `logo.light` / `logo.dark`)
+- [ ] Active page highlighting in sidebar (scroll into view)
+
+### Additional Components (Mintlify parity)
+- [ ] Accordion / AccordionGroup — expandable sections
+- [ ] Badge — inline status labels
+- [ ] Tooltip — hover information
+- [ ] Columns — side-by-side layout (2-4 columns)
+- [ ] Frame — styled image/content borders
+
+### Developer Experience
+- [ ] Broken link detection (`clearify check`)
+- [ ] Custom CSS injection (config `customCss` path)
+- [ ] Custom `<head>` tags (config `headTags`)
+- [ ] 404 page improvements (suggest similar pages)
 
 ## v2.0 — Power Features
 
-- [ ] API playground (OpenAPI spec rendering)
-- [ ] Versioned docs
-- [ ] i18n / multi-language support
-- [ ] Custom React components in MDX (user-defined)
-- [ ] Analytics integration hooks
-- [ ] AI chat agent over your docs
+### API Documentation
+- [ ] OpenAPI spec rendering — auto-generate endpoint pages from spec file
+- [ ] API playground — interactive request builder in docs
+- [ ] SDK code example generation (cURL, Python, JS, Go)
+- [ ] Request/response schema display with nested types
 
-## v3.0 — Ecosystem
+### Content Management
+- [ ] Versioned docs — version switcher, separate content per version
+- [ ] Reusable snippets — define once, `<Snippet file="path" />` anywhere
+- [ ] Conditional content — show/hide based on context (version, audience)
+- [ ] Top-level tabs — separate navigation sections (Guides / API / SDK)
+- [ ] Dropdown menus in header navigation
 
+### Search & Discovery
+- [ ] Search analytics — track what users search for
+- [ ] Search result ranking improvements
+- [ ] Keyboard navigation in search results
+- [ ] `llms.txt` auto-generation for AI discoverability
+
+### Analytics
+- [ ] Page view tracking (pluggable: Plausible, Umami, PostHog)
+- [ ] Inline feedback widget (thumbs up/down per page)
+- [ ] Popular pages dashboard
+
+## v3.0 — AI-Native & Ecosystem
+
+### AI Features
+- [ ] AI chat over docs — RAG-powered Q&A widget
+- [ ] AI-generated summaries per page
+- [ ] MCP server — expose docs to AI agents
+- [ ] Markdown export endpoint for LLM consumption
+
+### i18n
+- [ ] Multi-language support with language switcher
+- [ ] Per-language navigation and content
+- [ ] RTL layout support (Arabic, Hebrew)
+
+### Ecosystem
 - [ ] Plugin system (extend build pipeline, add custom transforms)
-- [ ] Community themes
+- [ ] Community themes (swap default theme)
 - [ ] Monorepo support (multiple doc sites from one repo)
+- [ ] Migration tools (import from Mintlify, Docusaurus, GitBook)
 
 ## Out of Scope
 
 - Web editor / cloud editor — we're code-first
 - Managed hosting — deploy anywhere, we don't host for you
-- Authentication / access control
+- Authentication / access control — use a proxy or CDN rules
+- Paid features — Clearify is fully open source
