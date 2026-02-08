@@ -1,0 +1,134 @@
+---
+title: Components
+description: Built-in MDX components available in Clearify
+order: 2
+---
+
+# Components
+
+Clearify ships with a set of built-in MDX components you can use in any `.mdx` file.
+
+## Callout
+
+Use callouts to highlight important information.
+
+<Callout type="info" title="Information">
+  This is an informational callout for general notes.
+</Callout>
+
+<Callout type="warning" title="Warning">
+  This is a warning callout for things to watch out for.
+</Callout>
+
+<Callout type="error" title="Error">
+  This is an error callout for critical issues.
+</Callout>
+
+<Callout type="tip" title="Tip">
+  This is a tip callout for helpful suggestions.
+</Callout>
+
+## Tabs
+
+Use tabs to show alternative content side by side.
+
+<Tabs>
+  <Tab label="npm">
+    ```bash
+    npm install clearify
+    ```
+  </Tab>
+  <Tab label="pnpm">
+    ```bash
+    pnpm add clearify
+    ```
+  </Tab>
+  <Tab label="yarn">
+    ```bash
+    yarn add clearify
+    ```
+  </Tab>
+</Tabs>
+
+## Steps
+
+Use steps for sequential instructions.
+
+<Steps>
+  <Step title="Install Clearify">
+    Add Clearify to your project as a dev dependency.
+  </Step>
+  <Step title="Create docs folder">
+    Create a `docs/` directory and add your first markdown file.
+  </Step>
+  <Step title="Start the dev server">
+    Run `npx clearify dev` to see your docs at `http://localhost:4747`.
+  </Step>
+</Steps>
+
+## Cards
+
+Use cards to link to related pages or highlight features.
+
+<CardGroup cols={2}>
+  <Card title="Getting Started" href="/getting-started">
+    Learn how to set up Clearify in your project.
+  </Card>
+  <Card title="Configuration">
+    Customize your docs with `clearify.config.ts`.
+  </Card>
+  <Card title="MDX Support">
+    Use React components inside your markdown files.
+  </Card>
+  <Card title="Dark Mode">
+    Automatic light and dark theme switching.
+  </Card>
+</CardGroup>
+
+## CodeGroup
+
+Use code groups to show the same concept in multiple languages.
+
+<CodeGroup>
+```javascript
+function greet(name) {
+  return `Hello, ${name}!`;
+}
+```
+
+```typescript
+function greet(name: string): string {
+  return `Hello, ${name}!`;
+}
+```
+
+```python
+def greet(name: str) -> str:
+    return f"Hello, {name}!"
+```
+</CodeGroup>
+
+## Mermaid Diagrams
+
+Use fenced code blocks with the `mermaid` language to render diagrams.
+
+```mermaid
+graph TD
+    A[Write Markdown] --> B[Clearify Builds]
+    B --> C[Static Site]
+    B --> D[Dev Server]
+    C --> E[Deploy Anywhere]
+    D --> F[Live Reload]
+```
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant C as Clearify CLI
+    participant V as Vite
+    U->>C: clearify dev
+    C->>V: createServer()
+    V-->>U: http://localhost:4747
+    U->>V: Edit .md file
+    V-->>U: Hot reload
+```

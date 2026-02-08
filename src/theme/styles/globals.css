@@ -1,0 +1,167 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-primary-50: oklch(0.97 0.01 250);
+  --color-primary-100: oklch(0.93 0.03 250);
+  --color-primary-200: oklch(0.87 0.06 250);
+  --color-primary-300: oklch(0.78 0.10 250);
+  --color-primary-400: oklch(0.68 0.15 250);
+  --color-primary-500: oklch(0.59 0.20 250);
+  --color-primary-600: oklch(0.52 0.20 250);
+  --color-primary-700: oklch(0.45 0.18 250);
+  --color-primary-800: oklch(0.38 0.14 250);
+  --color-primary-900: oklch(0.33 0.10 250);
+}
+
+:root {
+  --clearify-primary: #3b82f6;
+  --clearify-bg: #ffffff;
+  --clearify-bg-secondary: #f9fafb;
+  --clearify-text: #111827;
+  --clearify-text-secondary: #6b7280;
+  --clearify-border: #e5e7eb;
+  --clearify-sidebar-width: 260px;
+  --clearify-toc-width: 220px;
+  --clearify-header-height: 56px;
+}
+
+.dark {
+  --clearify-bg: #0f172a;
+  --clearify-bg-secondary: #1e293b;
+  --clearify-text: #f1f5f9;
+  --clearify-text-secondary: #94a3b8;
+  --clearify-border: #334155;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--clearify-header-height) + 1rem);
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--clearify-bg);
+  color: var(--clearify-text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--clearify-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Prose overrides for MDX content */
+.clearify-prose {
+  max-width: none;
+}
+
+.clearify-prose h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+
+.clearify-prose h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 2.5rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--clearify-border);
+}
+
+.clearify-prose h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.clearify-prose p {
+  margin-bottom: 1rem;
+}
+
+.clearify-prose ul, .clearify-prose ol {
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+}
+
+.clearify-prose li {
+  margin-bottom: 0.25rem;
+}
+
+.clearify-prose code:not(pre code) {
+  background-color: var(--clearify-bg-secondary);
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+  border: 1px solid var(--clearify-border);
+}
+
+.clearify-prose pre {
+  background-color: var(--clearify-bg-secondary);
+  border: 1px solid var(--clearify-border);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+.clearify-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+.clearify-prose th,
+.clearify-prose td {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--clearify-border);
+  text-align: left;
+}
+
+.clearify-prose th {
+  background-color: var(--clearify-bg-secondary);
+  font-weight: 600;
+}
+
+.clearify-prose strong {
+  font-weight: 600;
+}
+
+.clearify-prose blockquote {
+  border-left: 3px solid var(--clearify-primary);
+  padding-left: 1rem;
+  color: var(--clearify-text-secondary);
+  margin-bottom: 1rem;
+}
+
+.clearify-prose hr {
+  border: none;
+  border-top: 1px solid var(--clearify-border);
+  margin: 2rem 0;
+}
+
+.clearify-prose img {
+  max-width: 100%;
+  border-radius: 0.5rem;
+}
