@@ -23,6 +23,10 @@ const SectionConfigSchema = z.object({
   exclude: z.array(z.string()).optional(),
 });
 
+const MermaidConfigSchema = z.object({
+  strategy: z.enum(['client', 'build']).default('client'),
+}).default({ strategy: 'client' });
+
 const ClearifyConfigSchema = z.object({
   name: z.string().default('Documentation'),
   docsDir: z.string().default('./docs'),
@@ -44,6 +48,7 @@ const ClearifyConfigSchema = z.object({
   sections: z.array(SectionConfigSchema).optional(),
   navigation: z.array(NavigationItemSchema).nullable().default(null),
   exclude: z.array(z.string()).default([]),
+  mermaid: MermaidConfigSchema,
   links: z.record(z.string(), z.string()).optional(),
 });
 

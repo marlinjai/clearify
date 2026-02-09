@@ -165,3 +165,8 @@ a:hover {
   max-width: 100%;
   border-radius: 0.5rem;
 }
+
+/* Mermaid static SVG theme toggling */
+.clearify-mermaid-dark { display: none; }
+.dark .clearify-mermaid-light { display: none; }
+.dark .clearify-mermaid-dark { display: block; }

@@ -41,6 +41,9 @@ export interface ClearifyConfig {
   };
   navigation?: NavigationItem[] | null;
   exclude?: string[];
+  mermaid?: {
+    strategy?: 'client' | 'build';
+  };
   links?: {
     github?: string;
     [key: string]: string | undefined;

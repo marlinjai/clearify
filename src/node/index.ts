@@ -30,15 +30,18 @@ function resolveClientPath(...segments: string[]) {
   return resolve(packageRoot, 'src', 'client', ...segments);
 }
 
-function createDevConfig(overrides: { userRoot?: string } & Partial<InlineConfig> = {}): InlineConfig {
+function createDevConfig(overrides: { userRoot?: string; mermaidStrategy?: 'client' | 'build' } & Partial<InlineConfig> = {}): InlineConfig {
   const root = resolveClientPath();
-  const { userRoot, ...viteOverrides } = overrides;
+  const { userRoot, mermaidStrategy, ...viteOverrides } = overrides;
 
   return {
     root,
     plugins: [
       tailwindcss(),
-      ...clearifyPlugin({ root: userRoot ?? process.cwd() }),
+      ...clearifyPlugin({
+        root: userRoot ?? process.cwd(),
+        mermaidStrategy,
+      }),
       {enforce: 'pre', ...mdx({
         providerImportSource: '@mdx-js/react',
         remarkPlugins: [remarkMermaidToComponent, remarkGfm, remarkFrontmatter, [remarkMdxFrontmatter, { name: 'frontmatter' }]],
@@ -69,8 +72,11 @@ export async function createServer(options: { port?: number; host?: boolean } = 
   const userConfig = await loadUserConfig(userRoot);
   const siteConfig = resolveConfig(userConfig, userRoot);
 
+  const mermaidStrategy = siteConfig.mermaid?.strategy ?? 'client';
+
   const config = createDevConfig({
     userRoot,
+    mermaidStrategy,
     server: {
       port: options.port ?? siteConfig.port,
       host: options.host,

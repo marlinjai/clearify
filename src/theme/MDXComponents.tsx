@@ -5,6 +5,7 @@ import { Steps, Step } from './components/Steps.js';
 import { Card, CardGroup } from './components/Card.js';
 import { CodeGroup } from './components/CodeGroup.js';
 import { Mermaid } from './components/Mermaid.js';
+import { MermaidStatic } from './components/MermaidStatic.js';
 import { CodeBlock } from './CodeBlock.js';
 
 export const mdxComponents = {
@@ -17,6 +18,7 @@ export const mdxComponents = {
   CardGroup,
   CodeGroup,
   Mermaid,
+  MermaidStatic,
   // Override default pre element with CodeBlock
   pre: (props: React.HTMLAttributes<HTMLPreElement>) => <CodeBlock {...props} />,
 };

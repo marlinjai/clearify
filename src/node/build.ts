@@ -12,7 +12,8 @@ import { fileURLToPath } from 'url';
 import { clearifyPlugin } from '../vite-plugin/index.js';
 import { loadUserConfig, resolveConfig, resolveSections } from '../core/config.js';
 import { buildSectionData, type SectionData } from '../core/navigation.js';
-import { remarkMermaidToComponent } from '../core/remark-mermaid.js';
+import { remarkMermaidToComponent, setPreRenderedMermaidSvgs, clearPreRenderedMermaidSvgs } from '../core/remark-mermaid.js';
+import { mermaidContentHash } from '../core/mermaid-utils.js';
 import type { RouteEntry } from '../types/index.js';
 
 function findPackageRoot(): string {
@@ -104,10 +105,17 @@ function injectSSR(template: string, opts: {
     .replace('<div id="root">', '<div id="root" data-clearify-ssr="true">');
 }
 
-function getSharedPlugins(userRoot: string) {
+function getSharedPlugins(userRoot: string, options?: {
+  mermaidSvgs?: Record<string, { lightSvg: string; darkSvg: string }>;
+  mermaidStrategy?: 'client' | 'build';
+}) {
   return [
     tailwindcss(),
-    ...clearifyPlugin({ root: userRoot }),
+    ...clearifyPlugin({
+      root: userRoot,
+      mermaidSvgs: options?.mermaidSvgs,
+      mermaidStrategy: options?.mermaidStrategy,
+    }),
     { enforce: 'pre' as const, ...mdx({
       providerImportSource: '@mdx-js/react',
       remarkPlugins: [remarkMermaidToComponent, remarkGfm, remarkFrontmatter, [remarkMdxFrontmatter, { name: 'frontmatter' }]],
@@ -144,13 +152,73 @@ export async function buildSite() {
   // Merge all routes for pre-rendering
   const allRoutes: RouteEntry[] = sectionDataList.flatMap((sd) => sd.routes);
 
+  const mermaidStrategy = config.mermaid?.strategy ?? 'client';
+  let mermaidSvgs: Record<string, { lightSvg: string; darkSvg: string }> | undefined;
+
+  // --- Mermaid pre-rendering step (strategy: 'build') ---
+  if (mermaidStrategy === 'build') {
+    console.log('Building documentation site...\n');
+    console.log('  Step 0: Pre-rendering Mermaid diagrams...');
+
+    const { MermaidRenderer } = await import('../core/mermaid-renderer.js');
+    const cacheDir = resolve(userRoot, 'node_modules/.cache/clearify-mermaid');
+    const renderer = new MermaidRenderer({ cacheDir });
+
+    try {
+      await renderer.launch();
+
+      // Scan all route files for mermaid code blocks
+      const definitions = new Map<string, string>();
+      const mermaidRegex = /```mermaid\s*\n([\s\S]*?)```/g;
+
+      for (const route of allRoutes) {
+        if (!route.filePath.endsWith('.md') && !route.filePath.endsWith('.mdx')) continue;
+        if (!existsSync(route.filePath)) continue;
+        const content = readFileSync(route.filePath, 'utf-8');
+        let match;
+        while ((match = mermaidRegex.exec(content)) !== null) {
+          const def = match[1].trim();
+          const hash = mermaidContentHash(def);
+          definitions.set(hash, def);
+        }
+      }
+
+      if (definitions.size > 0) {
+        const rendered = await renderer.renderBatch(definitions);
+
+        // Build SVG data for virtual module and remark plugin
+        mermaidSvgs = {};
+        const svgMap = new Map<string, { lightSvg: string; darkSvg: string }>();
+        for (const [hash, data] of rendered) {
+          mermaidSvgs[hash] = data;
+          svgMap.set(hash, data);
+        }
+
+        // Populate remark plugin cache
+        setPreRenderedMermaidSvgs(svgMap);
+
+        console.log(`  Pre-rendered ${rendered.size} Mermaid diagrams`);
+      } else {
+        console.log('  No Mermaid diagrams found.');
+      }
+    } finally {
+      await renderer.close();
+    }
+  } else {
+    console.log('Building documentation site...\n');
+  }
+
   // --- Step 1: Client Build ---
-  console.log('Building documentation site...\n');
   console.log('  Step 1: Client build...');
+
+  const sharedPluginOptions = {
+    mermaidSvgs,
+    mermaidStrategy: mermaidStrategy as 'client' | 'build',
+  };
 
   const clientConfig: InlineConfig = {
     root,
-    plugins: getSharedPlugins(userRoot),
+    plugins: getSharedPlugins(userRoot, sharedPluginOptions),
     resolve: {
       alias: { '@clearify': resolve(root, '..') },
     },
@@ -168,7 +236,7 @@ export async function buildSite() {
 
   const ssrConfig: InlineConfig = {
     root,
-    plugins: getSharedPlugins(userRoot),
+    plugins: getSharedPlugins(userRoot, sharedPluginOptions),
     resolve: {
       alias: { '@clearify': resolve(root, '..') },
     },
@@ -234,6 +302,11 @@ export async function buildSite() {
   // --- Step 6: Cleanup SSR build ---
   rmSync(ssrOutDir, { recursive: true, force: true });
   console.log('  Cleaned up SSR build artifacts.');
+
+  // Cleanup mermaid remark cache
+  if (mermaidStrategy === 'build') {
+    clearPreRenderedMermaidSvgs();
+  }
 
   console.log(`\nBuild complete! Output in ${config.outDir}/\n`);
 }
