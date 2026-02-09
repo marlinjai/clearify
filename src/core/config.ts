@@ -102,7 +102,20 @@ async function loadTsConfig(configPath: string): Promise<Partial<ClearifyConfig>
       format: 'esm',
       platform: 'node',
       write: true,
-      packages: 'external',
+      // Bundle the clearify import (defineConfig is a trivial identity fn),
+      // but keep everything else external so we don't pull in user deps.
+      plugins: [{
+        name: 'externalize-except-clearify',
+        setup(build) {
+          build.onResolve({ filter: /.*/ }, (args) => {
+            // Let relative/absolute imports and 'clearify' be bundled
+            if (args.path.startsWith('.') || args.path.startsWith('/') || args.path === 'clearify') {
+              return undefined;
+            }
+            return { path: args.path, external: true };
+          });
+        },
+      }],
     });
     const mod = await import(pathToFileURL(outFile).href);
     return mod.default ?? mod;

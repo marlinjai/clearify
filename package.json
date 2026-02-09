@@ -53,9 +53,9 @@
     "zod": "^4.3.6"
   },
   "peerDependencies": {
+    "puppeteer": ">=22.0.0",
     "react": "^18.0.0 || ^19.0.0",
-    "react-dom": "^18.0.0 || ^19.0.0",
-    "puppeteer": ">=22.0.0"
+    "react-dom": "^18.0.0 || ^19.0.0"
   },
   "peerDependenciesMeta": {
     "puppeteer": {
@@ -66,6 +66,7 @@
     "@types/node": "^25.2.2",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
+    "puppeteer": "^24.37.2",
     "tsup": "^8.3.6",
     "typescript": "^5.7.3"
   },
