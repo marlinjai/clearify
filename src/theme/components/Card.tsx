@@ -14,27 +14,50 @@ export function Card({ title, description, icon, href, children }: CardProps) {
     <div
       style={{
         border: '1px solid var(--clearify-border)',
-        borderRadius: '0.75rem',
-        padding: '1.25rem',
-        transition: 'border-color 0.15s, box-shadow 0.15s',
+        borderRadius: 'var(--clearify-radius-lg)',
+        padding: '1.375rem',
+        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         cursor: href ? 'pointer' : 'default',
         height: '100%',
+        background: 'var(--clearify-bg)',
+        position: 'relative',
+        overflow: 'hidden',
       }}
       className="clearify-card"
     >
-      {icon && <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{icon}</div>}
-      <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{title}</div>
+      {icon && (
+        <div
+          style={{
+            fontSize: '1.25rem',
+            marginBottom: '0.625rem',
+            width: 36,
+            height: 36,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 'var(--clearify-radius-sm)',
+            background: 'var(--clearify-gradient-subtle)',
+            border: '1px solid var(--clearify-border)',
+          }}
+        >
+          {icon}
+        </div>
+      )}
+      <div style={{ fontWeight: 600, marginBottom: '0.25rem', fontSize: '0.9375rem', letterSpacing: '-0.01em' }}>
+        {title}
+      </div>
       {description && (
-        <div style={{ fontSize: '0.875rem', color: 'var(--clearify-text-secondary)' }}>
+        <div style={{ fontSize: '0.8125rem', color: 'var(--clearify-text-secondary)', lineHeight: 1.55 }}>
           {description}
         </div>
       )}
-      {children && <div style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}>{children}</div>}
+      {children && <div style={{ marginTop: '0.625rem', fontSize: '0.8125rem' }}>{children}</div>}
 
       <style>{`
         .clearify-card:hover {
-          border-color: var(--clearify-primary) !important;
-          box-shadow: 0 0 0 1px var(--clearify-primary);
+          border-color: var(--clearify-border-strong) !important;
+          box-shadow: var(--clearify-shadow) !important;
+          transform: translateY(-1px);
         }
       `}</style>
     </div>
@@ -61,7 +84,7 @@ export function CardGroup({ cols = 2, children }: CardGroupProps) {
       style={{
         display: 'grid',
         gridTemplateColumns: `repeat(${cols}, 1fr)`,
-        gap: '1rem',
+        gap: '0.875rem',
         marginBottom: '1.5rem',
       }}
       className="clearify-card-group"

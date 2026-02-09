@@ -110,15 +110,18 @@ export function Search() {
           display: 'flex',
           alignItems: 'center',
           gap: '0.5rem',
-          padding: '0.375rem 0.75rem',
+          padding: '0.4rem 0.75rem',
           border: '1px solid var(--clearify-border)',
-          borderRadius: '0.5rem',
+          borderRadius: 'var(--clearify-radius)',
           background: 'var(--clearify-bg-secondary)',
           cursor: 'pointer',
           fontSize: '0.8125rem',
-          color: 'var(--clearify-text-secondary)',
+          color: 'var(--clearify-text-tertiary)',
           minWidth: 200,
+          transition: 'border-color 0.15s, box-shadow 0.15s',
+          height: 36,
         }}
+        className="clearify-search-btn"
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="11" cy="11" r="8" />
@@ -128,15 +131,25 @@ export function Search() {
         <kbd
           style={{
             marginLeft: 'auto',
-            padding: '0.125rem 0.375rem',
-            borderRadius: '0.25rem',
+            padding: '0.1rem 0.375rem',
+            borderRadius: 'var(--clearify-radius-sm)',
             border: '1px solid var(--clearify-border)',
-            fontSize: '0.6875rem',
-            fontFamily: 'system-ui',
+            fontSize: '0.625rem',
+            fontFamily: 'var(--font-mono)',
+            color: 'var(--clearify-text-tertiary)',
+            fontWeight: 500,
+            lineHeight: 1.6,
           }}
         >
-          {navigator.platform?.includes('Mac') ? '⌘' : 'Ctrl+'}K
+          {navigator.platform?.includes('Mac') ? '\u2318K' : 'Ctrl+K'}
         </kbd>
+
+        <style>{`
+          .clearify-search-btn:hover {
+            border-color: var(--clearify-border-strong) !important;
+            box-shadow: var(--clearify-shadow-sm);
+          }
+        `}</style>
       </button>
 
       {open && (
@@ -148,27 +161,49 @@ export function Search() {
             display: 'flex',
             alignItems: 'flex-start',
             justifyContent: 'center',
-            paddingTop: '15vh',
-            backgroundColor: 'rgba(0,0,0,0.4)',
-            backdropFilter: 'blur(4px)',
+            paddingTop: '12vh',
+            backgroundColor: 'rgba(0, 0, 0, 0.4)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            animation: 'clearify-fade-in 0.15s ease-out',
           }}
           onClick={() => setOpen(false)}
         >
           <div
             style={{
               width: '100%',
-              maxWidth: 560,
+              maxWidth: 580,
               margin: '0 1rem',
-              backgroundColor: 'var(--clearify-bg)',
-              border: '1px solid var(--clearify-border)',
-              borderRadius: '0.75rem',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+              backgroundColor: 'var(--clearify-surface-elevated)',
+              border: '1px solid var(--clearify-border-strong)',
+              borderRadius: 'var(--clearify-radius-xl)',
+              boxShadow: 'var(--clearify-shadow-lg)',
               overflow: 'hidden',
+              backdropFilter: 'blur(20px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+              animation: 'clearify-scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ display: 'flex', alignItems: 'center', padding: '0.75rem 1rem', borderBottom: '1px solid var(--clearify-border)' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--clearify-text-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                padding: '0.875rem 1.25rem',
+                borderBottom: '1px solid var(--clearify-border)',
+              }}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="var(--clearify-text-tertiary)"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={{ flexShrink: 0 }}
+              >
                 <circle cx="11" cy="11" r="8" />
                 <path d="m21 21-4.3-4.3" />
               </svg>
@@ -186,25 +221,57 @@ export function Search() {
                   padding: '0.25rem 0.75rem',
                   fontSize: '0.9375rem',
                   color: 'var(--clearify-text)',
+                  fontFamily: 'var(--font-sans)',
                 }}
               />
               <kbd
                 style={{
-                  padding: '0.125rem 0.375rem',
-                  borderRadius: '0.25rem',
+                  padding: '0.15rem 0.5rem',
+                  borderRadius: 'var(--clearify-radius-sm)',
                   border: '1px solid var(--clearify-border)',
                   fontSize: '0.6875rem',
-                  color: 'var(--clearify-text-secondary)',
+                  color: 'var(--clearify-text-tertiary)',
+                  fontFamily: 'var(--font-mono)',
+                  fontWeight: 500,
                 }}
               >
                 Esc
               </kbd>
             </div>
 
-            <div style={{ maxHeight: 400, overflowY: 'auto', padding: results.length > 0 ? '0.5rem' : '0' }}>
+            <div
+              style={{
+                maxHeight: 420,
+                overflowY: 'auto',
+                padding: results.length > 0 ? '0.375rem' : '0',
+              }}
+            >
               {query && results.length === 0 && (
-                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--clearify-text-secondary)', fontSize: '0.875rem' }}>
-                  No results found for "{query}"
+                <div
+                  style={{
+                    padding: '2.5rem 1rem',
+                    textAlign: 'center',
+                    color: 'var(--clearify-text-tertiary)',
+                    fontSize: '0.875rem',
+                  }}
+                >
+                  <svg
+                    width="32"
+                    height="32"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{ margin: '0 auto 0.75rem', opacity: 0.4 }}
+                  >
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.3-4.3" />
+                    <line x1="8" y1="8" x2="14" y2="14" />
+                    <line x1="14" y1="8" x2="8" y2="14" />
+                  </svg>
+                  No results for "{query}"
                 </div>
               )}
               {results.map((result, i) => (
@@ -217,24 +284,50 @@ export function Search() {
                     textAlign: 'left',
                     padding: '0.75rem 1rem',
                     border: 'none',
-                    borderRadius: '0.5rem',
+                    borderRadius: 'var(--clearify-radius)',
                     cursor: 'pointer',
-                    backgroundColor: selected === i ? 'var(--clearify-bg-secondary)' : 'transparent',
+                    backgroundColor: selected === i ? 'var(--clearify-primary-soft)' : 'transparent',
                     color: 'var(--clearify-text)',
-                    transition: 'background 0.1s',
+                    transition: 'background-color 0.1s',
+                    fontFamily: 'var(--font-sans)',
                   }}
                   onMouseEnter={() => setSelected(i)}
                 >
-                  <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      fontSize: '0.875rem',
+                      marginBottom: '0.25rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      letterSpacing: '-0.01em',
+                    }}
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke={selected === i ? 'var(--clearify-primary)' : 'var(--clearify-text-tertiary)'}
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      style={{ flexShrink: 0, transition: 'stroke 0.15s' }}
+                    >
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                    </svg>
                     {result.title}
                     {result.sectionLabel && (
                       <span
                         style={{
                           fontSize: '0.625rem',
                           fontWeight: 600,
-                          padding: '0.125rem 0.375rem',
+                          padding: '0.1rem 0.4rem',
                           borderRadius: '9999px',
-                          backgroundColor: 'var(--clearify-bg-secondary)',
+                          background: 'var(--clearify-gradient-subtle)',
+                          border: '1px solid var(--clearify-border)',
                           color: 'var(--clearify-text-secondary)',
                           whiteSpace: 'nowrap',
                         }}
@@ -243,7 +336,16 @@ export function Search() {
                       </span>
                     )}
                   </div>
-                  <div style={{ fontSize: '0.8125rem', color: 'var(--clearify-text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div
+                    style={{
+                      fontSize: '0.8125rem',
+                      color: 'var(--clearify-text-tertiary)',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      paddingLeft: '1.625rem',
+                    }}
+                  >
                     {getExcerpt(result.content, query)}
                   </div>
                 </button>

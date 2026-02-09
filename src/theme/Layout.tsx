@@ -18,6 +18,9 @@ export function Layout({ config, sections, children }: LayoutProps) {
 
   return (
     <ThemeProvider mode={config.theme.mode}>
+      {/* Subtle gradient mesh background */}
+      <div className="clearify-bg-mesh" aria-hidden="true" />
+
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <Header
           name={config.name}
