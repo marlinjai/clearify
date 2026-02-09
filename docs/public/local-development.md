@@ -1,7 +1,7 @@
 ---
 title: Local Development
 description: Using Clearify across projects with npm link
-order: 1
+order: 5
 ---
 
 # Local Development

@@ -1,7 +1,7 @@
 ---
 title: Configuration
 description: How to configure Clearify
-order: 2
+order: 4
 ---
 
 # Configuration

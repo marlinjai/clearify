@@ -1,7 +1,7 @@
 ---
 title: Changelog & Docs Automation
 description: Automatic changelog and documentation updates with Claude Code
-order: 2
+order: 6
 ---
 
 # Changelog & Docs Automation

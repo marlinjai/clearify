@@ -1,7 +1,7 @@
 ---
 title: Installation
 description: Detailed installation guide
-order: 1
+order: 3
 ---
 
 # Installation
