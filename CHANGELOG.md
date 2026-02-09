@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Dead mermaid JS elimination — stub plugin now uses `enforce: 'pre'` to intercept `import('mermaid')` before Vite's core resolver, fully removing ~2.1MB of dead code when `strategy: 'build'`
 - Config file loading when clearify is npm-linked — `defineConfig` import now resolves correctly from temp file
 - Dev server now auto-reloads the browser when markdown files are edited (previously only reloaded on file add/delete)
 
