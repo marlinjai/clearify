@@ -33,7 +33,31 @@ export default defineConfig({
 | `theme.mode` | `'light' \| 'dark' \| 'auto'` | `'auto'` | Color scheme |
 | `navigation` | `NavigationItem[]` | `null` | Override auto-generated sidebar navigation |
 | `exclude` | `string[]` | `[]` | Glob patterns to exclude files from navigation and routing |
+| `mermaid.strategy` | `'client' \| 'build'` | `'client'` | Mermaid rendering strategy (see below) |
 | `links` | `Record<string, string>` | — | Links shown in header/footer (e.g. `{ github: 'https://...' }`) |
+
+## Mermaid Diagrams
+
+By default, Mermaid diagrams render client-side using the full Mermaid JS library (~2.1MB). For production sites, you can switch to build-time rendering which pre-renders diagrams to SVGs via Puppeteer and eliminates all Mermaid JS from the client bundle:
+
+```typescript
+export default defineConfig({
+  mermaid: {
+    strategy: 'build',
+  },
+});
+```
+
+Requires Puppeteer as a dev dependency:
+
+```bash
+npm install puppeteer
+```
+
+| Strategy | Client JS | Dark/Light Toggle | Dev Server |
+|----------|-----------|-------------------|------------|
+| `'client'` (default) | ~2.1MB Mermaid JS | Re-renders on theme toggle | Instant start, diagrams load per-page |
+| `'build'` | Zero Mermaid JS | CSS-based toggle (instant) | Starts with client-side, auto-swaps to static SVGs after background warm-up |
 
 ## Sections
 

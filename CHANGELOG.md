@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Build-time Mermaid SVG rendering (`mermaid.strategy: 'build'`) — pre-renders diagrams via Puppeteer, eliminating ~2.1MB of Mermaid JS from the client bundle
+- `MermaidStatic` component for CSS-based dark/light theme toggling of pre-rendered diagrams
+- `MermaidRenderer` class with batch and persistent modes, file-based caching in `node_modules/.cache/clearify-mermaid/`
+- Dev server hybrid warm-up: starts with client-side Mermaid, background-renders all diagrams, then auto-reloads to static SVGs
+- Incremental mermaid re-rendering on file change in dev (only changed diagrams re-rendered)
+- `virtual:clearify/mermaid-svgs` virtual module for serving pre-rendered SVG data
+- TypeScript declarations for all virtual modules (`src/types/virtual.d.ts`)
+- Puppeteer as optional peer dependency (only needed with `strategy: 'build'`)
 - Multi-section support — pill-based section switcher in sidebar, per-section navigation and search
 - Unified `docs/public/` + `docs/internal/` folder structure (replaces separate `docs/` and `internal/`)
 - `--no-internal` flag for `clearify init` to skip internal docs section

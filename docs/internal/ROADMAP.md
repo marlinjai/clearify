@@ -1,6 +1,6 @@
 # Clearify Roadmap
 
-> Last updated: 2026-02-08 — full audit of implemented vs planned
+> Last updated: 2026-02-09 — added build-time Mermaid rendering
 
 ## v0.2.0 — Done
 
@@ -32,6 +32,10 @@ The gap between v0.2 and v1.0 is **SEO and polish**. Everything below is needed 
 - [x] Open Graph + Twitter Card meta tags
 - [x] Auto-generated `robots.txt`
 - [x] Structured data (JSON-LD for articles)
+
+### Performance
+- [x] Build-time Mermaid SVG rendering (`mermaid.strategy: 'build'`) — eliminates ~2.1MB client JS
+- [x] Dev server hybrid warm-up with incremental re-rendering
 
 ### Navigation Polish
 - [x] Active page highlighting in sidebar (color + border indicator)
