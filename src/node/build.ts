@@ -109,7 +109,7 @@ function getSharedPlugins(userRoot: string, options?: {
   mermaidSvgs?: Record<string, { lightSvg: string; darkSvg: string }>;
   mermaidStrategy?: 'client' | 'build';
 }) {
-  return [
+  const plugins: any[] = [
     tailwindcss(),
     ...clearifyPlugin({
       root: userRoot,
@@ -128,6 +128,25 @@ function getSharedPlugins(userRoot: string, options?: {
     }) },
     react({ include: /\.(jsx|tsx|md|mdx)$/ }),
   ];
+
+  // When building with strategy 'build', stub out the mermaid library so
+  // Vite doesn't bundle the ~2.1MB of dead code from <Mermaid>'s dynamic import.
+  if (options?.mermaidStrategy === 'build') {
+    plugins.push({
+      name: 'clearify-stub-mermaid',
+      enforce: 'pre' as const,
+      resolveId(id: string) {
+        if (id === 'mermaid') return '\0stub:mermaid';
+      },
+      load(id: string) {
+        if (id === '\0stub:mermaid') {
+          return 'export default { initialize() {}, render() { return { svg: "" }; } };';
+        }
+      },
+    });
+  }
+
+  return plugins;
 }
 
 export async function buildSite() {
