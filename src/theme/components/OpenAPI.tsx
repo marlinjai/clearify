@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import { useTheme } from '../ThemeProvider.js';
-import openapiSpec from 'virtual:clearify/openapi-spec';
 
 interface OpenAPIProps {
   /** Inline spec as a parsed object or raw string (JSON/YAML). Falls back to config-based spec. */
@@ -39,8 +38,7 @@ export function OpenAPI({
 }: OpenAPIProps) {
   const { theme } = useTheme();
 
-  // Resolve the spec source: explicit prop > config-based virtual module
-  const resolvedSpec = spec ?? openapiSpec;
+  const resolvedSpec = spec ?? null;
 
   const configuration = useMemo(() => {
     const config: Record<string, unknown> = {
