@@ -1,6 +1,6 @@
 # Clearify Roadmap
 
-> Last updated: 2026-02-10 — added v1.5 OpenAPI/Scalar integration
+> Last updated: 2026-02-10 — v1.0 complete, v1.5 OpenAPI/Scalar integration
 
 ## v0.2.0 — Done
 
@@ -39,23 +39,23 @@ The gap between v0.2 and v1.0 is **SEO and polish**. Everything below is needed 
 
 ### Navigation Polish
 - [x] Active page highlighting in sidebar (color + border indicator)
-- [ ] Scroll active sidebar item into view on page load
-- [ ] Breadcrumbs component
-- [ ] Icon support in sidebar navigation (frontmatter `icon` field is parsed but not rendered)
-- [ ] Logo rendering in header (config schema exists but Header doesn't render it)
+- [x] Scroll active sidebar item into view on page load
+- [x] Breadcrumbs component
+- [x] Icon support in sidebar navigation (frontmatter `icon` field rendered as emoji)
+- [x] Logo rendering in header (light/dark variants with theme-aware swap)
 
 ### Additional Components (Mintlify parity)
-- [ ] Accordion / AccordionGroup — expandable sections
-- [ ] Badge — inline status labels
-- [ ] Tooltip — hover information
-- [ ] Columns — side-by-side layout (2-4 columns)
-- [ ] Frame — styled image/content borders
+- [x] Accordion / AccordionGroup — expandable sections
+- [x] Badge — inline status labels
+- [x] Tooltip — hover information
+- [x] Columns — side-by-side layout (2-4 columns)
+- [x] Frame — styled image/content borders
 
 ### Developer Experience
 - [x] Broken link detection (`clearify check`)
-- [ ] Custom CSS injection (config `customCss` path)
-- [ ] Custom `<head>` tags (config `headTags`)
-- [ ] 404 page improvements (suggest similar pages)
+- [x] Custom CSS injection (config `customCss` path)
+- [x] Custom `<head>` tags (config `headTags`)
+- [x] 404 page improvements (suggest similar pages via Levenshtein matching)
 
 ## v1.5 — API Documentation
 
