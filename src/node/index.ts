@@ -89,3 +89,4 @@ export async function createServer(options: { port?: number; host?: boolean } = 
 
 export { buildSite as build } from './build.js';
 export { init } from './init.js';
+export { checkLinks } from './check.js';

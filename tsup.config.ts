@@ -6,6 +6,7 @@ export default defineConfig({
     'node/index': 'src/node/index.ts',
     'node/build': 'src/node/build.ts',
     'node/init': 'src/node/init.ts',
+    'node/check': 'src/node/check.ts',
     'core/config': 'src/core/config.ts',
     'core/navigation': 'src/core/navigation.ts',
     'core/search': 'src/core/search.ts',

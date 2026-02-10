@@ -52,7 +52,7 @@ The gap between v0.2 and v1.0 is **SEO and polish**. Everything below is needed 
 - [ ] Frame — styled image/content borders
 
 ### Developer Experience
-- [ ] Broken link detection (`clearify check`)
+- [x] Broken link detection (`clearify check`)
 - [ ] Custom CSS injection (config `customCss` path)
 - [ ] Custom `<head>` tags (config `headTags`)
 - [ ] 404 page improvements (suggest similar pages)

@@ -33,6 +33,13 @@ cli
     await init({ noInternal: options.noInternal });
   });
 
+cli
+  .command('check', 'Check for broken internal links')
+  .action(async () => {
+    const { checkLinks } = await import('../node/check.js');
+    await checkLinks();
+  });
+
 cli.help();
 cli.version('0.2.0');
 cli.parse();
