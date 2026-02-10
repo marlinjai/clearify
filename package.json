@@ -1,5 +1,5 @@
 {
-  "name": "clearify",
+  "name": "@marlinjai/clearify",
   "version": "1.5.0",
   "description": "An open-source documentation site generator. Turn markdown into beautiful docs.",
   "type": "module",

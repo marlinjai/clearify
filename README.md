@@ -20,7 +20,7 @@ An open-source documentation site generator. Turn markdown into beautiful docs.
 Install Clearify as a dev dependency:
 
 ```bash
-npm install clearify --save-dev
+npm install @marlinjai/clearify --save-dev
 ```
 
 Scaffold your project:
@@ -42,7 +42,7 @@ Your docs are live at `http://localhost:4747`.
 Customize with `clearify.config.ts`:
 
 ```typescript
-import { defineConfig } from 'clearify';
+import { defineConfig } from '@marlinjai/clearify';
 
 export default defineConfig({
   name: 'My Project',
