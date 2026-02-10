@@ -22,7 +22,7 @@ Clearify turns your markdown files into a beautiful documentation site.
 ## Quick Start
 
 ```bash
-npm install clearify
+npm install @marlinjai/clearify
 npx clearify init
 npx clearify dev
 ```
@@ -36,7 +36,7 @@ That's it! Your docs are live at `http://localhost:4747`.
 Customize with `clearify.config.ts`:
 
 ```typescript
-import { defineConfig } from 'clearify';
+import { defineConfig } from '@marlinjai/clearify';
 
 export default defineConfig({
   name: 'My Project',

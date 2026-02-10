@@ -11,7 +11,7 @@ order: 1
 Install Clearify as a dev dependency:
 
 ```bash
-npm install clearify --save-dev
+npm install @marlinjai/clearify --save-dev
 ```
 
 ## Scaffold your project
@@ -82,7 +82,7 @@ order: 1
 Create a `clearify.config.ts` in your project root:
 
 ```typescript
-import { defineConfig } from 'clearify';
+import { defineConfig } from '@marlinjai/clearify';
 
 export default defineConfig({
   name: 'My Project',

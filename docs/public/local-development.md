@@ -44,7 +44,7 @@ The dev server starts at `http://localhost:4747`. The header will automatically 
 Create a `clearify.config.ts` in the project root to customize behavior:
 
 ```typescript
-import { defineConfig } from 'clearify';
+import { defineConfig } from '@marlinjai/clearify';
 
 export default defineConfig({
   name: 'Data Table',

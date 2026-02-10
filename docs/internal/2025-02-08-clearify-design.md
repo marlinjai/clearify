@@ -4,7 +4,7 @@ An open-source, self-hostable documentation site generator. Install it as a pack
 
 ## Goals
 
-- **Zero-config start** — `npm install clearify`, drop a `docs/` folder, run `npx clearify dev`
+- **Zero-config start** — `npm install @marlinjai/clearify`, drop a `docs/` folder, run `npx clearify dev`
 - **Full control when needed** — optional `clearify.config.ts` for branding, nav overrides, theming
 - **In-sync with your code** — docs live in your repo, rebuild on every push
 - **Free and open source** — no managed hosting, no vendor lock-in
@@ -71,7 +71,7 @@ my-project/
 Fully optional. Without it, Clearify auto-discovers `docs/` and generates everything with sensible defaults.
 
 ```typescript
-import { defineConfig } from 'clearify';
+import { defineConfig } from '@marlinjai/clearify';
 
 export default defineConfig({
   // Branding

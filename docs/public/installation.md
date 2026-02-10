@@ -16,7 +16,7 @@ order: 3
 ### npm
 
 ```bash
-npm install clearify --save-dev
+npm install @marlinjai/clearify --save-dev
 ```
 
 ### pnpm

@@ -9,7 +9,7 @@ order: 4
 Clearify works with zero configuration. But when you need control, create a `clearify.config.ts`:
 
 ```typescript
-import { defineConfig } from 'clearify';
+import { defineConfig } from '@marlinjai/clearify';
 
 export default defineConfig({
   name: 'My Project',
@@ -64,7 +64,7 @@ npm install puppeteer
 For multi-section docs (e.g. public + internal), use the `sections` array instead of `docsDir`:
 
 ```typescript
-import { defineConfig } from 'clearify';
+import { defineConfig } from '@marlinjai/clearify';
 
 export default defineConfig({
   name: 'My Project',

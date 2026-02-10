@@ -193,7 +193,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     if (options.noInternal) {
       writeFileSync(
         configPath,
-        `import { defineConfig } from 'clearify';
+        `import { defineConfig } from '@marlinjai/clearify';
 
 export default defineConfig({
   name: 'My Documentation',
@@ -208,7 +208,7 @@ export default defineConfig({
     } else {
       writeFileSync(
         configPath,
-        `import { defineConfig } from 'clearify';
+        `import { defineConfig } from '@marlinjai/clearify';
 
 export default defineConfig({
   name: 'My Documentation',
