@@ -1,6 +1,6 @@
 {
   "name": "clearify",
-  "version": "0.2.0",
+  "version": "1.5.0",
   "description": "An open-source documentation site generator. Turn markdown into beautiful docs.",
   "type": "module",
   "bin": {
@@ -20,8 +20,7 @@
     "bin",
     "dist",
     "src/client",
-    "src/theme",
-    "template"
+    "src/theme"
   ],
   "scripts": {
     "build": "tsup",
@@ -71,5 +70,25 @@
     "tsup": "^8.3.6",
     "typescript": "^5.7.3"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "author": "MarlinJai",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/marlinjai/clearify.git"
+  },
+  "homepage": "https://github.com/marlinjai/clearify",
+  "bugs": {
+    "url": "https://github.com/marlinjai/clearify/issues"
+  },
+  "keywords": [
+    "documentation",
+    "docs",
+    "markdown",
+    "mdx",
+    "static-site-generator",
+    "vite",
+    "react",
+    "mermaid",
+    "openapi"
+  ]
 }

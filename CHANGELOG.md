@@ -7,8 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-02-10
+
 ### Added
 
+- `<OpenAPI>` MDX component (Scalar-based, lazy-loaded) for rendering API reference docs
+- `openapi.spec` config option with Zod validation
+- Theme token integration (Clearify CSS variables synced to Scalar)
+- Dark/light mode sync via `forceDarkModeState`
+- `virtual:clearify/openapi-spec` virtual module for build-time spec loading
+- Dev server hot reload on OpenAPI spec file changes
+- Auto-generated API pages from spec (catch-all route with Scalar pathRouting)
+- Sidebar auto-population from OpenAPI tags (with HTTP method badges)
+- Search index integration for API endpoints
+- NestJS preset via `clearify openapi:generate` CLI command
+
+## [1.0.0] - 2026-02-09
+
+### Added
+
+- SSG pre-rendering — each route gets its own `index.html` with full server-rendered content
+- SEO meta tags per page: `<title>`, `<meta description>`, `<link rel="canonical">`
+- Open Graph tags (`og:title`, `og:description`, `og:url`, `og:type`, `og:site_name`)
+- Twitter Card tags (`twitter:card`, `twitter:title`, `twitter:description`)
+- JSON-LD structured data (Article schema) per page
+- Auto-generated `robots.txt` with sitemap reference
+- Auto-generated `sitemap.xml` with section-aware filtering (draft sections excluded)
+- Client hydration of SSR-rendered pages (no flash of loading state)
 - Build-time Mermaid SVG rendering (`mermaid.strategy: 'build'`) — pre-renders diagrams via Puppeteer, eliminating ~2.1MB of Mermaid JS from the client bundle
 - `MermaidStatic` component for CSS-based dark/light theme toggling of pre-rendered diagrams
 - `MermaidRenderer` class with batch and persistent modes, file-based caching in `node_modules/.cache/clearify-mermaid/`
@@ -17,6 +42,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `virtual:clearify/mermaid-svgs` virtual module for serving pre-rendered SVG data
 - TypeScript declarations for all virtual modules (`src/types/virtual.d.ts`)
 - Puppeteer as optional peer dependency (only needed with `strategy: 'build'`)
+- Active page highlighting in sidebar (color + border indicator)
+- Scroll active sidebar item into view on page load
+- Breadcrumbs component
+- Icon support in sidebar navigation (frontmatter `icon` field rendered as emoji)
+- Logo rendering in header (light/dark variants with theme-aware swap)
+- Accordion / AccordionGroup component — expandable sections
+- Badge component — inline status labels
+- Tooltip component — hover information
+- Columns component — side-by-side layout (2-4 columns)
+- Frame component — styled image/content borders
+- Broken link detection via `clearify check` CLI command
+- Custom CSS injection (config `customCss` path)
+- Custom `<head>` tags (config `headTags`)
+- 404 page improvements (suggest similar pages via Levenshtein matching)
 - Multi-section support — pill-based section switcher in sidebar, per-section navigation and search
 - Unified `docs/public/` + `docs/internal/` folder structure (replaces separate `docs/` and `internal/`)
 - `--no-internal` flag for `clearify init` to skip internal docs section
@@ -89,6 +128,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Table of contents extracted from page headings
 - Responsive layout with mobile sidebar toggle
 
-[Unreleased]: https://github.com/marlinjai/clearify/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/marlinjai/clearify/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/marlinjai/clearify/compare/v1.0.0...v1.5.0
+[1.0.0]: https://github.com/marlinjai/clearify/compare/v0.2.0...v1.0.0
 [0.2.0]: https://github.com/marlinjai/clearify/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/marlinjai/clearify/releases/tag/v0.1.0
