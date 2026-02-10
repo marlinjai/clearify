@@ -5,3 +5,4 @@ export { Card, CardGroup } from './Card.js';
 export { CodeGroup } from './CodeGroup.js';
 export { Mermaid } from './Mermaid.js';
 export { MermaidStatic } from './MermaidStatic.js';
+export { OpenAPI } from './OpenAPI.js';

@@ -36,3 +36,8 @@ declare module 'virtual:clearify/mermaid-svgs' {
   const svgs: Record<string, { lightSvg: string; darkSvg: string }>;
   export default svgs;
 }
+
+declare module 'virtual:clearify/openapi-spec' {
+  const spec: Record<string, unknown> | null;
+  export default spec;
+}

@@ -6,6 +6,7 @@ import { Card, CardGroup } from './components/Card.js';
 import { CodeGroup } from './components/CodeGroup.js';
 import { Mermaid } from './components/Mermaid.js';
 import { MermaidStatic } from './components/MermaidStatic.js';
+import { OpenAPI } from './components/OpenAPI.js';
 import { CodeBlock } from './CodeBlock.js';
 
 export const mdxComponents = {
@@ -19,6 +20,7 @@ export const mdxComponents = {
   CodeGroup,
   Mermaid,
   MermaidStatic,
+  OpenAPI,
   // Override default pre element with CodeBlock
   pre: (props: React.HTMLAttributes<HTMLPreElement>) => <CodeBlock {...props} />,
 };

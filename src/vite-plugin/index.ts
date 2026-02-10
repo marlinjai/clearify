@@ -21,6 +21,9 @@ const RESOLVED_VIRTUAL_SEARCH_INDEX = '\0' + VIRTUAL_SEARCH_INDEX;
 const VIRTUAL_MERMAID_SVGS = 'virtual:clearify/mermaid-svgs';
 const RESOLVED_VIRTUAL_MERMAID_SVGS = '\0' + VIRTUAL_MERMAID_SVGS;
 
+const VIRTUAL_OPENAPI_SPEC = 'virtual:clearify/openapi-spec';
+const RESOLVED_VIRTUAL_OPENAPI_SPEC = '\0' + VIRTUAL_OPENAPI_SPEC;
+
 interface ClearifyPluginOptions {
   root?: string;
   mermaidSvgs?: Record<string, { lightSvg: string; darkSvg: string }>;
@@ -85,6 +88,36 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
     return files;
   }
 
+  function loadOpenAPISpec(): string {
+    const specPath = config.openapi?.spec;
+    if (!specPath) {
+      return 'export default null;';
+    }
+
+    const resolvedPath = resolve(userRoot, specPath);
+    if (!existsSync(resolvedPath)) {
+      console.warn(`  OpenAPI spec not found: ${resolvedPath}`);
+      return 'export default null;';
+    }
+
+    try {
+      const content = readFileSync(resolvedPath, 'utf-8');
+      const isYaml = /\.ya?ml$/i.test(resolvedPath);
+
+      if (isYaml) {
+        // For YAML specs, export the raw string — Scalar parses YAML natively
+        return `export default ${JSON.stringify(content)};`;
+      }
+
+      // For JSON specs, validate and export as a parsed object
+      JSON.parse(content);
+      return `export default ${content};`;
+    } catch (err) {
+      console.warn(`  Failed to load OpenAPI spec: ${resolvedPath}`, err instanceof Error ? err.message : err);
+      return 'export default null;';
+    }
+  }
+
   const mainPlugin: Plugin = {
     name: 'clearify',
     enforce: 'pre',
@@ -112,6 +145,7 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
       if (id === VIRTUAL_NAVIGATION) return RESOLVED_VIRTUAL_NAVIGATION;
       if (id === VIRTUAL_SEARCH_INDEX) return RESOLVED_VIRTUAL_SEARCH_INDEX;
       if (id === VIRTUAL_MERMAID_SVGS) return RESOLVED_VIRTUAL_MERMAID_SVGS;
+      if (id === VIRTUAL_OPENAPI_SPEC) return RESOLVED_VIRTUAL_OPENAPI_SPEC;
       return null;
     },
 
@@ -131,6 +165,9 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
       if (id === RESOLVED_VIRTUAL_MERMAID_SVGS) {
         return `export default ${JSON.stringify(mermaidSvgData)};`;
       }
+      if (id === RESOLVED_VIRTUAL_OPENAPI_SPEC) {
+        return loadOpenAPISpec();
+      }
       return null;
     },
 
@@ -144,6 +181,21 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
       const changelogPath = resolve(userRoot, 'CHANGELOG.md');
       if (existsSync(changelogPath)) {
         server.watcher.add(changelogPath);
+      }
+
+      // Watch OpenAPI spec file for live reload
+      if (config.openapi?.spec) {
+        const openapiPath = resolve(userRoot, config.openapi.spec);
+        if (existsSync(openapiPath)) {
+          server.watcher.add(openapiPath);
+        }
+        server.watcher.on('change', (changedPath: string) => {
+          if (changedPath === openapiPath) {
+            const specMod = server.moduleGraph.getModuleById(RESOLVED_VIRTUAL_OPENAPI_SPEC);
+            if (specMod) server.moduleGraph.invalidateModule(specMod);
+            server.ws.send({ type: 'full-reload' });
+          }
+        });
       }
 
       const mermaidStrategy = options.mermaidStrategy ?? config.mermaid?.strategy ?? 'client';

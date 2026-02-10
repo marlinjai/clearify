@@ -44,6 +44,10 @@ export interface ClearifyConfig {
   mermaid?: {
     strategy?: 'client' | 'build';
   };
+  openapi?: {
+    spec: string;
+    basePath?: string;
+  };
   links?: {
     github?: string;
     [key: string]: string | undefined;

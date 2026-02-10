@@ -27,6 +27,11 @@ const MermaidConfigSchema = z.object({
   strategy: z.enum(['client', 'build']).default('client'),
 }).default({ strategy: 'client' });
 
+const OpenAPIConfigSchema = z.object({
+  spec: z.string(),
+  basePath: z.string().default('/api'),
+}).optional();
+
 const ClearifyConfigSchema = z.object({
   name: z.string().default('Documentation'),
   docsDir: z.string().default('./docs'),
@@ -49,6 +54,7 @@ const ClearifyConfigSchema = z.object({
   navigation: z.array(NavigationItemSchema).nullable().default(null),
   exclude: z.array(z.string()).default([]),
   mermaid: MermaidConfigSchema,
+  openapi: OpenAPIConfigSchema,
   links: z.record(z.string(), z.string()).optional(),
 });
 

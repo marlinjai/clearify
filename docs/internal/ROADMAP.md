@@ -1,6 +1,6 @@
 # Clearify Roadmap
 
-> Last updated: 2026-02-09 — added build-time Mermaid rendering
+> Last updated: 2026-02-10 — added v1.5 OpenAPI/Scalar integration
 
 ## v0.2.0 — Done
 
@@ -57,10 +57,24 @@ The gap between v0.2 and v1.0 is **SEO and polish**. Everything below is needed 
 - [ ] Custom `<head>` tags (config `headTags`)
 - [ ] 404 page improvements (suggest similar pages)
 
+## v1.5 — API Documentation
+
+### OpenAPI Integration (Phase 1 — Done)
+- [x] `<OpenAPI>` MDX component (Scalar-based, lazy-loaded)
+- [x] `openapi.spec` config option with Zod validation
+- [x] Theme token integration (Clearify CSS variables → Scalar)
+- [x] Dark/light mode sync via `forceDarkModeState`
+- [x] `virtual:clearify/openapi-spec` virtual module for build-time spec loading
+- [x] Dev server hot reload on spec file changes
+
+### OpenAPI Phase 2 (Planned)
+- [ ] Auto-generated API pages from spec (remark plugin `remark-openapi.ts`)
+- [ ] Sidebar auto-population from OpenAPI tags
+- [ ] NestJS preset (auto spec generation as pre-build step)
+
 ## v2.0 — Power Features
 
-### API Documentation
-- [ ] OpenAPI spec rendering — auto-generate endpoint pages from spec file
+### API Documentation (Advanced)
 - [ ] API playground — interactive request builder in docs
 - [ ] SDK code example generation (cURL, Python, JS, Go)
 - [ ] Request/response schema display with nested types
