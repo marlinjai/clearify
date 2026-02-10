@@ -23,7 +23,14 @@ interface RouteEntry {
 export async function render(url: string): Promise<{ html: string; head: HeadData }> {
   // Find the matching route and pre-load its module
   const allRoutes = routes as RouteEntry[];
-  const matchedRoute = allRoutes.find((r) => r.path === url);
+  // Prefer exact match over catch-all
+  const matchedRoute =
+    allRoutes.find((r) => r.path === url) ??
+    allRoutes.find((r) => {
+      if (!r.path.endsWith('/*')) return false;
+      const base = r.path.slice(0, -2);
+      return url === base || url.startsWith(base + '/');
+    });
 
   let Component: React.ComponentType = () => null;
   let fm: { title?: string; description?: string } = {};
@@ -53,7 +60,7 @@ export async function render(url: string): Promise<{ html: string; head: HeadDat
           <Layout config={config} sections={sections}>
             <Routes>
               <Route
-                path={url}
+                path={matchedRoute?.path ?? url}
                 element={
                   <article>
                     <Head title={fm.title} description={fm.description} url={url} />

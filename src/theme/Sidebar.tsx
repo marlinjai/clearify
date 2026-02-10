@@ -294,7 +294,25 @@ function NavItem({ item, depth, onNavigate }: { item: NavigationItem; depth: num
         />
       )}
       {item.icon && <span style={{ flexShrink: 0, fontSize: '1rem', lineHeight: 1 }}>{item.icon}</span>}
-      {item.label}
+      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.label}</span>
+      {item.badge && (
+        <span style={{
+          fontSize: '0.5625rem',
+          fontWeight: 700,
+          fontFamily: 'var(--font-mono)',
+          padding: '0.0625rem 0.3rem',
+          borderRadius: '3px',
+          backgroundColor: item.badgeColor ?? 'var(--clearify-primary)',
+          color: '#fff',
+          marginLeft: 'auto',
+          flexShrink: 0,
+          textTransform: 'uppercase',
+          letterSpacing: '0.02em',
+          lineHeight: '1.4',
+        }}>
+          {item.badge}
+        </span>
+      )}
 
       <style>{`
         .clearify-nav-link:hover {

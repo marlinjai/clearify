@@ -293,30 +293,36 @@ export async function buildSite() {
   }
 
   for (const route of allRoutes) {
+    // For catch-all routes (e.g., /api/*), only pre-render the base path.
+    // Scalar handles client-side routing for individual endpoints.
+    const renderPath = route.path.endsWith('/*')
+      ? route.path.slice(0, -2)
+      : route.path;
+
     try {
-      const { html, head } = await render(route.path);
+      const { html, head } = await render(renderPath);
       const page = injectSSR(template, {
         html,
         title: head.title,
         description: head.description,
-        url: route.path,
+        url: renderPath,
         siteName: head.siteName,
         siteUrl: config.siteUrl,
         customCss: resolvedCustomCssHref,
         headTags: config.headTags,
       });
 
-      if (route.path === '/') {
+      if (renderPath === '/') {
         writeFileSync(resolve(outDir, 'index.html'), page);
       } else {
-        const dir = resolve(outDir, route.path.replace(/^\//, ''));
+        const dir = resolve(outDir, renderPath.replace(/^\//, ''));
         mkdirSync(dir, { recursive: true });
         writeFileSync(resolve(dir, 'index.html'), page);
       }
 
-      console.log(`    Pre-rendered: ${route.path}`);
+      console.log(`    Pre-rendered: ${renderPath}`);
     } catch (err) {
-      console.warn(`    Failed to pre-render ${route.path}:`, err instanceof Error ? err.message : err);
+      console.warn(`    Failed to pre-render ${renderPath}:`, err instanceof Error ? err.message : err);
     }
   }
 
@@ -329,9 +335,9 @@ export async function buildSite() {
   const sitemapSections = new Set(
     productionSections.filter((s) => s.sitemap).map((s) => s.id)
   );
-  const sitemapRoutes = allRoutes.filter(
-    (r) => !r.sectionId || sitemapSections.has(r.sectionId)
-  );
+  const sitemapRoutes = allRoutes
+    .filter((r) => !r.sectionId || sitemapSections.has(r.sectionId))
+    .map((r) => ({ ...r, path: r.path.endsWith('/*') ? r.path.slice(0, -2) : r.path }));
   const sitemap = generateSitemap(sitemapRoutes, config.siteUrl);
   writeFileSync(resolve(outDir, 'sitemap.xml'), sitemap);
   console.log('  Generated sitemap.xml');

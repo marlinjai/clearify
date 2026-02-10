@@ -67,10 +67,11 @@ The gap between v0.2 and v1.0 is **SEO and polish**. Everything below is needed 
 - [x] `virtual:clearify/openapi-spec` virtual module for build-time spec loading
 - [x] Dev server hot reload on spec file changes
 
-### OpenAPI Phase 2 (Planned)
-- [ ] Auto-generated API pages from spec (remark plugin `remark-openapi.ts`)
-- [ ] Sidebar auto-population from OpenAPI tags
-- [ ] NestJS preset (auto spec generation as pre-build step)
+### OpenAPI Phase 2 — Done
+- [x] Auto-generated API pages from spec (catch-all route with Scalar pathRouting)
+- [x] Sidebar auto-population from OpenAPI tags (with HTTP method badges)
+- [x] Search index integration for API endpoints
+- [x] NestJS preset (`clearify openapi:generate` CLI command)
 
 ## v2.0 — Power Features
 

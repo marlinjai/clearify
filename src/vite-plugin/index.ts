@@ -3,8 +3,9 @@ import { resolve } from 'path';
 import { existsSync, readFileSync } from 'fs';
 import { loadUserConfig, resolveConfig, resolveSections } from '../core/config.js';
 import { buildSectionData, type SectionData } from '../core/navigation.js';
-import type { ClearifyConfig, ResolvedSection, RouteEntry, SectionNavigation } from '../types/index.js';
+import type { ClearifyConfig, ResolvedSection, RouteEntry, SectionNavigation, NavigationItem } from '../types/index.js';
 import type { SearchEntry } from '../core/search.js';
+import { parseOpenAPISpec } from '../core/openapi-parser.js';
 
 const VIRTUAL_CONFIG = 'virtual:clearify/config';
 const RESOLVED_VIRTUAL_CONFIG = '\0' + VIRTUAL_CONFIG;
@@ -60,6 +61,75 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
     allSearchEntries = sectionDataList.flatMap((sd) =>
       sd.searchEntries.map((entry) => ({ ...entry, id: idCounter++ }))
     );
+
+    // Generate OpenAPI routes + navigation if configured
+    if (config.openapi?.spec && config.openapi.generatePages !== false) {
+      const basePath = config.openapi.basePath ?? '/api';
+      const specData = loadOpenAPISpecData();
+
+      if (specData) {
+        const tagGroups = parseOpenAPISpec(specData);
+
+        const METHOD_COLORS: Record<string, string> = {
+          GET: '#22c55e',
+          POST: '#3b82f6',
+          PUT: '#f59e0b',
+          DELETE: '#ef4444',
+          PATCH: '#8b5cf6',
+        };
+
+        // Helper to build a Scalar-compatible hash fragment for an operation
+        function opAnchor(tag: string, method: string, opPath: string): string {
+          // Scalar's pathRouting uses: /basePath#tag/{tag}/{method}{path}
+          const slug = `${method.toLowerCase()}${opPath.replace(/[{}]/g, '')}`;
+          return `${basePath}#tag/${encodeURIComponent(tag)}/${slug}`;
+        }
+
+        // Build navigation items from tag groups
+        const navItems: NavigationItem[] = tagGroups.map((group) => ({
+          label: group.tag,
+          children: group.operations.map((op) => ({
+            label: `${op.summary}`,
+            path: opAnchor(group.tag, op.method, op.path),
+            badge: op.method,
+            badgeColor: METHOD_COLORS[op.method] ?? 'var(--clearify-primary)',
+          })),
+        }));
+
+        // Add API section navigation
+        const apiNavSection: SectionNavigation = {
+          id: 'api',
+          label: 'API Reference',
+          basePath,
+          navigation: navItems,
+        };
+        allSectionNavigations.push(apiNavSection);
+
+        // Add catch-all route with componentPath
+        allRoutes.push({
+          path: `${basePath}/*`,
+          filePath: '',
+          componentPath: '@clearify/theme/components/OpenAPIPage',
+          frontmatter: { title: 'API Reference', description: 'API documentation' },
+          sectionId: 'api',
+        });
+
+        // Add search entries for operations
+        for (const group of tagGroups) {
+          for (const op of group.operations) {
+            allSearchEntries.push({
+              id: idCounter++,
+              path: opAnchor(group.tag, op.method, op.path),
+              title: `${op.method} ${op.path}`,
+              description: op.summary,
+              content: `${op.method} ${op.path} - ${op.summary}`,
+              sectionId: 'api',
+              sectionLabel: 'API Reference',
+            });
+          }
+        }
+      }
+    }
   }
 
   function generateRoutesCode(): string {
@@ -68,7 +138,11 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
 
     allRoutes.forEach((route, i) => {
       const varName = `Route${i}`;
-      imports.push(`const ${varName} = () => import(/* @vite-ignore */ '${route.filePath}');`);
+      if (route.componentPath) {
+        imports.push(`const ${varName} = () => import('${route.componentPath}');`);
+      } else {
+        imports.push(`const ${varName} = () => import(/* @vite-ignore */ '${route.filePath}');`);
+      }
       routeEntries.push(
         `  { path: ${JSON.stringify(route.path)}, component: ${varName}, frontmatter: ${JSON.stringify(route.frontmatter)} }`
       );
@@ -86,6 +160,44 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
       }
     }
     return files;
+  }
+
+  let cachedSpecData: Record<string, any> | null = null;
+  let specDataInitialized = false;
+
+  function loadOpenAPISpecData(): Record<string, any> | null {
+    if (specDataInitialized) return cachedSpecData;
+    specDataInitialized = true;
+
+    const specPath = config.openapi?.spec;
+    if (!specPath) { cachedSpecData = null; return null; }
+
+    const resolvedPath = resolve(userRoot, specPath);
+    if (!existsSync(resolvedPath)) { cachedSpecData = null; return null; }
+
+    try {
+      const content = readFileSync(resolvedPath, 'utf-8');
+      const isYaml = /\.ya?ml$/i.test(resolvedPath);
+
+      if (isYaml) {
+        // YAML specs: try parsing as JSON first (some .yaml files are valid JSON),
+        // otherwise warn that js-yaml is needed
+        try {
+          cachedSpecData = JSON.parse(content);
+          return cachedSpecData;
+        } catch {
+          console.warn('  YAML OpenAPI specs require js-yaml for page generation. Install it or use a JSON spec.');
+          cachedSpecData = null;
+          return null;
+        }
+      }
+
+      cachedSpecData = JSON.parse(content);
+      return cachedSpecData;
+    } catch {
+      cachedSpecData = null;
+      return null;
+    }
   }
 
   function loadOpenAPISpec(): string {
@@ -191,8 +303,19 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
         }
         server.watcher.on('change', (changedPath: string) => {
           if (changedPath === openapiPath) {
+            // Clear cached spec data so navigation is rebuilt
+            specDataInitialized = false;
+            cachedSpecData = null;
+            refreshDocs();
+
             const specMod = server.moduleGraph.getModuleById(RESOLVED_VIRTUAL_OPENAPI_SPEC);
             if (specMod) server.moduleGraph.invalidateModule(specMod);
+            const routesMod = server.moduleGraph.getModuleById(RESOLVED_VIRTUAL_ROUTES);
+            if (routesMod) server.moduleGraph.invalidateModule(routesMod);
+            const navMod = server.moduleGraph.getModuleById(RESOLVED_VIRTUAL_NAVIGATION);
+            if (navMod) server.moduleGraph.invalidateModule(navMod);
+            const searchMod = server.moduleGraph.getModuleById(RESOLVED_VIRTUAL_SEARCH_INDEX);
+            if (searchMod) server.moduleGraph.invalidateModule(searchMod);
             server.ws.send({ type: 'full-reload' });
           }
         });

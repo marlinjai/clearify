@@ -47,6 +47,7 @@ export interface ClearifyConfig {
   openapi?: {
     spec: string;
     basePath?: string;
+    generatePages?: boolean;
   };
   links?: {
     github?: string;
@@ -60,6 +61,8 @@ export interface NavigationItem {
   label: string;
   path?: string;
   icon?: string;
+  badge?: string;
+  badgeColor?: string;
   children?: NavigationItem[];
 }
 
@@ -75,6 +78,7 @@ export interface RouteEntry {
   filePath: string;
   frontmatter: PageFrontmatter;
   sectionId?: string;
+  componentPath?: string;
 }
 
 export function defineConfig(config: Partial<ClearifyConfig>): Partial<ClearifyConfig> {

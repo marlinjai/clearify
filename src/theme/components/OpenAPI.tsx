@@ -15,6 +15,8 @@ interface OpenAPIProps {
   hideSearch?: boolean;
   /** Layout style: 'modern' or 'classic' */
   layout?: 'modern' | 'classic';
+  /** Enable Scalar's path-based routing. Pass { basePath: '/api' } or true for default '/api'. */
+  pathRouting?: { basePath: string } | boolean;
 }
 
 // SSR guard: Scalar requires DOM
@@ -33,6 +35,7 @@ export function OpenAPI({
   hideDarkModeToggle = true,
   hideSearch = true,
   layout = 'modern',
+  pathRouting,
 }: OpenAPIProps) {
   const { theme } = useTheme();
 
@@ -52,6 +55,12 @@ export function OpenAPI({
       customCss: SCALAR_CUSTOM_CSS,
     };
 
+    if (pathRouting) {
+      config.pathRouting = pathRouting === true
+        ? { basePath: '/api' }
+        : pathRouting;
+    }
+
     if (url) {
       config.url = url;
     } else if (typeof resolvedSpec === 'string') {
@@ -61,7 +70,7 @@ export function OpenAPI({
     }
 
     return config;
-  }, [resolvedSpec, url, theme, hideSidebar, hideDarkModeToggle, hideSearch, layout]);
+  }, [resolvedSpec, url, theme, hideSidebar, hideDarkModeToggle, hideSearch, layout, pathRouting]);
 
   // No spec provided via props, config, or URL
   if (!url && !resolvedSpec) {

@@ -11,6 +11,8 @@ const NavigationItemSchema: z.ZodType<any> = z.lazy(() =>
     label: z.string(),
     path: z.string().optional(),
     icon: z.string().optional(),
+    badge: z.string().optional(),
+    badgeColor: z.string().optional(),
     children: z.array(NavigationItemSchema).optional(),
   })
 );
@@ -31,6 +33,7 @@ const MermaidConfigSchema = z.object({
 const OpenAPIConfigSchema = z.object({
   spec: z.string(),
   basePath: z.string().default('/api'),
+  generatePages: z.boolean().default(true),
 }).optional();
 
 const ClearifyConfigSchema = z.object({

@@ -40,6 +40,24 @@ cli
     await checkLinks();
   });
 
+cli
+  .command('openapi:generate', 'Generate OpenAPI spec from NestJS app')
+  .option('--module <path>', 'Path to NestJS app module', { default: './src/app.module.ts' })
+  .option('--output <path>', 'Output path for spec file', { default: './docs/openapi.json' })
+  .option('--title <title>', 'API documentation title')
+  .option('--description <desc>', 'API documentation description')
+  .option('--version <version>', 'API version')
+  .action(async (options: { module?: string; output?: string; title?: string; description?: string; version?: string }) => {
+    const { generateSpec } = await import('../presets/nestjs.js');
+    await generateSpec({
+      appModule: options.module,
+      output: options.output,
+      title: options.title,
+      description: options.description,
+      version: options.version,
+    });
+  });
+
 cli.help();
 cli.version('0.2.0');
 cli.parse();
