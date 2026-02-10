@@ -16,6 +16,7 @@ import { buildSectionData, type SectionData } from '../core/navigation.js';
 import { remarkMermaidToComponent, setPreRenderedMermaidSvgs, clearPreRenderedMermaidSvgs } from '../core/remark-mermaid.js';
 import { mermaidContentHash } from '../core/mermaid-utils.js';
 import type { RouteEntry } from '../types/index.js';
+import { parseOpenAPISpec } from '../core/openapi-parser.js';
 
 function findPackageRoot(): string {
   let dir = fileURLToPath(new URL('.', import.meta.url));
@@ -176,6 +177,21 @@ export async function buildSite() {
   // Merge all routes for pre-rendering
   const allRoutes: RouteEntry[] = sectionDataList.flatMap((sd) => sd.routes);
 
+  // Add OpenAPI catch-all route for pre-rendering if configured
+  if (config.openapi?.spec && config.openapi.generatePages !== false) {
+    const basePath = config.openapi.basePath ?? '/api';
+    const specPath = resolve(userRoot, config.openapi.spec);
+    if (existsSync(specPath)) {
+      allRoutes.push({
+        path: `${basePath}/*`,
+        filePath: '',
+        componentPath: '@clearify/theme/components/OpenAPIPage',
+        frontmatter: { title: 'API Reference', description: 'API documentation' },
+        sectionId: 'api',
+      });
+    }
+  }
+
   const mermaidStrategy = config.mermaid?.strategy ?? 'client';
   let mermaidSvgs: Record<string, { lightSvg: string; darkSvg: string }> | undefined;
 
@@ -335,6 +351,10 @@ export async function buildSite() {
   const sitemapSections = new Set(
     productionSections.filter((s) => s.sitemap).map((s) => s.id)
   );
+  // Include OpenAPI section in sitemap
+  if (config.openapi?.spec && config.openapi.generatePages !== false) {
+    sitemapSections.add('api');
+  }
   const sitemapRoutes = allRoutes
     .filter((r) => !r.sectionId || sitemapSections.has(r.sectionId))
     .map((r) => ({ ...r, path: r.path.endsWith('/*') ? r.path.slice(0, -2) : r.path }));
