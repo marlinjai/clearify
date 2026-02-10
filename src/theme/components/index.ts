@@ -1,3 +1,4 @@
+export { Breadcrumbs } from './Breadcrumbs.js';
 export { Callout } from './Callout.js';
 export { Tabs, Tab } from './Tabs.js';
 export { Steps, Step } from './Steps.js';
@@ -6,3 +7,8 @@ export { CodeGroup } from './CodeGroup.js';
 export { Mermaid } from './Mermaid.js';
 export { MermaidStatic } from './MermaidStatic.js';
 export { OpenAPI } from './OpenAPI.js';
+export { Accordion, AccordionGroup } from './Accordion.js';
+export { Badge } from './Badge.js';
+export { Tooltip } from './Tooltip.js';
+export { Columns, Column } from './Columns.js';
+export { Frame } from './Frame.js';

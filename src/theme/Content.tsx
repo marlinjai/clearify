@@ -1,4 +1,5 @@
 import React from 'react';
+import { Breadcrumbs } from './components/Breadcrumbs.js';
 
 interface ContentProps {
   children: React.ReactNode;
@@ -16,6 +17,7 @@ export function Content({ children }: ContentProps) {
         animation: 'clearify-fade-in 0.3s ease-out',
       }}
     >
+      <Breadcrumbs />
       {children}
 
       <style>{`

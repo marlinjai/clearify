@@ -52,11 +52,14 @@ export interface ClearifyConfig {
     github?: string;
     [key: string]: string | undefined;
   };
+  customCss?: string;
+  headTags?: string[];
 }
 
 export interface NavigationItem {
   label: string;
   path?: string;
+  icon?: string;
   children?: NavigationItem[];
 }
 

@@ -10,6 +10,7 @@ const NavigationItemSchema: z.ZodType<any> = z.lazy(() =>
   z.object({
     label: z.string(),
     path: z.string().optional(),
+    icon: z.string().optional(),
     children: z.array(NavigationItemSchema).optional(),
   })
 );
@@ -56,6 +57,8 @@ const ClearifyConfigSchema = z.object({
   mermaid: MermaidConfigSchema,
   openapi: OpenAPIConfigSchema,
   links: z.record(z.string(), z.string()).optional(),
+  customCss: z.string().optional(),
+  headTags: z.array(z.string()).optional(),
 });
 
 export const defaultConfig: ClearifyConfig = {

@@ -7,7 +7,8 @@ import remarkMdxFrontmatter from 'remark-mdx-frontmatter';
 import rehypeShiki from '@shikijs/rehype';
 import tailwindcss from '@tailwindcss/vite';
 import { resolve } from 'path';
-import { writeFileSync, readFileSync, existsSync, mkdirSync, rmSync } from 'fs';
+import { writeFileSync, readFileSync, existsSync, mkdirSync, rmSync, copyFileSync } from 'fs';
+import { basename } from 'path';
 import { fileURLToPath } from 'url';
 import { clearifyPlugin } from '../vite-plugin/index.js';
 import { loadUserConfig, resolveConfig, resolveSections } from '../core/config.js';
@@ -70,6 +71,8 @@ function injectSSR(template: string, opts: {
   url: string;
   siteName: string;
   siteUrl?: string;
+  customCss?: string;
+  headTags?: string[];
 }): string {
   const siteBase = opts.siteUrl?.replace(/\/$/, '') ?? '';
   const canonical = siteBase ? `${siteBase}${opts.url}` : opts.url;
@@ -96,6 +99,8 @@ function injectSSR(template: string, opts: {
       description: opts.description,
       url: canonical,
     })}</script>`,
+    ...(opts.customCss ? [`<link rel="stylesheet" href="${escapeHtml(opts.customCss)}" />`] : []),
+    ...(opts.headTags ?? []),
   ].join('\n    ');
 
   return template
@@ -276,6 +281,17 @@ export async function buildSite() {
   const ssrModule = await import(resolve(ssrOutDir, 'entry-server.js'));
   const { render } = ssrModule;
 
+  // Copy custom CSS to output directory if configured
+  let resolvedCustomCssHref: string | undefined;
+  if (config.customCss) {
+    const cssSource = resolve(userRoot, config.customCss);
+    if (existsSync(cssSource)) {
+      const cssFilename = basename(cssSource);
+      copyFileSync(cssSource, resolve(outDir, cssFilename));
+      resolvedCustomCssHref = '/' + cssFilename;
+    }
+  }
+
   for (const route of allRoutes) {
     try {
       const { html, head } = await render(route.path);
@@ -286,6 +302,8 @@ export async function buildSite() {
         url: route.path,
         siteName: head.siteName,
         siteUrl: config.siteUrl,
+        customCss: resolvedCustomCssHref,
+        headTags: config.headTags,
       });
 
       if (route.path === '/') {

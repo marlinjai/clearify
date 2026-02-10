@@ -346,5 +346,28 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
     },
   };
 
-  return [mainPlugin];
+  const headInjectionPlugin: Plugin = {
+    name: 'clearify-head-injection',
+    transformIndexHtml(html) {
+      const tags: string[] = [];
+
+      if (config.customCss) {
+        const cssPath = resolve(userRoot, config.customCss);
+        // In dev, Vite serves files from the FS; use /@fs/ prefix for absolute paths
+        const href = `/@fs/${cssPath}`;
+        tags.push(`<link rel="stylesheet" href="${href}" />`);
+      }
+
+      if (config.headTags && config.headTags.length > 0) {
+        tags.push(...config.headTags);
+      }
+
+      if (tags.length === 0) return html;
+
+      // Inject before closing </head>
+      return html.replace('</head>', `    ${tags.join('\n    ')}\n  </head>`);
+    },
+  };
+
+  return [mainPlugin, headInjectionPlugin];
 }

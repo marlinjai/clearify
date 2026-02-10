@@ -6,10 +6,11 @@ import { Search } from './Search.js';
 interface HeaderProps {
   name: string;
   links?: { github?: string; [key: string]: string | undefined };
+  logo?: { light?: string; dark?: string };
   onMenuToggle: () => void;
 }
 
-export function Header({ name, links, onMenuToggle }: HeaderProps) {
+export function Header({ name, links, logo, onMenuToggle }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
 
   return (
@@ -66,22 +67,30 @@ export function Header({ name, links, onMenuToggle }: HeaderProps) {
           gap: '0.5rem',
         }}
       >
-        <span
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 24,
-            height: 24,
-            borderRadius: 'var(--clearify-radius-sm)',
-            background: 'var(--clearify-gradient)',
-            color: '#fff',
-            fontSize: '0.6875rem',
-            fontWeight: 800,
-          }}
-        >
-          {name.charAt(0).toUpperCase()}
-        </span>
+        {logo && (logo.light || logo.dark) ? (
+          <img
+            src={theme === 'dark' && logo.dark ? logo.dark : logo.light || logo.dark}
+            alt={name}
+            style={{ maxHeight: 28, width: 'auto', display: 'block' }}
+          />
+        ) : (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 24,
+              height: 24,
+              borderRadius: 'var(--clearify-radius-sm)',
+              background: 'var(--clearify-gradient)',
+              color: '#fff',
+              fontSize: '0.6875rem',
+              fontWeight: 800,
+            }}
+          >
+            {name.charAt(0).toUpperCase()}
+          </span>
+        )}
         {name}
       </Link>
 

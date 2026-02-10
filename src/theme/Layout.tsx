@@ -25,6 +25,7 @@ export function Layout({ config, sections, children }: LayoutProps) {
         <Header
           name={config.name}
           links={config.links}
+          logo={config.logo}
           onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
         />
         <div style={{ display: 'flex', flex: 1 }}>

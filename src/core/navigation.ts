@@ -90,7 +90,9 @@ export function buildNavigation(docs: DocFile[], basePath: string = '/'): Naviga
   for (const doc of rootFiles) {
     // Skip the section index page
     if (doc.routePath === rootDir || doc.routePath === '/') continue;
-    nav.push({ label: doc.frontmatter.title!, path: doc.routePath });
+    const item: NavigationItem = { label: doc.frontmatter.title!, path: doc.routePath };
+    if (doc.frontmatter.icon) item.icon = doc.frontmatter.icon;
+    nav.push(item);
   }
 
   // Subdirectory groups (all directories that aren't the section root)
@@ -98,10 +100,11 @@ export function buildNavigation(docs: DocFile[], basePath: string = '/'): Naviga
   for (const dir of dirs) {
     const files = groups.get(dir)!;
     const label = toTitleCase(basename(dir));
-    const children: NavigationItem[] = files.map((doc) => ({
-      label: doc.frontmatter.title!,
-      path: doc.routePath,
-    }));
+    const children: NavigationItem[] = files.map((doc) => {
+      const child: NavigationItem = { label: doc.frontmatter.title!, path: doc.routePath };
+      if (doc.frontmatter.icon) child.icon = doc.frontmatter.icon;
+      return child;
+    });
 
     nav.push({ label, children });
   }

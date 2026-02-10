@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import clsx from 'clsx';
 import type { NavigationItem, SectionNavigation } from '../types/index.js';
@@ -100,6 +100,21 @@ export function Sidebar({ sections, open, onClose }: SidebarProps) {
     }
   }, [location.pathname, sections, isSectionData]);
 
+  const sidebarRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const sidebar = sidebarRef.current;
+    if (!sidebar) return;
+    // Small delay to allow render to complete
+    const timer = setTimeout(() => {
+      const activeEl = sidebar.querySelector('[data-active="true"]');
+      if (activeEl) {
+        activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [location.pathname]);
+
   const activeSection = isSectionData
     ? (sections.find((s) => s.id === selectedSectionId) ?? sections[0])
     : null;
@@ -126,6 +141,7 @@ export function Sidebar({ sections, open, onClose }: SidebarProps) {
       )}
 
       <aside
+        ref={sidebarRef}
         style={{
           width: 'var(--clearify-sidebar-width)',
           flexShrink: 0,
@@ -241,12 +257,15 @@ function NavItem({ item, depth, onNavigate }: { item: NavigationItem; depth: num
   return (
     <Link
       to={item.path!}
+      data-active={isActive ? 'true' : undefined}
       onClick={() => {
         onNavigate();
         window.scrollTo(0, 0);
       }}
       style={{
-        display: 'block',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.375rem',
         padding: '0.4rem 0.75rem',
         paddingLeft: `${0.75 + depth * 0.75}rem`,
         fontSize: '0.8125rem',
@@ -274,6 +293,7 @@ function NavItem({ item, depth, onNavigate }: { item: NavigationItem; depth: num
           }}
         />
       )}
+      {item.icon && <span style={{ flexShrink: 0, fontSize: '1rem', lineHeight: 1 }}>{item.icon}</span>}
       {item.label}
 
       <style>{`
