@@ -466,6 +466,34 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
           server.ws.send({ type: 'full-reload' });
         }
       });
+
+      // Return post-middleware for SPA fallback on all known route prefixes.
+      // This runs after Vite's built-in static file handling, ensuring that
+      // direct navigation / page refresh on deep links (e.g. /api, /internal/*)
+      // serves the SPA index.html so React Router can handle them client-side.
+      return () => {
+        server.middlewares.use((req, _res, next) => {
+          if (req.method !== 'GET' || !req.headers.accept?.includes('text/html')) {
+            return next();
+          }
+          const url = req.url?.split('?')[0] ?? '';
+
+          // Check section basePaths (skip root "/" to avoid catching everything)
+          const sectionMatch = visibleSections.some(
+            (s) => s.basePath !== '/' && url.startsWith(s.basePath)
+          );
+
+          // Check OpenAPI basePath
+          const apiBasePath = config.openapi?.basePath ?? '/api';
+          const apiMatch = config.openapi?.spec && url.startsWith(apiBasePath);
+
+          if (sectionMatch || apiMatch) {
+            req.url = '/index.html';
+          }
+
+          next();
+        });
+      };
     },
   };
 
