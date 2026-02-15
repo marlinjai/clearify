@@ -361,3 +361,131 @@ a:hover {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
+
+/* ─── OpenAPI container isolation ─── */
+/* Remove Content wrapper constraints when rendering API reference */
+.clearify-prose:has(.clearify-openapi-page) {
+  max-width: none !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* Prevent clearify-prose typography and global styles from bleeding into Scalar */
+.clearify-openapi-container h1,
+.clearify-openapi-container h2,
+.clearify-openapi-container h3,
+.clearify-openapi-container h4 {
+  font-size: inherit;
+  font-weight: inherit;
+  margin: initial;
+  padding: initial;
+  line-height: inherit;
+  letter-spacing: normal;
+  color: inherit;
+  border-bottom: none;
+  text-transform: none;
+}
+
+.clearify-openapi-container p {
+  margin: initial;
+  color: inherit;
+}
+
+.clearify-openapi-container ul,
+.clearify-openapi-container ol {
+  margin: initial;
+  padding: initial;
+  color: inherit;
+}
+
+.clearify-openapi-container li {
+  margin: initial;
+}
+
+.clearify-openapi-container img {
+  max-width: initial;
+  border-radius: initial;
+  border: initial;
+}
+
+.clearify-openapi-container code {
+  background-color: initial;
+  padding: initial;
+  border-radius: initial;
+  font-size: inherit;
+  font-family: inherit;
+  font-weight: inherit;
+  color: inherit;
+  border: initial;
+}
+
+.clearify-openapi-container pre {
+  background-color: initial;
+  border: initial;
+  border-radius: initial;
+  padding: initial;
+  overflow-x: initial;
+  margin: initial;
+  font-size: inherit;
+  line-height: inherit;
+  font-family: inherit;
+}
+
+.clearify-openapi-container table {
+  width: initial;
+  border-collapse: initial;
+  border-spacing: initial;
+  margin: initial;
+  font-size: inherit;
+  border-radius: initial;
+  overflow: initial;
+  border: initial;
+}
+
+.clearify-openapi-container th,
+.clearify-openapi-container td {
+  padding: initial;
+  text-align: initial;
+  border-bottom: initial;
+}
+
+.clearify-openapi-container th {
+  background-color: initial;
+  font-weight: inherit;
+  font-size: inherit;
+  text-transform: initial;
+  letter-spacing: initial;
+  color: inherit;
+}
+
+.clearify-openapi-container strong {
+  font-weight: inherit;
+  color: inherit;
+}
+
+.clearify-openapi-container blockquote {
+  border-left: initial;
+  padding: initial;
+  color: inherit;
+  margin: initial;
+  background: initial;
+  border-radius: initial;
+  font-style: initial;
+}
+
+.clearify-openapi-container hr {
+  border: initial;
+  border-top: initial;
+  margin: initial;
+}
+
+.clearify-openapi-container a {
+  color: inherit;
+  text-decoration: initial;
+  transition: initial;
+}
+
+.clearify-openapi-container a:hover {
+  color: inherit;
+  text-decoration: initial;
+}
