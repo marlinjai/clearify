@@ -38,6 +38,14 @@ function findActiveSection(pathname: string, sections: SectionNavigation[]): str
   return bestMatch;
 }
 
+function collectGroupKeys(items: NavigationItem[], prefix = ''): string[] {
+  return items.flatMap((item) => {
+    if (!item.children) return [];
+    const key = prefix ? `${prefix}/${item.label}` : item.label;
+    return [key, ...collectGroupKeys(item.children, key)];
+  });
+}
+
 function SectionSwitcher({
   sections,
   activeId,
@@ -121,6 +129,32 @@ export function Sidebar({ sections, open, onClose }: SidebarProps) {
   const navigation = legacyNavigation ?? activeSection?.navigation ?? [];
   const showSwitcher = isSectionData && sections.length > 1;
 
+  // Centralized expansion state
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => new Set(collectGroupKeys(navigation)));
+
+  // Re-expand all when section changes
+  useEffect(() => {
+    setExpandedGroups(new Set(collectGroupKeys(navigation)));
+  }, [selectedSectionId]);
+
+  const allGroupKeys = collectGroupKeys(navigation);
+  const hasCollapsibleGroups = allGroupKeys.length >= 2;
+
+  const handleToggleGroup = (key: string) => {
+    setExpandedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  };
+
+  const handleExpandAll = () => setExpandedGroups(new Set(allGroupKeys));
+  const handleCollapseAll = () => setExpandedGroups(new Set());
+
   return (
     <>
       {/* Mobile overlay */}
@@ -163,9 +197,86 @@ export function Sidebar({ sections, open, onClose }: SidebarProps) {
             onSelect={setSelectedSectionId}
           />
         )}
+        {hasCollapsibleGroups && (
+          <div style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: '0.25rem',
+            padding: '0.25rem 0.75rem',
+          }}>
+            <button
+              onClick={handleExpandAll}
+              title="Expand all groups"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 24,
+                height: 24,
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: 'var(--clearify-text-tertiary)',
+                borderRadius: 'var(--clearify-radius-sm)',
+                transition: 'color 0.15s, background-color 0.15s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'var(--clearify-text-secondary)';
+                e.currentTarget.style.backgroundColor = 'var(--clearify-bg-secondary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'var(--clearify-text-tertiary)';
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="7 8 12 3 17 8" />
+                <polyline points="7 16 12 21 17 16" />
+              </svg>
+            </button>
+            <button
+              onClick={handleCollapseAll}
+              title="Collapse all groups"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 24,
+                height: 24,
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: 'var(--clearify-text-tertiary)',
+                borderRadius: 'var(--clearify-radius-sm)',
+                transition: 'color 0.15s, background-color 0.15s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'var(--clearify-text-secondary)';
+                e.currentTarget.style.backgroundColor = 'var(--clearify-bg-secondary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'var(--clearify-text-tertiary)';
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="7 3 12 8 17 3" />
+                <polyline points="7 21 12 16 17 21" />
+              </svg>
+            </button>
+          </div>
+        )}
         <nav style={{ padding: '0 0.5rem' }}>
           {navigation.map((item, i) => (
-            <NavItem key={i} item={item} depth={0} onNavigate={onClose} />
+            <NavItem
+              key={i}
+              item={item}
+              depth={0}
+              onNavigate={onClose}
+              expandedGroups={expandedGroups}
+              onToggleGroup={handleToggleGroup}
+              groupKeyPrefix=""
+            />
           ))}
         </nav>
       </aside>
@@ -193,16 +304,27 @@ export function Sidebar({ sections, open, onClose }: SidebarProps) {
   );
 }
 
-function NavItem({ item, depth, onNavigate }: { item: NavigationItem; depth: number; onNavigate: () => void }) {
+interface NavItemProps {
+  item: NavigationItem;
+  depth: number;
+  onNavigate: () => void;
+  expandedGroups: Set<string>;
+  onToggleGroup: (key: string) => void;
+  groupKeyPrefix: string;
+}
+
+function NavItem({ item, depth, onNavigate, expandedGroups, onToggleGroup, groupKeyPrefix }: NavItemProps) {
   const location = useLocation();
-  const [expanded, setExpanded] = useState(true);
   const isActive = item.path === location.pathname;
 
   if (item.children) {
+    const groupKey = groupKeyPrefix ? `${groupKeyPrefix}/${item.label}` : item.label;
+    const expanded = expandedGroups.has(groupKey);
+
     return (
       <div style={{ marginBottom: '0.125rem' }}>
         <button
-          onClick={() => setExpanded(!expanded)}
+          onClick={() => onToggleGroup(groupKey)}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -246,7 +368,15 @@ function NavItem({ item, depth, onNavigate }: { item: NavigationItem; depth: num
         {expanded && (
           <div style={{ animation: 'clearify-fade-in 0.15s ease-out' }}>
             {item.children.map((child, i) => (
-              <NavItem key={i} item={child} depth={depth + 1} onNavigate={onNavigate} />
+              <NavItem
+                key={i}
+                item={child}
+                depth={depth + 1}
+                onNavigate={onNavigate}
+                expandedGroups={expandedGroups}
+                onToggleGroup={onToggleGroup}
+                groupKeyPrefix={groupKey}
+              />
             ))}
           </div>
         )}

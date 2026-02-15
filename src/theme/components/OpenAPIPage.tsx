@@ -7,7 +7,7 @@ import openapiSpec from 'virtual:clearify/openapi-spec';
 export default function OpenAPIPage() {
   const basePath = config.openapi?.basePath ?? '/api';
   return (
-    <div className="clearify-openapi-page" style={{ margin: '0 -1.5rem', maxWidth: 'none' }}>
+    <div className="clearify-openapi-page" style={{ maxWidth: 'none' }}>
       <OpenAPI spec={openapiSpec} hideSidebar={true} pathRouting={{ basePath }} />
     </div>
   );
