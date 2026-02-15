@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.2] - 2026-02-15
+
+### Fixed
+
+- SPA fallback middleware for deep links in Vite dev server — direct navigation and page refresh on OpenAPI routes (e.g. `/api#tag/...`) and non-root section paths (e.g. `/internal/...`) now correctly serve the SPA `index.html` so React Router can handle them client-side
+
+## [1.5.1] - 2026-02-10
+
+### Changed
+
+- Renamed package from `clearify` to `@marlinjai/clearify` for private npm publishing
+- Updated all internal references to use the scoped package name
+
 ## [1.5.0] - 2026-02-10
 
 ### Added
@@ -128,7 +141,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Table of contents extracted from page headings
 - Responsive layout with mobile sidebar toggle
 
-[Unreleased]: https://github.com/marlinjai/clearify/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/marlinjai/clearify/compare/v1.5.2...HEAD
+[1.5.2]: https://github.com/marlinjai/clearify/compare/v1.5.1...v1.5.2
+[1.5.1]: https://github.com/marlinjai/clearify/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/marlinjai/clearify/compare/v1.0.0...v1.5.0
 [1.0.0]: https://github.com/marlinjai/clearify/compare/v0.2.0...v1.0.0
 [0.2.0]: https://github.com/marlinjai/clearify/compare/v0.1.0...v0.2.0
