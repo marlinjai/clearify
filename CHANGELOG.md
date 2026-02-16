@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-02-16
+
+### Added
+
+- Custom-built OpenAPI reference renderer — fully styled API documentation using Clearify's design system
+- `ApiHeader` component — spec title, version badge, server URL, auth scheme summary
+- `TagGroup` component — collapsible endpoint groups per OpenAPI tag with anchor IDs for sidebar navigation
+- `OperationCard` component — two-column card layout (docs left, code examples right) with responsive single-column collapse
+- `ParameterTable` component — grouped parameter display (path/query/header) with required badges and type info
+- `SchemaViewer` component — recursive, collapsible JSON Schema tree with `oneOf`/`anyOf` tabs and constraint display
+- `CodeExamples` component — tabbed code snippets (curl/JavaScript/Python) with copy-to-clipboard, generated from operation definitions
+- `ResponseList` component — status code list with color-coded badges and expandable response body schemas
+- `MethodBadge` component — HTTP method pills (GET green, POST blue, PUT amber, DELETE red, PATCH purple)
+- Built-in code snippet generation (`generate-snippets.ts`) — generates curl, fetch, and requests examples from OpenAPI operations
+- `$ref` dereferencing at build time via `@scalar/openapi-parser` — components receive fully resolved specs
+
+### Removed
+
+- `@scalar/api-reference-react` dependency — replaced entirely by custom components
+- `SCALAR_CUSTOM_CSS` (~340 lines of CSS token bridging)
+- `.clearify-openapi-container` CSS reset block (~120 lines) from `globals.css`
+- SSR guard and lazy-loading logic for Scalar
+
+### Changed
+
+- `OpenAPIPage` rewritten to use custom `ApiHeader` and `TagGroup` components instead of Scalar
+- `OpenAPI` component simplified — renders custom components directly, no longer wraps Scalar
+- `loadOpenAPISpecData()` and `loadOpenAPISpec()` in the Vite plugin are now async (support `$ref` dereferencing)
+- Net bundle size reduction — removed Scalar's CSS (~280KB) and JS, added lightweight custom components
+
 ## [1.5.2] - 2026-02-15
 
 ### Fixed
@@ -141,7 +171,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Table of contents extracted from page headings
 - Responsive layout with mobile sidebar toggle
 
-[Unreleased]: https://github.com/marlinjai/clearify/compare/v1.5.2...HEAD
+[Unreleased]: https://github.com/marlinjai/clearify/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/marlinjai/clearify/compare/v1.5.2...v1.6.0
 [1.5.2]: https://github.com/marlinjai/clearify/compare/v1.5.1...v1.5.2
 [1.5.1]: https://github.com/marlinjai/clearify/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/marlinjai/clearify/compare/v1.0.0...v1.5.0

@@ -1,6 +1,6 @@
 # Clearify Roadmap
 
-> Last updated: 2026-02-10 — v1.0 complete, v1.5 OpenAPI/Scalar integration
+> Last updated: 2026-02-16 — v1.6 custom OpenAPI renderer (Scalar replaced)
 
 ## v0.2.0 — Done
 
@@ -73,12 +73,45 @@ The gap between v0.2 and v1.0 is **SEO and polish**. Everything below is needed 
 - [x] Search index integration for API endpoints
 - [x] NestJS preset (`clearify openapi:generate` CLI command)
 
+## v1.6 — Custom OpenAPI Renderer (Phase 1 — Read-Only)
+
+Replaced `@scalar/api-reference-react` with a fully custom-built renderer using Clearify's design system.
+
+### Custom Renderer — Done
+- [x] `ApiHeader` — spec title, version badge, server URL, auth scheme summary
+- [x] `TagGroup` — collapsible endpoint groups per OpenAPI tag
+- [x] `OperationCard` — two-column layout (docs + code examples), responsive collapse
+- [x] `ParameterTable` — grouped parameter display with required badges
+- [x] `SchemaViewer` — recursive collapsible JSON Schema tree with `oneOf`/`anyOf` tabs
+- [x] `CodeExamples` — tabbed curl/JS/Python snippets with copy-to-clipboard
+- [x] `ResponseList` — color-coded status codes with expandable response schemas
+- [x] `MethodBadge` — HTTP method pills matching sidebar badge colors
+- [x] Built-in snippet generation (no external dependency)
+- [x] `$ref` dereferencing at build time via `@scalar/openapi-parser`
+- [x] Removed `@scalar/api-reference-react` and all Scalar CSS (~340 lines custom CSS + ~120 lines resets)
+
+## v1.7 — Try It Out (Phase 2)
+
+### API Playground
+- [ ] `TryItPanel` inside `OperationCard` — toggled by "Try It" button
+- [ ] Auto-generated forms from operation parameter + request body schemas
+- [ ] Configurable proxy URL (`openapi.proxyUrl` config option)
+- [ ] Response display with status code, headers, syntax-highlighted body
+
+## v1.8 — Auth & Code Gen Polish (Phase 3)
+
+### Auth Management
+- [ ] `AuthManager` — persistent panel reading `components.securitySchemes`
+- [ ] Bearer token input, API key input, OAuth2 flow
+- [ ] Auth state injected into Try It requests and code examples
+- [ ] Server selector dropdown (from `spec.servers[]`)
+
 ## v2.0 — Power Features
 
 ### API Documentation (Advanced)
-- [ ] API playground — interactive request builder in docs
-- [ ] SDK code example generation (cURL, Python, JS, Go)
-- [ ] Request/response schema display with nested types
+- [x] SDK code example generation (cURL, Python, JS) — built into v1.6 custom renderer
+- [x] Request/response schema display with nested types — built into v1.6 SchemaViewer
+- [ ] API playground — interactive request builder (planned for v1.7)
 
 ### Content Management
 - [x] Multi-section support — pill-based section switcher (Guides / Internal / etc.)

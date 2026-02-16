@@ -11,7 +11,7 @@ An open-source documentation site generator. Turn markdown into beautiful docs.
 - **Dark mode** — automatic light/dark theme switching
 - **Syntax highlighting** — beautiful code blocks with Shiki (dual light/dark themes)
 - **SSG & SEO** — pre-rendered HTML, Open Graph, Twitter Cards, JSON-LD, sitemap, robots.txt
-- **OpenAPI / Scalar** — render API reference docs from an OpenAPI spec, with theme sync and dark mode
+- **OpenAPI API Reference** — custom-built renderer for OpenAPI specs with code examples, schema viewer, and full design system integration
 - **Multi-section support** — pill-based section switcher (e.g. public docs + internal docs)
 - **Auto changelog** — drop a `CHANGELOG.md` in your project root, it appears as `/changelog`
 
