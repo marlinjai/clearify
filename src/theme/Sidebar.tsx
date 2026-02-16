@@ -109,6 +109,43 @@ export function Sidebar({ sections, open, onClose }: SidebarProps) {
   }, [location.pathname, sections, isSectionData]);
 
   const sidebarRef = useRef<HTMLElement>(null);
+  const [isResizing, setIsResizing] = useState(false);
+
+  // Restore saved sidebar width on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('clearify-sidebar-width');
+    if (saved) {
+      document.documentElement.style.setProperty('--clearify-sidebar-width', saved);
+    }
+  }, []);
+
+  // Resize drag logic
+  useEffect(() => {
+    if (!isResizing) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const newWidth = Math.max(200, Math.min(500, e.clientX));
+      document.documentElement.style.setProperty('--clearify-sidebar-width', `${newWidth}px`);
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      const width = getComputedStyle(document.documentElement).getPropertyValue('--clearify-sidebar-width').trim();
+      localStorage.setItem('clearify-sidebar-width', width);
+    };
+
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing]);
 
   useEffect(() => {
     const sidebar = sidebarRef.current;
@@ -279,6 +316,23 @@ export function Sidebar({ sections, open, onClose }: SidebarProps) {
             />
           ))}
         </nav>
+
+        {/* Resize handle */}
+        <div
+          onMouseDown={(e) => { e.preventDefault(); setIsResizing(true); }}
+          className="clearify-sidebar-resize"
+          style={{
+            position: 'absolute',
+            right: 0,
+            top: 0,
+            bottom: 0,
+            width: '5px',
+            cursor: 'col-resize',
+            background: isResizing ? 'var(--clearify-primary)' : 'transparent',
+            transition: isResizing ? 'none' : 'background 0.15s ease',
+            zIndex: 10,
+          }}
+        />
       </aside>
 
       <style>{`
@@ -298,6 +352,12 @@ export function Sidebar({ sections, open, onClose }: SidebarProps) {
           .clearify-menu-btn {
             display: flex !important;
           }
+          .clearify-sidebar-resize {
+            display: none !important;
+          }
+        }
+        .clearify-sidebar-resize:hover {
+          background: var(--clearify-border-strong) !important;
         }
       `}</style>
     </>
