@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { OperationCard } from './OperationCard.js';
 
 interface TagGroupProps {
@@ -16,6 +16,17 @@ function operationAnchorId(tag: string, method: string, path: string): string {
 
 export function TagGroup({ tag, description, operations, baseUrl }: TagGroupProps) {
   const [expanded, setExpanded] = useState(true);
+
+  useEffect(() => {
+    const onExpand = () => setExpanded(true);
+    const onCollapse = () => setExpanded(false);
+    window.addEventListener('clearify:expand-all', onExpand);
+    window.addEventListener('clearify:collapse-all', onCollapse);
+    return () => {
+      window.removeEventListener('clearify:expand-all', onExpand);
+      window.removeEventListener('clearify:collapse-all', onCollapse);
+    };
+  }, []);
 
   return (
     <div

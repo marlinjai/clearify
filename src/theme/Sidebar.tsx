@@ -189,8 +189,14 @@ export function Sidebar({ sections, open, onClose }: SidebarProps) {
     });
   };
 
-  const handleExpandAll = () => setExpandedGroups(new Set(allGroupKeys));
-  const handleCollapseAll = () => setExpandedGroups(new Set());
+  const handleExpandAll = () => {
+    setExpandedGroups(new Set(allGroupKeys));
+    window.dispatchEvent(new CustomEvent('clearify:expand-all'));
+  };
+  const handleCollapseAll = () => {
+    setExpandedGroups(new Set());
+    window.dispatchEvent(new CustomEvent('clearify:collapse-all'));
+  };
 
   return (
     <>
