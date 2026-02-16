@@ -29,7 +29,7 @@
   "dependencies": {
     "@mdx-js/react": "^3.1.1",
     "@mdx-js/rollup": "^3.1.1",
-    "@scalar/api-reference-react": "^0.8.52",
+    "@scalar/openapi-parser": "^0.10.7",
     "@shikijs/rehype": "^3.22.0",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.18",
