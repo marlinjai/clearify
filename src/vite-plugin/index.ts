@@ -6,6 +6,7 @@ import { buildSectionData, type SectionData } from '../core/navigation.js';
 import type { ClearifyConfig, ResolvedSection, RouteEntry, SectionNavigation, NavigationItem } from '../types/index.js';
 import type { SearchEntry } from '../core/search.js';
 import { parseOpenAPISpec } from '../core/openapi-parser.js';
+import { dereference } from '@scalar/openapi-parser';
 
 const VIRTUAL_CONFIG = 'virtual:clearify/config';
 const RESOLVED_VIRTUAL_CONFIG = '\0' + VIRTUAL_CONFIG;
@@ -45,7 +46,7 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
   let mermaidSvgData: Record<string, { lightSvg: string; darkSvg: string }> =
     options.mermaidSvgs ?? {};
 
-  function refreshDocs() {
+  async function refreshDocs() {
     const changelogPath = resolve(userRoot, 'CHANGELOG.md');
 
     sectionDataList = visibleSections.map((section) =>
@@ -65,7 +66,7 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
     // Generate OpenAPI routes + navigation if configured
     if (config.openapi?.spec && config.openapi.generatePages !== false) {
       const basePath = config.openapi.basePath ?? '/api';
-      const specData = loadOpenAPISpecData();
+      const specData = await loadOpenAPISpecData();
 
       if (specData) {
         const tagGroups = parseOpenAPISpec(specData);
@@ -165,7 +166,7 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
   let cachedSpecData: Record<string, any> | null = null;
   let specDataInitialized = false;
 
-  function loadOpenAPISpecData(): Record<string, any> | null {
+  async function loadOpenAPISpecData(): Promise<Record<string, any> | null> {
     if (specDataInitialized) return cachedSpecData;
     specDataInitialized = true;
 
@@ -179,20 +180,22 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
       const content = readFileSync(resolvedPath, 'utf-8');
       const isYaml = /\.ya?ml$/i.test(resolvedPath);
 
+      let parsed: Record<string, any>;
       if (isYaml) {
-        // YAML specs: try parsing as JSON first (some .yaml files are valid JSON),
-        // otherwise warn that js-yaml is needed
         try {
-          cachedSpecData = JSON.parse(content);
-          return cachedSpecData;
+          parsed = JSON.parse(content);
         } catch {
           console.warn('  YAML OpenAPI specs require js-yaml for page generation. Install it or use a JSON spec.');
           cachedSpecData = null;
           return null;
         }
+      } else {
+        parsed = JSON.parse(content);
       }
 
-      cachedSpecData = JSON.parse(content);
+      // Dereference all $ref pointers so components get a flat spec
+      const { schema } = await dereference(parsed);
+      cachedSpecData = schema as Record<string, any>;
       return cachedSpecData;
     } catch {
       cachedSpecData = null;
@@ -200,34 +203,12 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
     }
   }
 
-  function loadOpenAPISpec(): string {
-    const specPath = config.openapi?.spec;
-    if (!specPath) {
+  async function loadOpenAPISpec(): Promise<string> {
+    const specData = await loadOpenAPISpecData();
+    if (!specData) {
       return 'export default null;';
     }
-
-    const resolvedPath = resolve(userRoot, specPath);
-    if (!existsSync(resolvedPath)) {
-      console.warn(`  OpenAPI spec not found: ${resolvedPath}`);
-      return 'export default null;';
-    }
-
-    try {
-      const content = readFileSync(resolvedPath, 'utf-8');
-      const isYaml = /\.ya?ml$/i.test(resolvedPath);
-
-      if (isYaml) {
-        // For YAML specs, export the raw string — Scalar parses YAML natively
-        return `export default ${JSON.stringify(content)};`;
-      }
-
-      // For JSON specs, validate and export as a parsed object
-      JSON.parse(content);
-      return `export default ${content};`;
-    } catch (err) {
-      console.warn(`  Failed to load OpenAPI spec: ${resolvedPath}`, err instanceof Error ? err.message : err);
-      return 'export default null;';
-    }
+    return `export default ${JSON.stringify(specData)};`;
   }
 
   const mainPlugin: Plugin = {
@@ -248,7 +229,7 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
         ? allSections
         : allSections.filter((s) => !s.draft);
 
-      refreshDocs();
+      await refreshDocs();
     },
 
     resolveId(id) {
@@ -261,7 +242,7 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
       return null;
     },
 
-    load(id) {
+    async load(id) {
       if (id === RESOLVED_VIRTUAL_CONFIG) {
         return `export default ${JSON.stringify(config)};`;
       }
@@ -278,7 +259,7 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
         return `export default ${JSON.stringify(mermaidSvgData)};`;
       }
       if (id === RESOLVED_VIRTUAL_OPENAPI_SPEC) {
-        return loadOpenAPISpec();
+        return await loadOpenAPISpec();
       }
       return null;
     },
@@ -306,17 +287,17 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
             // Clear cached spec data so navigation is rebuilt
             specDataInitialized = false;
             cachedSpecData = null;
-            refreshDocs();
-
-            const specMod = server.moduleGraph.getModuleById(RESOLVED_VIRTUAL_OPENAPI_SPEC);
-            if (specMod) server.moduleGraph.invalidateModule(specMod);
-            const routesMod = server.moduleGraph.getModuleById(RESOLVED_VIRTUAL_ROUTES);
-            if (routesMod) server.moduleGraph.invalidateModule(routesMod);
-            const navMod = server.moduleGraph.getModuleById(RESOLVED_VIRTUAL_NAVIGATION);
-            if (navMod) server.moduleGraph.invalidateModule(navMod);
-            const searchMod = server.moduleGraph.getModuleById(RESOLVED_VIRTUAL_SEARCH_INDEX);
-            if (searchMod) server.moduleGraph.invalidateModule(searchMod);
-            server.ws.send({ type: 'full-reload' });
+            refreshDocs().then(() => {
+              const specMod = server.moduleGraph.getModuleById(RESOLVED_VIRTUAL_OPENAPI_SPEC);
+              if (specMod) server.moduleGraph.invalidateModule(specMod);
+              const routesMod = server.moduleGraph.getModuleById(RESOLVED_VIRTUAL_ROUTES);
+              if (routesMod) server.moduleGraph.invalidateModule(routesMod);
+              const navMod = server.moduleGraph.getModuleById(RESOLVED_VIRTUAL_NAVIGATION);
+              if (navMod) server.moduleGraph.invalidateModule(navMod);
+              const searchMod = server.moduleGraph.getModuleById(RESOLVED_VIRTUAL_SEARCH_INDEX);
+              if (searchMod) server.moduleGraph.invalidateModule(searchMod);
+              server.ws.send({ type: 'full-reload' });
+            });
           }
         });
       }
@@ -455,15 +436,16 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
         if (!path.endsWith('.md') && !path.endsWith('.mdx')) return;
 
         if (event === 'add' || event === 'unlink' || event === 'change') {
-          refreshDocs();
-          const routesMod = server.moduleGraph.getModuleById(RESOLVED_VIRTUAL_ROUTES);
-          const navMod = server.moduleGraph.getModuleById(RESOLVED_VIRTUAL_NAVIGATION);
-          const searchMod = server.moduleGraph.getModuleById(RESOLVED_VIRTUAL_SEARCH_INDEX);
-          if (routesMod) server.moduleGraph.invalidateModule(routesMod);
-          if (navMod) server.moduleGraph.invalidateModule(navMod);
-          if (searchMod) server.moduleGraph.invalidateModule(searchMod);
+          refreshDocs().then(() => {
+            const routesMod = server.moduleGraph.getModuleById(RESOLVED_VIRTUAL_ROUTES);
+            const navMod = server.moduleGraph.getModuleById(RESOLVED_VIRTUAL_NAVIGATION);
+            const searchMod = server.moduleGraph.getModuleById(RESOLVED_VIRTUAL_SEARCH_INDEX);
+            if (routesMod) server.moduleGraph.invalidateModule(routesMod);
+            if (navMod) server.moduleGraph.invalidateModule(navMod);
+            if (searchMod) server.moduleGraph.invalidateModule(searchMod);
 
-          server.ws.send({ type: 'full-reload' });
+            server.ws.send({ type: 'full-reload' });
+          });
         }
       });
 
