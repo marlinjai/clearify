@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.3] - 2026-02-17
+
+### Fixed
+
+- Section switcher pills now navigate to the first page of the selected section — previously only updated the sidebar view without changing the route
+
 ## [1.6.2] - 2026-02-16
 
 ### Fixed
@@ -188,7 +194,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Table of contents extracted from page headings
 - Responsive layout with mobile sidebar toggle
 
-[Unreleased]: https://github.com/marlinjai/clearify/compare/v1.6.2...HEAD
+[Unreleased]: https://github.com/marlinjai/clearify/compare/v1.6.3...HEAD
+[1.6.3]: https://github.com/marlinjai/clearify/compare/v1.6.2...v1.6.3
 [1.6.2]: https://github.com/marlinjai/clearify/compare/v1.6.1...v1.6.2
 [1.6.1]: https://github.com/marlinjai/clearify/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/marlinjai/clearify/compare/v1.5.2...v1.6.0

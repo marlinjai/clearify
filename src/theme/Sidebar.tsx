@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 import type { NavigationItem, SectionNavigation } from '../types/index.js';
 
@@ -44,6 +44,18 @@ function collectGroupKeys(items: NavigationItem[], prefix = ''): string[] {
     const key = prefix ? `${prefix}/${item.label}` : item.label;
     return [key, ...collectGroupKeys(item.children, key)];
   });
+}
+
+/** Walk the navigation tree depth-first and return the first leaf path. */
+function findFirstPath(items: NavigationItem[]): string | undefined {
+  for (const item of items) {
+    if (item.path) return item.path;
+    if (item.children) {
+      const found = findFirstPath(item.children);
+      if (found) return found;
+    }
+  }
+  return undefined;
 }
 
 function SectionSwitcher({
@@ -93,6 +105,7 @@ function SectionSwitcher({
 
 export function Sidebar({ sections, open, onClose }: SidebarProps) {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const isSectionData = sections.length > 0 && sections[0]?.id != null && Array.isArray(sections[0]?.navigation);
   const legacyNavigation = !isSectionData ? (sections as unknown as NavigationItem[]) : null;
@@ -237,7 +250,16 @@ export function Sidebar({ sections, open, onClose }: SidebarProps) {
           <SectionSwitcher
             sections={sections}
             activeId={selectedSectionId}
-            onSelect={setSelectedSectionId}
+            onSelect={(id) => {
+              setSelectedSectionId(id);
+              const section = sections.find((s) => s.id === id);
+              if (section) {
+                const firstPath = findFirstPath(section.navigation) ?? section.basePath;
+                if (firstPath && firstPath !== location.pathname) {
+                  navigate(firstPath);
+                }
+              }
+            }}
           />
         )}
         {hasCollapsibleGroups && (
