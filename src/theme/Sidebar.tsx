@@ -254,7 +254,7 @@ export function Sidebar({ sections, open, onClose }: SidebarProps) {
               setSelectedSectionId(id);
               const section = sections.find((s) => s.id === id);
               if (section) {
-                const firstPath = findFirstPath(section.navigation) ?? section.basePath;
+                const firstPath = section.basePath ?? findFirstPath(section.navigation);
                 if (firstPath && firstPath !== location.pathname) {
                   navigate(firstPath);
                 }

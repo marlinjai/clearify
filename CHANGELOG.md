@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.4] - 2026-02-18
+
+### Fixed
+
+- Section switcher pills now navigate to the section's base path (e.g. `/api`) instead of the first nested page — fixes API Reference pill linking to a specific endpoint fragment instead of the clean base URL
+
 ## [1.6.3] - 2026-02-17
 
 ### Fixed
@@ -194,7 +200,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Table of contents extracted from page headings
 - Responsive layout with mobile sidebar toggle
 
-[Unreleased]: https://github.com/marlinjai/clearify/compare/v1.6.3...HEAD
+[Unreleased]: https://github.com/marlinjai/clearify/compare/v1.6.4...HEAD
+[1.6.4]: https://github.com/marlinjai/clearify/compare/v1.6.3...v1.6.4
 [1.6.3]: https://github.com/marlinjai/clearify/compare/v1.6.2...v1.6.3
 [1.6.2]: https://github.com/marlinjai/clearify/compare/v1.6.1...v1.6.2
 [1.6.1]: https://github.com/marlinjai/clearify/compare/v1.6.0...v1.6.1
