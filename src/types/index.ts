@@ -79,6 +79,7 @@ export interface RouteEntry {
   frontmatter: PageFrontmatter;
   sectionId?: string;
   componentPath?: string;
+  redirectTo?: string;
 }
 
 export function defineConfig(config: Partial<ClearifyConfig>): Partial<ClearifyConfig> {

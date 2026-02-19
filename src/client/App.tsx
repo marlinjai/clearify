@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { MDXProvider } from '@mdx-js/react';
 // @ts-expect-error virtual module
 import routes from 'virtual:clearify/routes';
@@ -15,8 +15,9 @@ import '../theme/styles/globals.css';
 
 interface RouteEntry {
   path: string;
-  component: () => Promise<any>;
-  frontmatter: { title?: string; description?: string };
+  component?: () => Promise<any>;
+  frontmatter?: { title?: string; description?: string };
+  redirectTo?: string;
 }
 
 function PageWrapper({ loader, fallbackFrontmatter }: { loader: () => Promise<any>; fallbackFrontmatter: any }) {
@@ -77,13 +78,17 @@ function AppRoutes() {
   return (
     <Layout config={config} sections={sections}>
       <Routes>
-        {(routes as RouteEntry[]).map((route) => (
-          <Route
-            key={route.path}
-            path={route.path}
-            element={<PageWrapper loader={route.component} fallbackFrontmatter={route.frontmatter} />}
-          />
-        ))}
+        {(routes as RouteEntry[]).map((route) =>
+          route.redirectTo ? (
+            <Route key={route.path} path={route.path} element={<Navigate to={route.redirectTo} replace />} />
+          ) : (
+            <Route
+              key={route.path}
+              path={route.path}
+              element={<PageWrapper loader={route.component!} fallbackFrontmatter={route.frontmatter} />}
+            />
+          )
+        )}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Layout>

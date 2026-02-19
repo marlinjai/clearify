@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.5] - 2026-02-19
+
+### Added
+
+- Auto-redirect routes for sections without an index page at their basePath — clicking the section pill or navigating directly now redirects to the first page instead of showing a 404
+
+### Fixed
+
+- Section switcher pills now reliably navigate to the section's base path using client-side `<Navigate>` redirect support
+
 ## [1.6.4] - 2026-02-18
 
 ### Fixed
@@ -200,7 +210,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Table of contents extracted from page headings
 - Responsive layout with mobile sidebar toggle
 
-[Unreleased]: https://github.com/marlinjai/clearify/compare/v1.6.4...HEAD
+[Unreleased]: https://github.com/marlinjai/clearify/compare/v1.6.5...HEAD
+[1.6.5]: https://github.com/marlinjai/clearify/compare/v1.6.4...v1.6.5
 [1.6.4]: https://github.com/marlinjai/clearify/compare/v1.6.3...v1.6.4
 [1.6.3]: https://github.com/marlinjai/clearify/compare/v1.6.2...v1.6.3
 [1.6.2]: https://github.com/marlinjai/clearify/compare/v1.6.1...v1.6.2

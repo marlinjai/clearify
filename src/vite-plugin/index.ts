@@ -26,6 +26,18 @@ const RESOLVED_VIRTUAL_MERMAID_SVGS = '\0' + VIRTUAL_MERMAID_SVGS;
 const VIRTUAL_OPENAPI_SPEC = 'virtual:clearify/openapi-spec';
 const RESOLVED_VIRTUAL_OPENAPI_SPEC = '\0' + VIRTUAL_OPENAPI_SPEC;
 
+/** Walk navigation depth-first, returning the first leaf path. */
+function findFirstNavPath(items: NavigationItem[]): string | undefined {
+  for (const item of items) {
+    if (item.path) return item.path;
+    if (item.children) {
+      const found = findFirstNavPath(item.children);
+      if (found) return found;
+    }
+  }
+  return undefined;
+}
+
 interface ClearifyPluginOptions {
   root?: string;
   mermaidSvgs?: Record<string, { lightSvg: string; darkSvg: string }>;
@@ -131,6 +143,26 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
         }
       }
     }
+
+    // Auto-redirect for sections without a route at their basePath
+    for (const sectionNav of allSectionNavigations) {
+      const bp = sectionNav.basePath;
+      const hasRoute = allRoutes.some(
+        (r) => r.path === bp || r.path === `${bp}/*`
+      );
+      if (!hasRoute) {
+        const firstPath = findFirstNavPath(sectionNav.navigation);
+        if (firstPath) {
+          allRoutes.push({
+            path: bp,
+            filePath: '',
+            frontmatter: { title: sectionNav.label },
+            sectionId: sectionNav.id,
+            redirectTo: firstPath,
+          });
+        }
+      }
+    }
   }
 
   function generateRoutesCode(): string {
@@ -138,15 +170,21 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
     const routeEntries: string[] = [];
 
     allRoutes.forEach((route, i) => {
-      const varName = `Route${i}`;
-      if (route.componentPath) {
-        imports.push(`const ${varName} = () => import('${route.componentPath}');`);
+      if (route.redirectTo) {
+        routeEntries.push(
+          `  { path: ${JSON.stringify(route.path)}, redirectTo: ${JSON.stringify(route.redirectTo)} }`
+        );
       } else {
-        imports.push(`const ${varName} = () => import(/* @vite-ignore */ '${route.filePath}');`);
+        const varName = `Route${i}`;
+        if (route.componentPath) {
+          imports.push(`const ${varName} = () => import('${route.componentPath}');`);
+        } else {
+          imports.push(`const ${varName} = () => import(/* @vite-ignore */ '${route.filePath}');`);
+        }
+        routeEntries.push(
+          `  { path: ${JSON.stringify(route.path)}, component: ${varName}, frontmatter: ${JSON.stringify(route.frontmatter)} }`
+        );
       }
-      routeEntries.push(
-        `  { path: ${JSON.stringify(route.path)}, component: ${varName}, frontmatter: ${JSON.stringify(route.frontmatter)} }`
-      );
     });
 
     return `${imports.join('\n')}\nexport default [\n${routeEntries.join(',\n')}\n];`;
