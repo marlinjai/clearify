@@ -68,6 +68,8 @@ export function buildNavigation(docs: DocFile[], basePath: string = '/'): Naviga
   const groups = new Map<string, DocFile[]>();
 
   for (const doc of docs) {
+    // Skip the section index page — it's the landing page, not a nav item
+    if (doc.routePath === rootDir || doc.routePath === '/') continue;
     const dir = dirname(doc.routePath);
     if (!groups.has(dir)) groups.set(dir, []);
     groups.get(dir)!.push(doc);
@@ -88,8 +90,6 @@ export function buildNavigation(docs: DocFile[], basePath: string = '/'): Naviga
   // Root-level pages (pages directly in the section's root directory)
   const rootFiles = groups.get(rootDir) ?? [];
   for (const doc of rootFiles) {
-    // Skip the section index page
-    if (doc.routePath === rootDir || doc.routePath === '/') continue;
     const item: NavigationItem = { label: doc.frontmatter.title!, path: doc.routePath };
     if (doc.frontmatter.icon) item.icon = doc.frontmatter.icon;
     nav.push(item);

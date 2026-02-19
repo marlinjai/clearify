@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.6] - 2026-02-19
+
+### Fixed
+
+- Section index pages (e.g. `docs/internal/index.md`) no longer appear as ghost navigation items in non-root sections — previously `dirname('/internal')` resolved to `'/'` causing the index to leak into a spurious empty group in the sidebar
+
 ## [1.6.5] - 2026-02-19
 
 ### Added
@@ -210,7 +216,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Table of contents extracted from page headings
 - Responsive layout with mobile sidebar toggle
 
-[Unreleased]: https://github.com/marlinjai/clearify/compare/v1.6.5...HEAD
+[Unreleased]: https://github.com/marlinjai/clearify/compare/v1.6.6...HEAD
+[1.6.6]: https://github.com/marlinjai/clearify/compare/v1.6.5...v1.6.6
 [1.6.5]: https://github.com/marlinjai/clearify/compare/v1.6.4...v1.6.5
 [1.6.4]: https://github.com/marlinjai/clearify/compare/v1.6.3...v1.6.4
 [1.6.3]: https://github.com/marlinjai/clearify/compare/v1.6.2...v1.6.3
