@@ -119,9 +119,21 @@ async function loadTsConfig(configPath: string): Promise<Partial<ClearifyConfig>
       plugins: [{
         name: 'externalize-except-clearify',
         setup(build) {
+          // Resolve bare 'clearify' / '@marlinjai/clearify' to a stub that
+          // exports defineConfig as an identity function — avoids needing to
+          // locate the actual package at esbuild time.
+          build.onResolve({ filter: /^(clearify|@marlinjai\/clearify)$/ }, () => {
+            return { path: 'clearify-stub', namespace: 'clearify-stub' };
+          });
+          build.onLoad({ filter: /.*/, namespace: 'clearify-stub' }, () => {
+            return {
+              contents: 'export function defineConfig(config) { return config; }',
+              loader: 'js',
+            };
+          });
           build.onResolve({ filter: /.*/ }, (args) => {
-            // Let relative/absolute imports and 'clearify' be bundled
-            if (args.path.startsWith('.') || args.path.startsWith('/') || args.path === 'clearify') {
+            // Let relative/absolute imports be bundled
+            if (args.path.startsWith('.') || args.path.startsWith('/')) {
               return undefined;
             }
             return { path: args.path, external: true };
