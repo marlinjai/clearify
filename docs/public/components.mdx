@@ -132,3 +132,44 @@ sequenceDiagram
     U->>V: Edit .md file
     V-->>U: Hot reload
 ```
+
+## StatusBadge
+
+Display a color-coded project status pill.
+
+<StatusBadge status="active" /> <StatusBadge status="beta" /> <StatusBadge status="planned" /> <StatusBadge status="deprecated" />
+
+## ProjectCard
+
+A card component for displaying project information with an optional status badge, tags, and links.
+
+<ProjectCard
+  name="Storage Brain"
+  description="File storage & processing service with OCR and thumbnail generation."
+  status="active"
+  icon="🧠"
+  tags={["cloudflare", "r2"]}
+  repo="https://github.com/example/storage-brain"
+  href="/getting-started"
+/>
+
+## ProjectGrid
+
+A responsive grid layout for project cards. Renders 3 columns by default, collapsing to 2 and then 1 on smaller screens.
+
+<ProjectGrid cols={2}>
+  <ProjectCard
+    name="Storage Brain"
+    description="File storage & processing service."
+    status="active"
+    icon="🧠"
+    tags={["cloudflare"]}
+  />
+  <ProjectCard
+    name="Data Table"
+    description="Notion-like database component."
+    status="beta"
+    icon="📊"
+    tags={["react"]}
+  />
+</ProjectGrid>

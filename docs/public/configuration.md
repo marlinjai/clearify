@@ -103,3 +103,94 @@ The build generates:
 - JSON-LD structured data (Article schema)
 - `sitemap.xml` (respects section `sitemap` option)
 - `robots.txt` with sitemap reference
+
+## Hub Mode
+
+Hub Mode turns a Clearify site into a project dashboard — ideal for monorepos or multi-project portfolios. It renders a grid of project cards with status badges, descriptions, and links.
+
+### Manual project list
+
+List projects explicitly in `hub.projects`:
+
+```typescript
+export default defineConfig({
+  name: 'ERP Suite',
+  hub: {
+    projects: [
+      {
+        name: 'Storage Brain',
+        description: 'File storage & processing service',
+        href: 'https://storage-brain.example.com',
+        status: 'active',
+        icon: '🧠',
+        tags: ['cloudflare', 'r2'],
+      },
+      {
+        name: 'Data Table',
+        description: 'Notion-like database component',
+        status: 'beta',
+        tags: ['react', 'component'],
+      },
+    ],
+  },
+});
+```
+
+### Auto-scan (`hub.scan`)
+
+Instead of listing every project manually, point `hub.scan` at child config files. Each child declares a `hubProject` block and the hub assembles the grid automatically:
+
+**Parent config (hub site):**
+
+```typescript
+export default defineConfig({
+  name: 'ERP Suite',
+  hub: {
+    scan: './projects/*/clearify.config.ts',
+  },
+});
+```
+
+**Child config (e.g. `projects/storage-brain/clearify.config.ts`):**
+
+```typescript
+export default defineConfig({
+  name: 'Storage Brain',
+  siteUrl: 'https://storage-brain.example.com',
+  hubProject: {
+    description: 'File storage & processing service',
+    status: 'active',
+    icon: '🧠',
+    tags: ['cloudflare', 'r2'],
+  },
+});
+```
+
+The scanner uses `name` from the child config and `href` from `hubProject.href` (falling back to `siteUrl`). Manual `hub.projects` entries override scanned ones by name.
+
+### Hub config options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `hub.projects` | `HubProject[]` | `[]` | Manually listed projects |
+| `hub.scan` | `string` | — | Glob pattern to find child `clearify.config.ts` files |
+
+### HubProject fields
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `name` | `string` | — | Project name (required in manual mode, auto-detected in scan mode) |
+| `description` | `string` | — | Short project description |
+| `href` | `string` | — | Link to the project's docs site |
+| `repo` | `string` | — | GitHub repository URL |
+| `status` | `'active' \| 'beta' \| 'planned' \| 'deprecated'` | `'active'` | Project status badge |
+| `icon` | `string` | — | Emoji or icon character |
+| `tags` | `string[]` | — | Category tags shown on the card |
+
+### Hub components
+
+Hub Mode ships three components that render automatically from the `virtual:clearify/hub` module:
+
+- **`ProjectGrid`** — responsive grid layout (3 columns, collapses to 2 → 1 on smaller screens)
+- **`ProjectCard`** — card with name, description, status badge, tags, and optional GitHub link
+- **`StatusBadge`** — color-coded status pill (`active` green, `beta` indigo, `planned` amber, `deprecated` red)

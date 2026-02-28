@@ -1,6 +1,6 @@
 {
   "name": "@marlinjai/clearify",
-  "version": "1.7.3",
+  "version": "1.8.0",
   "description": "An open-source documentation site generator. Turn markdown into beautiful docs.",
   "type": "module",
   "bin": {

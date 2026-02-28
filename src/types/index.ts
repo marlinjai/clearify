@@ -53,6 +53,8 @@ export interface ClearifyConfig {
     github?: string;
     [key: string]: string | undefined;
   };
+  hub?: HubConfig;
+  hubProject?: Omit<HubProject, 'name'>;
   customCss?: string;
   headTags?: string[];
 }
@@ -80,6 +82,21 @@ export interface RouteEntry {
   sectionId?: string;
   componentPath?: string;
   redirectTo?: string;
+}
+
+export interface HubProject {
+  name: string;
+  description: string;
+  href?: string;
+  repo?: string;
+  status?: 'active' | 'beta' | 'planned' | 'deprecated';
+  icon?: string;
+  tags?: string[];
+}
+
+export interface HubConfig {
+  projects: HubProject[];
+  scan?: string;
 }
 
 export function defineConfig(config: Partial<ClearifyConfig>): Partial<ClearifyConfig> {

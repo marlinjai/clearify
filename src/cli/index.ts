@@ -28,9 +28,10 @@ cli
 cli
   .command('init', 'Scaffold a docs folder')
   .option('--no-internal', 'Skip creating the internal docs section')
-  .action(async (options: { noInternal?: boolean }) => {
+  .option('--no-claude-rules', 'Skip creating .claude/rules/clearify-docs.md')
+  .action(async (options: { noInternal?: boolean; noClaudeRules?: boolean }) => {
     const { init } = await import('../node/index.js');
-    await init({ noInternal: options.noInternal });
+    await init({ noInternal: options.noInternal, noClaudeRules: options.noClaudeRules });
   });
 
 cli
@@ -59,5 +60,5 @@ cli
   });
 
 cli.help();
-cli.version('1.5.1');
+cli.version('1.8.0');
 cli.parse();

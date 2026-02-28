@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, writeFileSync } from 'fs';
 
 export interface InitOptions {
   noInternal?: boolean;
+  noClaudeRules?: boolean;
 }
 
 export async function init(options: InitOptions = {}) {
@@ -227,6 +228,32 @@ export default defineConfig({
     console.log('  Created clearify.config.ts');
   } else {
     console.log('  clearify.config.ts already exists, skipping');
+  }
+
+  // Create .claude/rules/clearify-docs.md
+  if (!options.noClaudeRules) {
+    const claudeRulesDir = resolve(cwd, '.claude/rules');
+    const claudeRulesPath = resolve(claudeRulesDir, 'clearify-docs.md');
+    if (!existsSync(claudeRulesPath)) {
+      mkdirSync(claudeRulesDir, { recursive: true });
+      const hasInternal = !options.noInternal;
+      const rulesContent = `# Clearify Documentation Rules
+
+When making changes to this project, keep the documentation in sync:
+
+1. **Changelog** — After any user-facing change, add a bullet under \`## [Unreleased]\` in \`CHANGELOG.md\` using [Keep a Changelog](https://keepachangelog.com/) format (\`Added\`, \`Changed\`, \`Fixed\`, \`Removed\`).
+
+2. **Docs pages** — When a feature or behavior changes, update the relevant page in \`docs/public/\`. If a new feature has no page, create one.
+
+3. **Config docs** — When config options are added or changed, update \`docs/public/configuration.md\` with the new option, type, default, and description.
+${hasInternal ? `
+4. **Architecture decisions** — For significant design decisions, add an entry to \`docs/internal/\` explaining the context, decision, and trade-offs.
+` : ''}`;
+      writeFileSync(claudeRulesPath, rulesContent);
+      console.log('  Created .claude/rules/clearify-docs.md');
+    } else {
+      console.log('  .claude/rules/clearify-docs.md already exists, skipping');
+    }
   }
 
   console.log(`

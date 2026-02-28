@@ -41,3 +41,9 @@ declare module 'virtual:clearify/openapi-spec' {
   const spec: Record<string, unknown> | null;
   export default spec;
 }
+
+declare module 'virtual:clearify/hub' {
+  import type { HubConfig } from './index.js';
+  const hub: HubConfig | null;
+  export default hub;
+}

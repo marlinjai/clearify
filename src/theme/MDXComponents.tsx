@@ -13,6 +13,9 @@ import { Badge } from './components/Badge.js';
 import { Tooltip } from './components/Tooltip.js';
 import { Columns, Column } from './components/Columns.js';
 import { Frame } from './components/Frame.js';
+import { StatusBadge } from './components/StatusBadge.js';
+import { ProjectCard } from './components/ProjectCard.js';
+import { ProjectGrid } from './components/ProjectGrid.js';
 import { CodeBlock } from './CodeBlock.js';
 
 export const mdxComponents = {
@@ -35,6 +38,9 @@ export const mdxComponents = {
   Columns,
   Column,
   Frame,
+  StatusBadge,
+  ProjectCard,
+  ProjectGrid,
   // Override default pre element with CodeBlock
   pre: (props: React.HTMLAttributes<HTMLPreElement>) => <CodeBlock {...props} />,
 };

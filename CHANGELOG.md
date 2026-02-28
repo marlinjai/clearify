@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-02-28
+
+### Added
+
+- **Hub Mode** — turn a Clearify site into a project dashboard with `ProjectGrid`, `ProjectCard`, and `StatusBadge` components
+- Hub auto-scan (`hub.scan`) — glob child `clearify.config.ts` files to build the project grid automatically instead of listing each project manually
+- `hubProject` config option — child projects declare their hub metadata (description, status, icon, tags) in their own config
+- `virtual:clearify/hub` virtual module — serves hub project data to the client
+- `clearify init` now scaffolds `.claude/rules/clearify-docs.md` — AI assistant rules for keeping docs in sync with code changes
+- `--no-claude-rules` flag for `clearify init` — skip Claude rules file creation
+
+### Changed
+
+- `hub.projects` now defaults to `[]` (previously required) — allows scan-only hub configurations
+
 ## [1.6.6] - 2026-02-19
 
 ### Fixed
@@ -216,7 +231,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Table of contents extracted from page headings
 - Responsive layout with mobile sidebar toggle
 
-[Unreleased]: https://github.com/marlinjai/clearify/compare/v1.6.6...HEAD
+[Unreleased]: https://github.com/marlinjai/clearify/compare/v1.8.0...HEAD
+[1.8.0]: https://github.com/marlinjai/clearify/compare/v1.6.6...v1.8.0
 [1.6.6]: https://github.com/marlinjai/clearify/compare/v1.6.5...v1.6.6
 [1.6.5]: https://github.com/marlinjai/clearify/compare/v1.6.4...v1.6.5
 [1.6.4]: https://github.com/marlinjai/clearify/compare/v1.6.3...v1.6.4

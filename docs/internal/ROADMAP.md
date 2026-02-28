@@ -1,6 +1,6 @@
 # Clearify Roadmap
 
-> Last updated: 2026-02-16 — v1.6 custom OpenAPI renderer (Scalar replaced)
+> Last updated: 2026-02-28 — v1.8 Hub Mode & DX
 
 ## v0.2.0 — Done
 
@@ -90,7 +90,24 @@ Replaced `@scalar/api-reference-react` with a fully custom-built renderer using 
 - [x] `$ref` dereferencing at build time via `@scalar/openapi-parser`
 - [x] Removed `@scalar/api-reference-react` and all Scalar CSS (~340 lines custom CSS + ~120 lines resets)
 
-## v1.7 — Try It Out (Phase 2)
+## v1.8 — Hub Mode & DX
+
+### Hub Mode — Done
+- [x] `HubProject` type and `HubConfig` with `projects` array
+- [x] `virtual:clearify/hub` virtual module serving hub data to client
+- [x] `ProjectGrid` component — responsive grid layout (3 → 2 → 1 columns)
+- [x] `ProjectCard` component — name, description, status badge, tags, repo link
+- [x] `StatusBadge` component — color-coded status pills (active/beta/planned/deprecated)
+- [x] Hub auto-scan (`hub.scan`) — glob child `clearify.config.ts` files to build project grid
+- [x] `hubProject` config option — child projects declare hub metadata in their own config
+- [x] Manual `hub.projects` entries override scanned ones by name
+
+### Developer Experience — Done
+- [x] `clearify init` scaffolds `.claude/rules/clearify-docs.md` for AI-assisted doc sync
+- [x] `--no-claude-rules` flag to skip rules file creation
+- [x] Rules content adapts to `--no-internal` flag
+
+## v1.9 — Try It Out (Phase 2)
 
 ### API Playground
 - [ ] `TryItPanel` inside `OperationCard` — toggled by "Try It" button
@@ -98,7 +115,7 @@ Replaced `@scalar/api-reference-react` with a fully custom-built renderer using 
 - [ ] Configurable proxy URL (`openapi.proxyUrl` config option)
 - [ ] Response display with status code, headers, syntax-highlighted body
 
-## v1.8 — Auth & Code Gen Polish (Phase 3)
+## v2.0 — Auth & Code Gen Polish (Phase 3)
 
 ### Auth Management
 - [ ] `AuthManager` — persistent panel reading `components.securitySchemes`
@@ -106,12 +123,12 @@ Replaced `@scalar/api-reference-react` with a fully custom-built renderer using 
 - [ ] Auth state injected into Try It requests and code examples
 - [ ] Server selector dropdown (from `spec.servers[]`)
 
-## v2.0 — Power Features
+## v2.1 — Power Features
 
 ### API Documentation (Advanced)
 - [x] SDK code example generation (cURL, Python, JS) — built into v1.6 custom renderer
 - [x] Request/response schema display with nested types — built into v1.6 SchemaViewer
-- [ ] API playground — interactive request builder (planned for v1.7)
+- [ ] API playground — interactive request builder (planned for v1.9)
 
 ### Content Management
 - [x] Multi-section support — pill-based section switcher (Guides / Internal / etc.)

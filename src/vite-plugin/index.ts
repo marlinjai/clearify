@@ -1,7 +1,7 @@
 import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite';
 import { resolve } from 'path';
 import { existsSync, readFileSync } from 'fs';
-import { loadUserConfig, resolveConfig, resolveSections } from '../core/config.js';
+import { loadUserConfig, resolveConfig, resolveSections, scanHubProjects } from '../core/config.js';
 import { buildSectionData, type SectionData } from '../core/navigation.js';
 import type { ClearifyConfig, ResolvedSection, RouteEntry, SectionNavigation, NavigationItem } from '../types/index.js';
 import type { SearchEntry } from '../core/search.js';
@@ -25,6 +25,9 @@ const RESOLVED_VIRTUAL_MERMAID_SVGS = '\0' + VIRTUAL_MERMAID_SVGS;
 
 const VIRTUAL_OPENAPI_SPEC = 'virtual:clearify/openapi-spec';
 const RESOLVED_VIRTUAL_OPENAPI_SPEC = '\0' + VIRTUAL_OPENAPI_SPEC;
+
+const VIRTUAL_HUB = 'virtual:clearify/hub';
+const RESOLVED_VIRTUAL_HUB = '\0' + VIRTUAL_HUB;
 
 /** Walk navigation depth-first, returning the first leaf path. */
 function findFirstNavPath(items: NavigationItem[]): string | undefined {
@@ -258,6 +261,7 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
       userRoot = options.root ?? process.cwd();
       const userConfig = await loadUserConfig(userRoot);
       config = resolveConfig(userConfig, userRoot);
+      config = await scanHubProjects(config, userRoot);
 
       const allSections = resolveSections(config, userRoot);
       const isDev = resolvedViteConfig.command === 'serve';
@@ -277,6 +281,7 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
       if (id === VIRTUAL_SEARCH_INDEX) return RESOLVED_VIRTUAL_SEARCH_INDEX;
       if (id === VIRTUAL_MERMAID_SVGS) return RESOLVED_VIRTUAL_MERMAID_SVGS;
       if (id === VIRTUAL_OPENAPI_SPEC) return RESOLVED_VIRTUAL_OPENAPI_SPEC;
+      if (id === VIRTUAL_HUB) return RESOLVED_VIRTUAL_HUB;
       return null;
     },
 
@@ -298,6 +303,10 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
       }
       if (id === RESOLVED_VIRTUAL_OPENAPI_SPEC) {
         return await loadOpenAPISpec();
+      }
+      if (id === RESOLVED_VIRTUAL_HUB) {
+        const hubData = config.hub ?? null;
+        return `export default ${JSON.stringify(hubData)};`;
       }
       return null;
     },

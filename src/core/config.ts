@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { resolve, basename } from 'path';
+import { resolve, basename, dirname } from 'path';
 import { pathToFileURL } from 'url';
 import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
@@ -36,6 +36,30 @@ const OpenAPIConfigSchema = z.object({
   generatePages: z.boolean().default(true),
 }).optional();
 
+const HubProjectSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  href: z.string().optional(),
+  repo: z.string().optional(),
+  status: z.enum(['active', 'beta', 'planned', 'deprecated']).default('active'),
+  icon: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+});
+
+const HubProjectPartialSchema = z.object({
+  description: z.string(),
+  href: z.string().optional(),
+  repo: z.string().optional(),
+  status: z.enum(['active', 'beta', 'planned', 'deprecated']).default('active'),
+  icon: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+}).optional();
+
+const HubConfigSchema = z.object({
+  projects: z.array(HubProjectSchema).default([]),
+  scan: z.string().optional(),
+}).optional();
+
 const ClearifyConfigSchema = z.object({
   name: z.string().default('Documentation'),
   docsDir: z.string().default('./docs'),
@@ -60,6 +84,8 @@ const ClearifyConfigSchema = z.object({
   mermaid: MermaidConfigSchema,
   openapi: OpenAPIConfigSchema,
   links: z.record(z.string(), z.string()).optional(),
+  hub: HubConfigSchema,
+  hubProject: HubProjectPartialSchema,
   customCss: z.string().optional(),
   headTags: z.array(z.string()).optional(),
 });
@@ -232,6 +258,52 @@ export function resolveSections(config: ClearifyConfig, root: string): ResolvedS
       exclude: config.exclude ?? [],
     },
   ];
+}
+
+export async function scanHubProjects(config: ClearifyConfig, root: string): Promise<ClearifyConfig> {
+  if (!config.hub?.scan) return config;
+
+  const { globbySync } = await import('globby');
+  const pattern = config.hub.scan;
+  const configPaths = globbySync(pattern, { cwd: root, absolute: true });
+
+  const scannedProjects: Array<{ name: string; description: string; href?: string; repo?: string; status?: 'active' | 'beta' | 'planned' | 'deprecated'; icon?: string; tags?: string[] }> = [];
+
+  for (const configPath of configPaths) {
+    try {
+      const childConfig = await loadUserConfig(dirname(configPath));
+      if (!childConfig.hubProject) continue;
+
+      const name = childConfig.name ?? basename(dirname(configPath));
+      const hp = childConfig.hubProject;
+      scannedProjects.push({
+        name,
+        description: hp.description,
+        href: hp.href ?? childConfig.siteUrl,
+        repo: hp.repo,
+        status: hp.status,
+        icon: hp.icon,
+        tags: hp.tags,
+      });
+    } catch {
+      // Skip configs that fail to load
+    }
+  }
+
+  // Manual projects override scanned ones by name
+  const manualNames = new Set((config.hub.projects ?? []).map((p) => p.name));
+  const merged = [
+    ...scannedProjects.filter((p) => !manualNames.has(p.name)),
+    ...(config.hub.projects ?? []),
+  ];
+
+  return {
+    ...config,
+    hub: {
+      ...config.hub,
+      projects: merged,
+    },
+  };
 }
 
 export { defineConfig } from '../types/index.js';

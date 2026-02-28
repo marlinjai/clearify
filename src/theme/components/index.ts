@@ -12,3 +12,6 @@ export { Badge } from './Badge.js';
 export { Tooltip } from './Tooltip.js';
 export { Columns, Column } from './Columns.js';
 export { Frame } from './Frame.js';
+export { StatusBadge } from './StatusBadge.js';
+export { ProjectCard } from './ProjectCard.js';
+export { ProjectGrid } from './ProjectGrid.js';
