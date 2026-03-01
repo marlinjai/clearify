@@ -124,7 +124,7 @@ export default defineConfig({
 ---
 title: Installation Guide
 description: How to install the thing
-icon: download
+icon: "⬇️"
 order: 2
 ---
 ```
