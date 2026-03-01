@@ -44,6 +44,7 @@ const HubProjectSchema = z.object({
   status: z.enum(['active', 'beta', 'planned', 'deprecated']).default('active'),
   icon: z.string().optional(),
   tags: z.array(z.string()).optional(),
+  group: z.string().optional(),
 });
 
 const HubProjectPartialSchema = z.object({
@@ -53,6 +54,7 @@ const HubProjectPartialSchema = z.object({
   status: z.enum(['active', 'beta', 'planned', 'deprecated']).default('active'),
   icon: z.string().optional(),
   tags: z.array(z.string()).optional(),
+  group: z.string().optional(),
 }).optional();
 
 const HubConfigSchema = z.object({
@@ -267,7 +269,7 @@ export async function scanHubProjects(config: ClearifyConfig, root: string): Pro
   const pattern = config.hub.scan;
   const configPaths = globbySync(pattern, { cwd: root, absolute: true });
 
-  const scannedProjects: Array<{ name: string; description: string; href?: string; repo?: string; status?: 'active' | 'beta' | 'planned' | 'deprecated'; icon?: string; tags?: string[] }> = [];
+  const scannedProjects: Array<{ name: string; description: string; href?: string; repo?: string; status?: 'active' | 'beta' | 'planned' | 'deprecated'; icon?: string; tags?: string[]; group?: string }> = [];
 
   for (const configPath of configPaths) {
     try {
@@ -284,6 +286,7 @@ export async function scanHubProjects(config: ClearifyConfig, root: string): Pro
         status: hp.status,
         icon: hp.icon,
         tags: hp.tags,
+        group: hp.group,
       });
     } catch {
       // Skip configs that fail to load

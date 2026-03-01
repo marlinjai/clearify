@@ -20,19 +20,19 @@ An open-source documentation site generator. Turn markdown into beautiful docs.
 Install Clearify as a dev dependency:
 
 ```bash
-npm install @marlinjai/clearify --save-dev
+pnpm add -D @marlinjai/clearify
 ```
 
 Scaffold your project:
 
 ```bash
-npx clearify init
+pnpm exec clearify init
 ```
 
 Start the dev server:
 
 ```bash
-npx clearify dev
+pnpm exec clearify dev
 ```
 
 Your docs are live at `http://localhost:4747`.
