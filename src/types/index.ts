@@ -93,6 +93,8 @@ export interface HubProject {
   icon?: string;
   tags?: string[];
   group?: string;
+  hubUrl?: string;
+  hubName?: string;
 }
 
 export interface HubConfig {

@@ -64,12 +64,28 @@ export function buildNavigation(docs: DocFile[], basePath: string = '/'): Naviga
   // Normalize basePath for grouping: the "root dir" for this section
   const rootDir = basePath === '/' ? '/' : basePath.replace(/\/$/, '');
 
-  // Group files by directory
-  const groups = new Map<string, DocFile[]>();
+  // Build a map of index pages for directory label/icon lookup
+  const indexPages = new Map<string, DocFile>();
+  const nonIndexDocs: DocFile[] = [];
 
   for (const doc of docs) {
-    // Skip the section index page — it's the landing page, not a nav item
+    // Skip the section root index page — it's the landing page, not a nav item
     if (doc.routePath === rootDir || doc.routePath === '/') continue;
+
+    // Check if this is a directory index page (e.g., /projects/lumitra-infra)
+    // These become the group's landing page and provide the group label/icon
+    const parentDir = dirname(doc.routePath);
+    const fileName = basename(doc.filePath, extname(doc.filePath));
+    if (fileName === 'index') {
+      indexPages.set(doc.routePath, doc);
+    } else {
+      nonIndexDocs.push(doc);
+    }
+  }
+
+  // Group non-index files by their immediate parent directory
+  const groups = new Map<string, DocFile[]>();
+  for (const doc of nonIndexDocs) {
     const dir = dirname(doc.routePath);
     if (!groups.has(dir)) groups.set(dir, []);
     groups.get(dir)!.push(doc);
@@ -85,31 +101,66 @@ export function buildNavigation(docs: DocFile[], basePath: string = '/'): Naviga
     });
   }
 
-  const nav: NavigationItem[] = [];
+  // Build a tree structure recursively
+  function buildGroupChildren(parentDir: string): NavigationItem[] {
+    const items: NavigationItem[] = [];
 
-  // Root-level pages (pages directly in the section's root directory)
-  const rootFiles = groups.get(rootDir) ?? [];
-  for (const doc of rootFiles) {
-    const item: NavigationItem = { label: doc.frontmatter.title!, path: doc.routePath };
-    if (doc.frontmatter.icon) item.icon = doc.frontmatter.icon;
-    nav.push(item);
-  }
+    // Add direct pages in this directory
+    const directFiles = groups.get(parentDir) ?? [];
+    for (const doc of directFiles) {
+      const item: NavigationItem = { label: doc.frontmatter.title!, path: doc.routePath };
+      if (doc.frontmatter.icon) item.icon = doc.frontmatter.icon;
+      items.push(item);
+    }
 
-  // Subdirectory groups (all directories that aren't the section root)
-  const dirs = [...groups.keys()].filter((d) => d !== rootDir).sort();
-  for (const dir of dirs) {
-    const files = groups.get(dir)!;
-    const label = toTitleCase(basename(dir));
-    const children: NavigationItem[] = files.map((doc) => {
-      const child: NavigationItem = { label: doc.frontmatter.title!, path: doc.routePath };
-      if (doc.frontmatter.icon) child.icon = doc.frontmatter.icon;
-      return child;
+    // Find subdirectories that are direct children of this directory
+    const childDirs = new Set<string>();
+    for (const dir of groups.keys()) {
+      if (dir !== parentDir && dirname(dir) === parentDir) {
+        childDirs.add(dir);
+      }
+    }
+    // Also check index pages for subdirectories that only have an index
+    for (const indexPath of indexPages.keys()) {
+      const dir = indexPath; // index route IS the directory path
+      if (dirname(dir) === parentDir && !childDirs.has(dir)) {
+        childDirs.add(dir);
+      }
+    }
+
+    // Sort child directories, using index page order if available
+    const sortedChildDirs = [...childDirs].sort((a, b) => {
+      const indexA = indexPages.get(a);
+      const indexB = indexPages.get(b);
+      const orderA = indexA?.frontmatter.order ?? 999;
+      const orderB = indexB?.frontmatter.order ?? 999;
+      if (orderA !== orderB) return orderA - orderB;
+      return a.localeCompare(b);
     });
 
-    nav.push({ label, children });
+    for (const childDir of sortedChildDirs) {
+      // Use index page title/icon if available, otherwise title-case the folder name
+      const indexPage = indexPages.get(childDir);
+      const label = indexPage?.frontmatter.title ?? toTitleCase(basename(childDir));
+      const children = buildGroupChildren(childDir);
+
+      if (children.length > 0) {
+        // Directory with child pages → collapsible group
+        const group: NavigationItem = { label, children };
+        if (indexPage?.frontmatter.icon) group.icon = indexPage.frontmatter.icon;
+        items.push(group);
+      } else if (indexPage) {
+        // Directory with only an index page → render as a leaf link
+        const item: NavigationItem = { label, path: indexPage.routePath };
+        if (indexPage.frontmatter.icon) item.icon = indexPage.frontmatter.icon;
+        items.push(item);
+      }
+    }
+
+    return items;
   }
 
-  return nav;
+  return buildGroupChildren(rootDir);
 }
 
 export function buildRoutes(docs: DocFile[], sectionId?: string): RouteEntry[] {

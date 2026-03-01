@@ -1,6 +1,6 @@
 # Clearify Roadmap
 
-> Last updated: 2026-02-28 — v1.8 Hub Mode & DX
+> Last updated: 2026-03-02 — v1.9 Nested Navigation & Hub Backlinks
 
 ## v0.2.0 — Done
 
@@ -107,15 +107,25 @@ Replaced `@scalar/api-reference-react` with a fully custom-built renderer using 
 - [x] `--no-claude-rules` flag to skip rules file creation
 - [x] Rules content adapts to `--no-internal` flag
 
-## v1.9 — Try It Out (Phase 2)
+## v1.9 — Nested Navigation & Hub Backlinks
+
+### Navigation Improvements — Done
+- [x] Multi-level nested sidebar navigation (subdirectories produce proper nested collapsible groups)
+- [x] Index page `title` and `icon` used for group labels (instead of folder name title-casing)
+- [x] Index-only directories rendered as leaf links (not dropped)
+
+### Hub Backlinks — Done
+- [x] `hubProject.hubUrl` and `hubProject.hubName` config options
+- [x] Sidebar backlink rendering (`← Hub Name`) at top of sidebar when configured
+- [x] Hub project grouping via `hubProject.group`
+
+## v2.0 — Try It Out & Auth (OpenAPI Phase 2-3)
 
 ### API Playground
 - [ ] `TryItPanel` inside `OperationCard` — toggled by "Try It" button
 - [ ] Auto-generated forms from operation parameter + request body schemas
 - [ ] Configurable proxy URL (`openapi.proxyUrl` config option)
 - [ ] Response display with status code, headers, syntax-highlighted body
-
-## v2.0 — Auth & Code Gen Polish (Phase 3)
 
 ### Auth Management
 - [ ] `AuthManager` — persistent panel reading `components.securitySchemes`

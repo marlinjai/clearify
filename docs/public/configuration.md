@@ -186,6 +186,55 @@ The scanner uses `name` from the child config and `href` from `hubProject.href` 
 | `status` | `'active' \| 'beta' \| 'planned' \| 'deprecated'` | `'active'` | Project status badge |
 | `icon` | `string` | — | Emoji or icon character |
 | `tags` | `string[]` | — | Category tags shown on the card |
+| `group` | `string` | — | Group name for organizing projects in the hub grid |
+| `hubUrl` | `string` | — | URL of the parent hub site (enables sidebar backlink) |
+| `hubName` | `string` | `'Hub'` | Display name for the hub backlink (e.g. `'ERP Suite'`) |
+
+### Hub backlink
+
+When a sub-project declares `hubProject.hubUrl`, a `← Hub Name` link appears at the top of the sidebar, letting users navigate back to the parent hub:
+
+```typescript
+export default defineConfig({
+  name: 'Storage Brain',
+  hubProject: {
+    description: 'File storage & processing service',
+    hubUrl: 'https://docs.example.com',
+    hubName: 'ERP Suite',
+  },
+});
+```
+
+### Sidebar nesting
+
+The sidebar automatically reflects your docs folder structure. Subdirectories create collapsible groups, and nested subdirectories create nested groups:
+
+```
+docs/public/
+├── index.md                    → Landing page (not in sidebar)
+├── getting-started.md          → Top-level link
+└── projects/
+    ├── index.md                → "Projects" group label (from frontmatter title)
+    ├── my-app/
+    │   ├── index.md            → "My App" leaf link (if no children)
+    │   ├── quickstart.md       → Nested under "My App" group
+    │   └── api.md              → Nested under "My App" group
+    └── infrastructure/
+        ├── index.md            → "Infrastructure" group (from frontmatter title/icon)
+        └── service-a/
+            ├── setup.md        → Nested under "Service A" inside "Infrastructure"
+            └── api.md
+```
+
+Use frontmatter in `index.md` to control the group label, icon, and sort order:
+
+```markdown
+---
+title: Infrastructure
+icon: "🏗️"
+order: 0
+---
+```
 
 ### Hub components
 

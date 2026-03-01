@@ -55,6 +55,8 @@ const HubProjectPartialSchema = z.object({
   icon: z.string().optional(),
   tags: z.array(z.string()).optional(),
   group: z.string().optional(),
+  hubUrl: z.string().optional(),
+  hubName: z.string().optional(),
 }).optional();
 
 const HubConfigSchema = z.object({

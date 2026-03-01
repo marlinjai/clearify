@@ -33,6 +33,7 @@ export function Layout({ config, sections, children }: LayoutProps) {
             sections={sections}
             open={sidebarOpen}
             onClose={() => setSidebarOpen(false)}
+            hubProject={config.hubProject}
           />
           <Content>{children}</Content>
           <TableOfContents />

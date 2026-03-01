@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
-import type { NavigationItem, SectionNavigation } from '../types/index.js';
+import type { NavigationItem, SectionNavigation, HubProject } from '../types/index.js';
 
 interface SidebarProps {
   sections: SectionNavigation[];
   open: boolean;
   onClose: () => void;
+  hubProject?: Omit<HubProject, 'name'>;
 }
 
 function findActiveSection(pathname: string, sections: SectionNavigation[]): string {
@@ -103,7 +104,7 @@ function SectionSwitcher({
   );
 }
 
-export function Sidebar({ sections, open, onClose }: SidebarProps) {
+export function Sidebar({ sections, open, onClose, hubProject }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -246,6 +247,37 @@ export function Sidebar({ sections, open, onClose }: SidebarProps) {
         }}
         className={clsx('clearify-sidebar', open && 'clearify-sidebar-open')}
       >
+        {hubProject?.hubUrl && (
+          <a
+            href={hubProject.hubUrl}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.375rem',
+              padding: '0.375rem 0.75rem',
+              margin: '0 0.5rem 0.5rem',
+              fontSize: '0.75rem',
+              fontWeight: 500,
+              color: 'var(--clearify-text-tertiary)',
+              textDecoration: 'none',
+              borderRadius: 'var(--clearify-radius-sm)',
+              transition: 'color 0.15s, background-color 0.15s',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = 'var(--clearify-primary)';
+              e.currentTarget.style.backgroundColor = 'var(--clearify-primary-soft)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = 'var(--clearify-text-tertiary)';
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+            {hubProject.hubName ?? 'Hub'}
+          </a>
+        )}
         {showSwitcher && (
           <SectionSwitcher
             sections={sections}

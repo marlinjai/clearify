@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-03-02
+
+### Added
+
+- **Nested sidebar navigation** — subdirectories within subdirectories now produce proper multi-level collapsible groups instead of being flattened
+- **Index page group labels** — `index.md` frontmatter `title` and `icon` are now used for the parent group label instead of title-casing the folder name
+- **Index-only directory links** — directories containing only an `index.md` render as leaf links in the sidebar instead of being dropped
+- **Hub backlink** — sub-project docs can link back to their parent hub with `hubProject.hubUrl` and `hubProject.hubName` config options; renders a `← Hub Name` link at the top of the sidebar
+- Hub project grouping support — organize hub projects into named groups via `hubProject.group`
+
 ## [1.8.0] - 2026-02-28
 
 ### Added
@@ -17,6 +27,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `virtual:clearify/hub` virtual module — serves hub project data to the client
 - `clearify init` now scaffolds `.claude/rules/clearify-docs.md` — AI assistant rules for keeping docs in sync with code changes
 - `--no-claude-rules` flag for `clearify init` — skip Claude rules file creation
+- `links.app` config option — adds an "Open App" button in the header linking to the app URL
+
+### Fixed
+
+- Config loading failure in pnpm environments — resolved module resolution issues when Clearify is installed via pnpm
 
 ### Changed
 
@@ -96,6 +111,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `OpenAPI` component simplified — renders custom components directly, no longer wraps Scalar
 - `loadOpenAPISpecData()` and `loadOpenAPISpec()` in the Vite plugin are now async (support `$ref` dereferencing)
 - Net bundle size reduction — removed Scalar's CSS (~280KB) and JS, added lightweight custom components
+
+## [1.5.3] - 2026-02-15
+
+### Added
+
+- Sidebar fold/unfold all buttons for collapsing and expanding navigation groups
+
+### Fixed
+
+- API Reference styling improvements
 
 ## [1.5.2] - 2026-02-15
 
@@ -231,7 +256,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Table of contents extracted from page headings
 - Responsive layout with mobile sidebar toggle
 
-[Unreleased]: https://github.com/marlinjai/clearify/compare/v1.8.0...HEAD
+[Unreleased]: https://github.com/marlinjai/clearify/compare/v1.9.0...HEAD
+[1.9.0]: https://github.com/marlinjai/clearify/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/marlinjai/clearify/compare/v1.6.6...v1.8.0
 [1.6.6]: https://github.com/marlinjai/clearify/compare/v1.6.5...v1.6.6
 [1.6.5]: https://github.com/marlinjai/clearify/compare/v1.6.4...v1.6.5
@@ -239,7 +265,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.6.3]: https://github.com/marlinjai/clearify/compare/v1.6.2...v1.6.3
 [1.6.2]: https://github.com/marlinjai/clearify/compare/v1.6.1...v1.6.2
 [1.6.1]: https://github.com/marlinjai/clearify/compare/v1.6.0...v1.6.1
-[1.6.0]: https://github.com/marlinjai/clearify/compare/v1.5.2...v1.6.0
+[1.6.0]: https://github.com/marlinjai/clearify/compare/v1.5.3...v1.6.0
+[1.5.3]: https://github.com/marlinjai/clearify/compare/v1.5.2...v1.5.3
 [1.5.2]: https://github.com/marlinjai/clearify/compare/v1.5.1...v1.5.2
 [1.5.1]: https://github.com/marlinjai/clearify/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/marlinjai/clearify/compare/v1.0.0...v1.5.0
