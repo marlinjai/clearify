@@ -22,9 +22,9 @@ Clearify turns your markdown files into a beautiful documentation site.
 ## Quick Start
 
 ```bash
-npm install @marlinjai/clearify
-npx clearify init
-npx clearify dev
+pnpm add @marlinjai/clearify
+pnpm exec clearify init
+pnpm exec clearify dev
 ```
 
 That's it! Your docs are live at `http://localhost:4747`.

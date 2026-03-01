@@ -13,20 +13,20 @@ order: 3
 
 ## Package Managers
 
+### pnpm (recommended)
+
+```bash
+pnpm add -D @marlinjai/clearify
+```
+
 ### npm
 
 ```bash
 npm install @marlinjai/clearify --save-dev
 ```
 
-### pnpm
-
-```bash
-pnpm add -D clearify
-```
-
 ### yarn
 
 ```bash
-yarn add -D clearify
+yarn add -D @marlinjai/clearify
 ```

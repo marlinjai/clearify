@@ -1,12 +1,12 @@
 ---
 title: Local Development
-description: Using Clearify across projects with npm link
+description: Using Clearify across projects with pnpm link
 order: 5
 ---
 
 # Local Development
 
-Clearify is designed to be used across multiple standalone projects. Since there is no shared monorepo workspace, `npm link` is the recommended way to use a local build of Clearify in other projects.
+Clearify is designed to be used across multiple standalone projects. Since there is no shared monorepo workspace, `pnpm link` is the recommended way to use a local build of Clearify in other projects.
 
 ## Building Clearify
 
@@ -14,8 +14,8 @@ First, build and link Clearify globally:
 
 ```bash
 cd projects/clearify
-npm run build
-npm link
+pnpm run build
+pnpm link --global
 ```
 
 This makes the `clearify` package available globally on your machine.
@@ -26,7 +26,7 @@ In the project where you want to use Clearify:
 
 ```bash
 cd projects/data-table
-npm link clearify
+pnpm link --global @marlinjai/clearify
 ```
 
 Now you can create a `docs/` folder and run the dev server:
@@ -34,7 +34,7 @@ Now you can create a `docs/` folder and run the dev server:
 ```bash
 mkdir -p docs
 echo "# Data Table Docs" > docs/index.md
-npx clearify dev
+pnpm exec clearify dev
 ```
 
 The dev server starts at `http://localhost:4747`. The header will automatically show the project name from `package.json`.
@@ -58,7 +58,7 @@ To remove the link when you're done:
 
 ```bash
 cd projects/data-table
-npm unlink clearify
+pnpm unlink @marlinjai/clearify
 ```
 
 ## Rebuilding after changes
@@ -67,7 +67,7 @@ After making changes to Clearify itself, rebuild before testing:
 
 ```bash
 cd projects/clearify
-npm run build
+pnpm run build
 ```
 
 The link persists across rebuilds — no need to re-link.

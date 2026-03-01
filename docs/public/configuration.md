@@ -51,7 +51,7 @@ export default defineConfig({
 Requires Puppeteer as a dev dependency:
 
 ```bash
-npm install puppeteer
+pnpm add puppeteer
 ```
 
 | Strategy | Client JS | Dark/Light Toggle | Dev Server |

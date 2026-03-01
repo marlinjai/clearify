@@ -10,7 +10,7 @@ Clearify keeps your changelog and documentation in sync with your code — autom
 
 ## Auto-generated on init
 
-Running `npx clearify init` scaffolds a starter `CHANGELOG.md` at your project root alongside the docs folder and config file. The changelog follows the [Keep a Changelog](https://keepachangelog.com) format out of the box.
+Running `pnpm exec clearify init` scaffolds a starter `CHANGELOG.md` at your project root alongside the docs folder and config file. The changelog follows the [Keep a Changelog](https://keepachangelog.com) format out of the box.
 
 ## Auto-detected as a docs page
 
@@ -56,7 +56,7 @@ Clearify includes a Claude Code hook that fires after every git commit and instr
 
 1. **Update CHANGELOG.md** — append an entry under `[Unreleased]` with what changed
 2. **Update relevant docs** — check if committed changes affect any existing documentation (guides, API references, architecture docs, roadmap, etc.) and update them to reflect the current state
-3. **Rebuild docs** — run `npm run build` so the docs site is always current
+3. **Rebuild docs** — run `pnpm run build` so the docs site is always current
 
 ### Setup
 
@@ -92,7 +92,7 @@ Hook fires:
   → "Update CHANGELOG.md with this change"
   → "Update any docs pages affected by this change"
   → "Rebuild docs"
-Claude: [updates changelog, updates docs, runs npm run build]
+Claude: [updates changelog, updates docs, runs pnpm run build]
 ```
 
 The changelog and documentation stay in sync with code — without manual effort.
@@ -111,11 +111,11 @@ Only pages that are actually affected by the commit get updated.
 
 ## Per-project changelogs
 
-Every project using Clearify gets this automatically. Either run `npx clearify init` (creates CHANGELOG.md for you) or add one manually:
+Every project using Clearify gets this automatically. Either run `pnpm exec clearify init` (creates CHANGELOG.md for you) or add one manually:
 
 ```bash
 cd projects/data-table
 echo "# Changelog" > CHANGELOG.md
-npx clearify dev
+pnpm exec clearify dev
 # → /changelog page appears in sidebar
 ```

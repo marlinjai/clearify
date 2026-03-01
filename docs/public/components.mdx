@@ -33,19 +33,19 @@ Use callouts to highlight important information.
 Use tabs to show alternative content side by side.
 
 <Tabs>
+  <Tab label="pnpm">
+    ```bash
+    pnpm add @marlinjai/clearify
+    ```
+  </Tab>
   <Tab label="npm">
     ```bash
     npm install @marlinjai/clearify
     ```
   </Tab>
-  <Tab label="pnpm">
-    ```bash
-    pnpm add clearify
-    ```
-  </Tab>
   <Tab label="yarn">
     ```bash
-    yarn add clearify
+    yarn add @marlinjai/clearify
     ```
   </Tab>
 </Tabs>
@@ -62,7 +62,7 @@ Use steps for sequential instructions.
     Create a `docs/` directory and add your first markdown file.
   </Step>
   <Step title="Start the dev server">
-    Run `npx clearify dev` to see your docs at `http://localhost:4747`.
+    Run `pnpm exec clearify dev` to see your docs at `http://localhost:4747`.
   </Step>
 </Steps>
 

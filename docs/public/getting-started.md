@@ -11,7 +11,7 @@ order: 1
 Install Clearify as a dev dependency:
 
 ```bash
-npm install @marlinjai/clearify --save-dev
+pnpm add -D @marlinjai/clearify
 ```
 
 ## Scaffold your project
@@ -19,7 +19,7 @@ npm install @marlinjai/clearify --save-dev
 The fastest way to get started:
 
 ```bash
-npx clearify init
+pnpm exec clearify init
 ```
 
 This creates:
@@ -32,7 +32,7 @@ This creates:
 ## Start the dev server
 
 ```bash
-npx clearify dev
+pnpm exec clearify dev
 ```
 
 Open `http://localhost:4747` to see your docs. The server hot-reloads on every file change.
@@ -42,7 +42,7 @@ Open `http://localhost:4747` to see your docs. The server hot-reloads on every f
 Override the port with `--port` or in your config:
 
 ```bash
-npx clearify dev --port 9999
+pnpm exec clearify dev --port 9999
 ```
 
 ## Adding pages
@@ -113,7 +113,7 @@ export default defineConfig({
 ## Building for production
 
 ```bash
-npx clearify build
+pnpm exec clearify build
 ```
 
 Outputs a static site to `docs-dist/` with a `sitemap.xml`. Deploy anywhere that serves static files.
