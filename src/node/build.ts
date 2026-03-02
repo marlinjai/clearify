@@ -164,7 +164,7 @@ export async function buildSite() {
   const ssrOutDir = resolve(outDir, '.ssr');
 
   // Resolve sections, filter out drafts for production
-  const allSections = resolveSections(config, userRoot);
+  const allSections = await resolveSections(config, userRoot);
   const productionSections = allSections.filter((s) => !s.draft);
 
   const changelogPath = resolve(userRoot, 'CHANGELOG.md');

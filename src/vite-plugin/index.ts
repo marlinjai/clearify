@@ -263,7 +263,7 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
       config = resolveConfig(userConfig, userRoot);
       config = await scanHubProjects(config, userRoot);
 
-      const allSections = resolveSections(config, userRoot);
+      const allSections = await resolveSections(config, userRoot);
       const isDev = resolvedViteConfig.command === 'serve';
 
       // Draft sections included in dev, excluded in build

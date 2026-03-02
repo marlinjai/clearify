@@ -4,7 +4,8 @@ import { pathToFileURL } from 'url';
 import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { randomBytes } from 'crypto';
-import type { ClearifyConfig, ResolvedSection } from '../types/index.js';
+import type { ClearifyConfig, HubProject, ResolvedSection, SectionConfig } from '../types/index.js';
+import { resolveRemoteSections } from './remote.js';
 
 const NavigationItemSchema: z.ZodType<any> = z.lazy(() =>
   z.object({
@@ -17,6 +18,13 @@ const NavigationItemSchema: z.ZodType<any> = z.lazy(() =>
   })
 );
 
+const RemoteGitSourceSchema = z.object({
+  repo: z.string(),
+  ref: z.string().optional(),
+  path: z.string().optional(),
+  sparse: z.boolean().optional(),
+});
+
 const SectionConfigSchema = z.object({
   label: z.string(),
   docsDir: z.string(),
@@ -24,6 +32,7 @@ const SectionConfigSchema = z.object({
   draft: z.boolean().optional(),
   sitemap: z.boolean().optional(),
   exclude: z.array(z.string()).optional(),
+  git: RemoteGitSourceSchema.optional(),
 });
 
 const MermaidConfigSchema = z.object({
@@ -45,6 +54,13 @@ const HubProjectSchema = z.object({
   icon: z.string().optional(),
   tags: z.array(z.string()).optional(),
   group: z.string().optional(),
+  mode: z.enum(['link', 'embed']).optional(),
+  git: RemoteGitSourceSchema.optional(),
+  embedSections: z.union([
+    z.literal('all'),
+    z.literal('public'),
+    z.array(z.string()),
+  ]).optional(),
 });
 
 const HubProjectPartialSchema = z.object({
@@ -62,6 +78,7 @@ const HubProjectPartialSchema = z.object({
 const HubConfigSchema = z.object({
   projects: z.array(HubProjectSchema).default([]),
   scan: z.string().optional(),
+  cacheDir: z.string().optional(),
 }).optional();
 
 const ClearifyConfigSchema = z.object({
@@ -219,18 +236,29 @@ function slugify(str: string): string {
     .replace(/^-|-$/g, '');
 }
 
-export function resolveSections(config: ClearifyConfig, root: string): ResolvedSection[] {
+export async function resolveSections(config: ClearifyConfig, root: string): Promise<ResolvedSection[]> {
   if (config.sections && config.sections.length > 0) {
-    const sections: ResolvedSection[] = config.sections.map((s, i) => {
+    // Resolve remote sections first (clone/update git repos, rewrite docsDir)
+    const hasRemote = config.sections.some((s) => s.git);
+    let resolvedInputs: SectionConfig[] = config.sections;
+
+    if (hasRemote) {
+      const cacheDir = resolve(root, 'node_modules/.cache/clearify-remote');
+      resolvedInputs = await resolveRemoteSections(config.sections, cacheDir);
+    }
+
+    const sections: ResolvedSection[] = resolvedInputs.map((s, i) => {
       const id = slugify(s.label);
       const draft = s.draft ?? false;
       const basePath = s.basePath ?? (i === 0 ? '/' : '/' + id);
       const sitemap = s.sitemap ?? !draft;
       const exclude = [...(config.exclude ?? []), ...(s.exclude ?? [])];
+      // If docsDir is already absolute (resolved by remote), use as-is
+      const docsDir = s.docsDir.startsWith('/') ? s.docsDir : resolve(root, s.docsDir);
       return {
         id,
         label: s.label,
-        docsDir: resolve(root, s.docsDir),
+        docsDir,
         basePath,
         draft,
         sitemap,
@@ -265,45 +293,105 @@ export function resolveSections(config: ClearifyConfig, root: string): ResolvedS
 }
 
 export async function scanHubProjects(config: ClearifyConfig, root: string): Promise<ClearifyConfig> {
-  if (!config.hub?.scan) return config;
+  if (!config.hub?.scan && !config.hub?.projects?.some((p) => p.mode === 'embed')) {
+    return config;
+  }
 
-  const { globbySync } = await import('globby');
-  const pattern = config.hub.scan;
-  const configPaths = globbySync(pattern, { cwd: root, absolute: true });
+  const scannedProjects: HubProject[] = [];
 
-  const scannedProjects: Array<{ name: string; description: string; href?: string; repo?: string; status?: 'active' | 'beta' | 'planned' | 'deprecated'; icon?: string; tags?: string[]; group?: string }> = [];
+  if (config.hub?.scan) {
+    const { globbySync } = await import('globby');
+    const pattern = config.hub.scan;
+    const configPaths = globbySync(pattern, { cwd: root, absolute: true });
 
-  for (const configPath of configPaths) {
-    try {
-      const childConfig = await loadUserConfig(dirname(configPath));
-      if (!childConfig.hubProject) continue;
+    for (const configPath of configPaths) {
+      try {
+        const childConfig = await loadUserConfig(dirname(configPath));
+        if (!childConfig.hubProject) continue;
 
-      const name = childConfig.name ?? basename(dirname(configPath));
-      const hp = childConfig.hubProject;
-      scannedProjects.push({
-        name,
-        description: hp.description,
-        href: hp.href ?? childConfig.siteUrl,
-        repo: hp.repo,
-        status: hp.status,
-        icon: hp.icon,
-        tags: hp.tags,
-        group: hp.group,
-      });
-    } catch {
-      // Skip configs that fail to load
+        const name = childConfig.name ?? basename(dirname(configPath));
+        const hp = childConfig.hubProject;
+        scannedProjects.push({
+          name,
+          description: hp.description,
+          href: hp.href ?? childConfig.siteUrl,
+          repo: hp.repo,
+          status: hp.status,
+          icon: hp.icon,
+          tags: hp.tags,
+          group: hp.group,
+        });
+      } catch {
+        // Skip configs that fail to load
+      }
     }
   }
 
   // Manual projects override scanned ones by name
-  const manualNames = new Set((config.hub.projects ?? []).map((p) => p.name));
+  const manualNames = new Set((config.hub?.projects ?? []).map((p) => p.name));
   const merged = [
     ...scannedProjects.filter((p) => !manualNames.has(p.name)),
-    ...(config.hub.projects ?? []),
+    ...(config.hub?.projects ?? []),
   ];
+
+  // Process embed-mode projects: clone their repos, read their configs,
+  // and inject their sections into the host config's sections array.
+  const embedSections: SectionConfig[] = [];
+  for (const project of merged) {
+    if (project.mode !== 'embed' || !project.git) continue;
+
+    const cacheDir = config.hub?.cacheDir
+      ? resolve(root, config.hub.cacheDir)
+      : resolve(root, 'node_modules/.cache/clearify-remote');
+
+    try {
+      const { resolveRemoteSource } = await import('./remote.js');
+      const { localPath } = await resolveRemoteSource(project.git, cacheDir);
+
+      // Read the remote project's clearify config to discover its sections
+      const remoteConfig = await loadUserConfig(localPath);
+      const remoteSections = remoteConfig.sections ?? [
+        { label: remoteConfig.name ?? project.name, docsDir: remoteConfig.docsDir ?? './docs' },
+      ];
+
+      // Filter sections based on embedSections
+      const filter = project.embedSections ?? 'public';
+      const filtered = remoteSections.filter((s) => {
+        if (filter === 'all') return true;
+        if (filter === 'public') return !s.draft;
+        if (Array.isArray(filter)) return filter.includes(s.label);
+        return true;
+      });
+
+      for (const s of filtered) {
+        const docsDir = s.docsDir.startsWith('/') ? s.docsDir : resolve(localPath, s.docsDir);
+        const label = s.label === 'Documentation' ? project.name : s.label;
+        const id = slugify(label);
+        embedSections.push({
+          label,
+          docsDir,
+          basePath: s.basePath ?? '/' + id,
+          draft: s.draft,
+          sitemap: s.sitemap,
+          exclude: s.exclude,
+        });
+      }
+
+      console.log(`  Hub embed "${project.name}": ${filtered.length} sections pulled`);
+    } catch (err) {
+      console.warn(
+        `  ⚠ Hub embed "${project.name}" failed:`,
+        err instanceof Error ? err.message : err,
+      );
+    }
+  }
+
+  // Merge embed sections into host config
+  const finalSections = [...(config.sections ?? []), ...embedSections];
 
   return {
     ...config,
+    ...(embedSections.length > 0 ? { sections: finalSections } : {}),
     hub: {
       ...config.hub,
       projects: merged,

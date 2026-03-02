@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-03-02
+
+### Added
+
+- **Remote git sections** — pull docs from other git repos at build time via `SectionConfig.git` with `RemoteGitSource` (repo, ref, sparse checkout)
+- **Remote section caching** — cloned repos cached in `node_modules/.cache/clearify-remote/` with stale-cache fallback on network failure
+- **Hub embed mode** — `HubProject.mode: 'embed'` clones a remote project's config and injects its sections into the host site
+- `HubConfig.cacheDir` option to override the default remote cache location
+- `core/remote` module exported via tsup for programmatic use
+
+### Changed
+
+- `resolveSections()` is now async to support remote section resolution
+- `scanHubProjects()` processes embed-mode projects by cloning repos and reading their Clearify configs
+
 ## [1.9.0] - 2026-03-02
 
 ### Added

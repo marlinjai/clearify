@@ -1,3 +1,10 @@
+export interface RemoteGitSource {
+  repo: string;
+  ref?: string;
+  path?: string;
+  sparse?: boolean;
+}
+
 export interface SectionConfig {
   label: string;
   docsDir: string;
@@ -5,6 +12,7 @@ export interface SectionConfig {
   draft?: boolean;
   sitemap?: boolean;
   exclude?: string[];
+  git?: RemoteGitSource;
 }
 
 export interface ResolvedSection {
@@ -95,11 +103,15 @@ export interface HubProject {
   group?: string;
   hubUrl?: string;
   hubName?: string;
+  mode?: 'link' | 'embed';
+  git?: RemoteGitSource;
+  embedSections?: 'all' | 'public' | string[];
 }
 
 export interface HubConfig {
   projects: HubProject[];
   scan?: string;
+  cacheDir?: string;
 }
 
 export function defineConfig(config: Partial<ClearifyConfig>): Partial<ClearifyConfig> {

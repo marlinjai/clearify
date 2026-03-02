@@ -14,7 +14,7 @@ export async function checkLinks(): Promise<void> {
   const userRoot = process.cwd();
   const userConfig = await loadUserConfig(userRoot);
   const config = resolveConfig(userConfig, userRoot);
-  const sections = resolveSections(config, userRoot);
+  const sections = await resolveSections(config, userRoot);
 
   // Build the set of all valid routes
   const validRoutes = new Set<string>();
