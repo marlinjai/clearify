@@ -1,6 +1,6 @@
 # Clearify Roadmap
 
-> Last updated: 2026-03-02 — v1.9 Nested Navigation & Hub Backlinks
+> Last updated: 2026-03-03 — v1.10 Remote Sections & Hub Embed
 
 ## v0.2.0 — Done
 
@@ -119,6 +119,20 @@ Replaced `@scalar/api-reference-react` with a fully custom-built renderer using 
 - [x] Sidebar backlink rendering (`← Hub Name`) at top of sidebar when configured
 - [x] Hub project grouping via `hubProject.group`
 
+## v1.10 — Remote Sections & Hub Embed
+
+### Remote Git Sections — Done
+- [x] `RemoteGitSource` type — `repo`, `ref`, `path`, `sparse` fields
+- [x] `SectionConfig.git` — pull docs from other git repos at build time
+- [x] `core/remote` module — `--depth 1` clone, sparse checkout, stale-cache fallback
+- [x] Caching in `node_modules/.cache/clearify-remote/{repo-slug}--{ref}/`
+- [x] `resolveSections()` made async to support remote resolution
+
+### Hub Embed Mode — Done
+- [x] `HubProject.mode: 'embed'` — clone remote project, read its Clearify config, inject sections
+- [x] `HubProject.embedSections` filter — `'all'`, `'public'`, or specific labels
+- [x] `HubConfig.cacheDir` — override cache location
+
 ## v2.0 — Try It Out & Auth (OpenAPI Phase 2-3)
 
 ### API Playground
@@ -161,6 +175,34 @@ Replaced `@scalar/api-reference-react` with a fully custom-built renderer using 
 - [ ] Inline feedback widget (thumbs up/down per page)
 - [ ] Popular pages dashboard
 
+## v2.5 — In-Place Editing
+
+> See [2026-03-03-in-place-editing-plan.md](../plans/2026-03-03-in-place-editing-plan.md) for full architecture
+
+### Phase 1: Local Dev Editing (quick win)
+- [ ] `POST /__clearify/save` endpoint on dev server — writes to `.md` file, Vite HMR reloads
+- [ ] Editor overlay component (CodeMirror split pane: source + live preview)
+- [ ] Floating "Edit" button on each page in dev mode
+- [ ] `editing.dev` config option
+
+### Phase 2: Git-Backed Production Editing
+- [ ] GitHub OAuth flow for authentication
+- [ ] Save-to-GitHub via Contents API (browser → GitHub directly, no Clearify backend)
+- [ ] `editing.provider: 'github'` config with repo, branch, mode (direct commit or PR)
+- [ ] Remote section awareness — edits to embedded docs target the source repo
+- [ ] "Saved — rebuilding..." UI with commit link
+- [ ] Works with every deployment target (static site unchanged)
+
+### Phase 3: Instant Preview Layer (premium, only if demand warrants)
+- [ ] Worker middleware (`@marlinjai/clearify-edge`) in front of static assets
+- [ ] Save drafts to Cloudflare KV (~5ms) for instant visibility
+- [ ] Async git commit + rebuild in background
+- [ ] KV cleanup after successful rebuild (TTL-based)
+- [ ] Server-side markdown rendering at the edge
+- [ ] Conflict resolution for concurrent edits
+
+**Why Phase 3 is different:** It transforms Clearify from a build tool into a runtime platform. The deployed site is no longer purely static — a Worker serves dynamic content from KV while git catches up. Only build this when instant editing becomes a real user demand.
+
 ## v3.0 — AI-Native & Ecosystem
 
 ### AI Features
@@ -182,7 +224,7 @@ Replaced `@scalar/api-reference-react` with a fully custom-built renderer using 
 
 ## Out of Scope
 
-- Web editor / cloud editor — we're code-first
 - Managed hosting — deploy anywhere, we don't host for you
-- Authentication / access control — use a proxy or CDN rules
 - Paid features — Clearify is fully open source
+- Real-time collaborative editing (Google Docs style) — one editor at a time
+- Built-in user management / roles — rely on git provider permissions
