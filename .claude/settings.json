@@ -1,16 +1,1 @@
-{
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash .claude/scripts/post-commit-changelog.sh",
-            "timeout": 5
-          }
-        ]
-      }
-    ]
-  }
-}
+{}
