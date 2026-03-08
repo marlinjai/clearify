@@ -24,7 +24,9 @@
   ],
   "scripts": {
     "build": "tsup",
-    "dev:self": "node bin/clearify.js dev"
+    "dev:self": "node bin/clearify.js dev",
+    "prepare": "husky",
+    "release": "semantic-release"
   },
   "dependencies": {
     "@mdx-js/react": "^3.1.1",
@@ -63,12 +65,18 @@
     }
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.4.3",
+    "@commitlint/config-conventional": "^20.4.3",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
     "@types/mdast": "^4.0.4",
     "@types/node": "^25.2.2",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "esbuild": "^0.27.3",
+    "husky": "^9.1.7",
     "puppeteer": "^24.37.2",
+    "semantic-release": "^25.0.3",
     "tsup": "^8.3.6",
     "typescript": "^5.7.3"
   },
