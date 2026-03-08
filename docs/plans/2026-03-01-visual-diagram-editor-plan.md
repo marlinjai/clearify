@@ -1,3 +1,13 @@
+---
+title: Visual Diagram Editor & Whiteboard — Implementation Plan
+summary: Implementation plan for adding an interactive ReactFlow-based visual diagram editor to Clearify, with custom node/edge types, Remark AST plugin for code block transformation, and dev-server write-back to source markdown files.
+category: plan
+tags: [clearify, diagram-editor, reactflow, implementation, whiteboard]
+projects: [clearify]
+status: active
+date: 2026-03-01
+---
+
 # Visual Diagram Editor & Whiteboard — Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.

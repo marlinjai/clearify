@@ -1,3 +1,13 @@
+---
+title: Custom OpenAPI Reference Renderer for Clearify
+summary: Design document for replacing @scalar/api-reference-react with a custom-built, fully-styled API reference renderer using composable libraries for parsing and snippets, with custom React components matching Clearify's design system.
+category: plan
+tags: [clearify, openapi, api-reference, design, react]
+projects: [clearify]
+status: active
+date: 2026-02-16
+---
+
 # Custom OpenAPI Reference Renderer for Clearify
 
 **Date:** 2026-02-16

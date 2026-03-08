@@ -1,3 +1,12 @@
+---
+title: Clearify
+summary: README for Clearify, an open-source documentation site generator that turns markdown into beautiful docs with zero config, MDX support, Mermaid diagrams, full-text search, OpenAPI rendering, and SSG with SEO.
+category: documentation
+tags: [clearify, documentation, mdx, vite, ssg]
+status: active
+date: 2026-02-07
+---
+
 # Clearify
 
 An open-source documentation site generator. Turn markdown into beautiful docs.

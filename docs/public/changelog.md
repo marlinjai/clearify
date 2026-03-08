@@ -2,6 +2,11 @@
 title: Changelog & Docs Automation
 description: Automatic changelog and documentation updates with Claude Code
 order: 6
+summary: How Clearify automates changelog generation and documentation updates using Claude Code post-commit hooks to keep docs in sync with code changes.
+category: changelog
+tags: [clearify, changelog, automation, claude-code]
+projects: [clearify]
+status: active
 ---
 
 # Changelog & Docs Automation

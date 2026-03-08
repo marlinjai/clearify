@@ -2,6 +2,11 @@
 title: Getting Started
 description: How to set up Clearify in your project
 order: 1
+summary: Getting started guide for Clearify, covering installation, creating your first docs folder, and running the dev server.
+category: documentation
+tags: [clearify, getting-started, setup, quickstart]
+projects: [clearify]
+status: active
 ---
 
 # Getting Started
