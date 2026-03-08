@@ -4,7 +4,7 @@ summary: Original design document for Clearify, an open-source documentation sit
 category: internal
 tags: [clearify, design, documentation-generator, vite, mdx]
 projects: [clearify]
-status: active
+status: superseded
 date: 2025-02-08
 ---
 

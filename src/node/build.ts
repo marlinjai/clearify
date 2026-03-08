@@ -6,10 +6,11 @@ import remarkFrontmatter from 'remark-frontmatter';
 import remarkMdxFrontmatter from 'remark-mdx-frontmatter';
 import rehypeShiki from '@shikijs/rehype';
 import tailwindcss from '@tailwindcss/vite';
-import { resolve } from 'path';
+import { resolve, dirname } from 'path';
 import { writeFileSync, readFileSync, existsSync, mkdirSync, rmSync, copyFileSync } from 'fs';
 import { basename } from 'path';
 import { fileURLToPath } from 'url';
+import { createRequire } from 'module';
 import { clearifyPlugin } from '../vite-plugin/index.js';
 import { loadUserConfig, resolveConfig, resolveSections } from '../core/config.js';
 import { buildSectionData, type SectionData } from '../core/navigation.js';
@@ -32,6 +33,28 @@ function findPackageRoot(): string {
 function resolveClientPath(...segments: string[]) {
   const packageRoot = findPackageRoot();
   return resolve(packageRoot, 'src', 'client', ...segments);
+}
+
+/**
+ * Resolve the canonical path for a package, ensuring only one copy is bundled.
+ * When the Vite root (src/client/) differs from the user's project root,
+ * packages like @mdx-js/react and react can be resolved from two different
+ * node_modules trees, creating duplicate React contexts that silently break
+ * MDXProvider / useMDXComponents pairing.
+ */
+function dedupeResolve() {
+  const require = createRequire(import.meta.url);
+  // Packages that MUST be singletons to avoid duplicate React context issues
+  const dedupePkgs = ['@mdx-js/react', 'react', 'react-dom', 'react-router-dom'];
+  const alias: Record<string, string> = {};
+  for (const pkg of dedupePkgs) {
+    try {
+      alias[pkg] = dirname(require.resolve(`${pkg}/package.json`));
+    } catch {
+      // Package not installed — skip
+    }
+  }
+  return { alias, dedupe: dedupePkgs };
 }
 
 function escapeHtml(str: string): string {
@@ -256,11 +279,14 @@ export async function buildSite() {
     mermaidStrategy: mermaidStrategy as 'client' | 'build',
   };
 
+  const { alias: dedupeAlias, dedupe } = dedupeResolve();
+
   const clientConfig: InlineConfig = {
     root,
     plugins: getSharedPlugins(userRoot, sharedPluginOptions),
     resolve: {
-      alias: { '@clearify': resolve(root, '..') },
+      alias: { '@clearify': resolve(root, '..'), ...dedupeAlias },
+      dedupe,
     },
     build: {
       outDir,
@@ -279,6 +305,7 @@ export async function buildSite() {
     plugins: getSharedPlugins(userRoot, sharedPluginOptions),
     resolve: {
       alias: { '@clearify': resolve(root, '..') },
+      dedupe,
     },
     build: {
       outDir: ssrOutDir,
@@ -310,7 +337,7 @@ export async function buildSite() {
 
   for (const route of allRoutes) {
     // For catch-all routes (e.g., /api/*), only pre-render the base path.
-    // Scalar handles client-side routing for individual endpoints.
+    // The custom OpenAPI renderer handles client-side routing for individual endpoints.
     const renderPath = route.path.endsWith('/*')
       ? route.path.slice(0, -2)
       : route.path;

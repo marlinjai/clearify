@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Remote section caching** — cloned repos cached in `node_modules/.cache/clearify-remote/` with stale-cache fallback on network failure
 - **Hub embed mode** — `HubProject.mode: 'embed'` clones a remote project's config and injects its sections into the host site
 - `HubConfig.cacheDir` option to override the default remote cache location
-- `core/remote` module exported via tsup for programmatic use
+- `core/remote` module implemented for internal use by dev/build commands
 
 ### Changed
 
@@ -280,7 +280,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Table of contents extracted from page headings
 - Responsive layout with mobile sidebar toggle
 
-[Unreleased]: https://github.com/marlinjai/clearify/compare/v1.9.0...HEAD
+[Unreleased]: https://github.com/marlinjai/clearify/compare/v1.10.0...HEAD
+[1.10.0]: https://github.com/marlinjai/clearify/compare/v1.9.0...v1.10.0
 [1.9.0]: https://github.com/marlinjai/clearify/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/marlinjai/clearify/compare/v1.6.6...v1.8.0
 [1.6.6]: https://github.com/marlinjai/clearify/compare/v1.6.5...v1.6.6

@@ -1,4 +1,8 @@
 import cac from 'cac';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
+const { version } = require('../../package.json');
 
 const cli = cac('clearify');
 
@@ -35,10 +39,11 @@ cli
   });
 
 cli
-  .command('check', 'Check for broken internal links')
-  .action(async () => {
+  .command('check', 'Check for broken internal links and frontmatter issues')
+  .option('--frontmatter', 'Only run frontmatter validation (skip broken link detection)')
+  .action(async (options: { frontmatter?: boolean }) => {
     const { checkLinks } = await import('../node/check.js');
-    await checkLinks();
+    await checkLinks({ frontmatterOnly: options.frontmatter });
   });
 
 cli
@@ -60,5 +65,5 @@ cli
   });
 
 cli.help();
-cli.version('1.8.0');
+cli.version(version);
 cli.parse();
