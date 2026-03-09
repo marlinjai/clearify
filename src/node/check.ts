@@ -201,11 +201,15 @@ export async function checkLinks(options: CheckOptions = {}): Promise<void> {
     }
   }
 
-  // Always add root and changelog
+  // Always add root, changelog, and roadmap
   validRoutes.add('/');
   const changelogPath = resolve(userRoot, 'CHANGELOG.md');
   if (existsSync(changelogPath)) {
     validRoutes.add('/changelog');
+  }
+  const roadmapPath = resolve(userRoot, 'ROADMAP.md');
+  if (existsSync(roadmapPath)) {
+    validRoutes.add('/roadmap');
   }
 
   // Also add routes without trailing slash and with trailing slash

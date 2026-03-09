@@ -190,11 +190,14 @@ export async function buildSite() {
   const allSections = await resolveSections(config, userRoot);
   const productionSections = allSections.filter((s) => !s.draft);
 
-  const changelogPath = resolve(userRoot, 'CHANGELOG.md');
+  const rootFiles = {
+    changelogPath: resolve(userRoot, 'CHANGELOG.md'),
+    roadmapPath: resolve(userRoot, 'ROADMAP.md'),
+  };
 
   // Build SectionData[] for production sections
   const sectionDataList: SectionData[] = productionSections.map((section) =>
-    buildSectionData(section, changelogPath, config.navigation)
+    buildSectionData(section, rootFiles, config.navigation)
   );
 
   // Merge all routes for pre-rendering

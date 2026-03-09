@@ -189,6 +189,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     console.log('  CHANGELOG.md already exists, skipping');
   }
 
+  // Create ROADMAP.md at project root
+  const roadmapPath = resolve(cwd, 'ROADMAP.md');
+  if (!existsSync(roadmapPath)) {
+    writeFileSync(
+      roadmapPath,
+      `# Roadmap
+
+## Planned
+
+<!-- Decided features, ready to be worked on -->
+
+## In Progress
+
+<!-- Currently being implemented -->
+
+## Completed
+
+<!-- Done — move to CHANGELOG.md on release -->
+`
+    );
+    console.log('  Created ROADMAP.md');
+  } else {
+    console.log('  ROADMAP.md already exists, skipping');
+  }
+
   // Create clearify.config.ts
   if (!existsSync(configPath)) {
     if (options.noInternal) {

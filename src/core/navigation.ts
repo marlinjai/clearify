@@ -186,26 +186,47 @@ export interface SectionData {
   searchEntries: SearchEntry[];
 }
 
+export interface RootFileOptions {
+  changelogPath?: string;
+  roadmapPath?: string;
+}
+
 export function buildSectionData(
   section: ResolvedSection,
-  changelogPath?: string,
+  rootFiles?: RootFileOptions,
   customNavigation?: NavigationItem[] | null,
 ): SectionData {
   const docs = scanDocs(section.docsDir, section.exclude, section.basePath);
 
-  // Attach CHANGELOG only to primary section (basePath = "/")
-  if (section.basePath === '/' && changelogPath && existsSync(changelogPath)) {
-    const content = readFileSync(changelogPath, 'utf-8');
-    const { data } = matter(content);
-    docs.push({
-      filePath: changelogPath,
-      routePath: '/changelog',
-      frontmatter: {
-        title: data.title ?? 'Changelog',
-        description: data.description ?? 'Release history',
-        order: 9999,
-      },
-    });
+  // Attach root-level files only to primary section (basePath = "/")
+  if (section.basePath === '/') {
+    if (rootFiles?.changelogPath && existsSync(rootFiles.changelogPath)) {
+      const content = readFileSync(rootFiles.changelogPath, 'utf-8');
+      const { data } = matter(content);
+      docs.push({
+        filePath: rootFiles.changelogPath,
+        routePath: '/changelog',
+        frontmatter: {
+          title: data.title ?? 'Changelog',
+          description: data.description ?? 'Release history',
+          order: 9999,
+        },
+      });
+    }
+
+    if (rootFiles?.roadmapPath && existsSync(rootFiles.roadmapPath)) {
+      const content = readFileSync(rootFiles.roadmapPath, 'utf-8');
+      const { data } = matter(content);
+      docs.push({
+        filePath: rootFiles.roadmapPath,
+        routePath: '/roadmap',
+        frontmatter: {
+          title: data.title ?? 'Roadmap',
+          description: data.description ?? 'Planned and upcoming features',
+          order: 9998,
+        },
+      });
+    }
   }
 
   const nav = (section.basePath === '/' && customNavigation) ? customNavigation : buildNavigation(docs, section.basePath);

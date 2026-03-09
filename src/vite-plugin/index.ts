@@ -61,11 +61,17 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
   let mermaidSvgData: Record<string, { lightSvg: string; darkSvg: string }> =
     options.mermaidSvgs ?? {};
 
-  async function refreshDocs() {
-    const changelogPath = resolve(userRoot, 'CHANGELOG.md');
+  function getRootFiles() {
+    return {
+      changelogPath: resolve(userRoot, 'CHANGELOG.md'),
+      roadmapPath: resolve(userRoot, 'ROADMAP.md'),
+    };
+  }
 
+  async function refreshDocs() {
+    const rootFiles = getRootFiles();
     sectionDataList = visibleSections.map((section) =>
-      buildSectionData(section, changelogPath, config.navigation)
+      buildSectionData(section, rootFiles, config.navigation)
     );
 
     // Flatten all sections' data
@@ -317,10 +323,12 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
         server.watcher.add(section.docsDir);
       }
 
-      // Also watch CHANGELOG.md at project root
-      const changelogPath = resolve(userRoot, 'CHANGELOG.md');
-      if (existsSync(changelogPath)) {
-        server.watcher.add(changelogPath);
+      // Also watch root-level CHANGELOG.md and ROADMAP.md
+      const rootFiles = getRootFiles();
+      for (const rootFile of [rootFiles.changelogPath, rootFiles.roadmapPath]) {
+        if (rootFile && existsSync(rootFile)) {
+          server.watcher.add(rootFile);
+        }
       }
 
       // Watch OpenAPI spec file for live reload
@@ -477,9 +485,10 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
       }
 
       server.watcher.on('all', (event, path) => {
-        const isChangelog = path === changelogPath;
+        const isChangelog = path === rootFiles.changelogPath;
+        const isRoadmap = path === rootFiles.roadmapPath;
         const isInSection = visibleSections.some((s) => path.startsWith(s.docsDir));
-        if (!isChangelog && !isInSection) return;
+        if (!isChangelog && !isRoadmap && !isInSection) return;
         if (!path.endsWith('.md') && !path.endsWith('.mdx')) return;
 
         if (event === 'add' || event === 'unlink' || event === 'change') {
