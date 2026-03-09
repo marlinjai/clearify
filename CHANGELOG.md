@@ -1,3 +1,10 @@
+# [1.11.0](https://github.com/marlinjai/clearify/compare/v1.10.0...v1.11.0) (2026-03-09)
+
+
+### Features
+
+* auto-detect and render ROADMAP.md at /roadmap ([26b584c](https://github.com/marlinjai/clearify/commit/26b584cefddd84e6acb4b701103e1987604bd47f))
+
 # [1.10.0](https://github.com/marlinjai/clearify/compare/v1.9.0...v1.10.0) (2026-03-09)
 
 
