@@ -1,8 +1,22 @@
 import cac from 'cac';
-import { createRequire } from 'module';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
+import { readFileSync, existsSync } from 'fs';
 
-const require = createRequire(import.meta.url);
-const { version } = require('../../package.json');
+function findPackageVersion(): string {
+  let dir = dirname(fileURLToPath(import.meta.url));
+  for (let i = 0; i < 5; i++) {
+    const pkgPath = join(dir, 'package.json');
+    if (existsSync(pkgPath)) {
+      const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
+      if (pkg.name === 'clearify' || pkg.name === '@marlinjai/clearify') return pkg.version;
+    }
+    dir = dirname(dir);
+  }
+  return '0.0.0';
+}
+
+const version = findPackageVersion();
 
 const cli = cac('clearify');
 
