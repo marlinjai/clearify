@@ -1,3 +1,10 @@
+## [1.11.1](https://github.com/marlinjai/clearify/compare/v1.11.0...v1.11.1) (2026-03-09)
+
+
+### Bug Fixes
+
+* update docs for roadmap feature and add roadmap to init rules template ([c4fe9a3](https://github.com/marlinjai/clearify/commit/c4fe9a363bf44bdd2de0985e28664b13b8ee1c61))
+
 # [1.11.0](https://github.com/marlinjai/clearify/compare/v1.10.0...v1.11.0) (2026-03-09)
 
 
