@@ -22,7 +22,7 @@ Clearify turns your markdown files into a beautiful documentation site.
 - **Dark mode** — automatic light/dark theme switching
 - **Syntax highlighting** — beautiful code blocks with Shiki
 - **Auto changelog** — drop a `CHANGELOG.md` in your project root, it appears as `/changelog`
-- **Claude Code hook** — automatic changelog and docs updates after every git commit
+- **Auto roadmap** — drop a `ROADMAP.md` in your project root, it appears as `/roadmap`
 
 ## Quick Start
 
@@ -34,7 +34,7 @@ pnpm exec clearify dev
 
 That's it! Your docs are live at `http://localhost:4747`.
 
-`clearify init` scaffolds everything you need: a `docs/public/` folder (plus `docs/internal/` for private docs), starter pages, `clearify.config.ts`, and a `CHANGELOG.md`.
+`clearify init` scaffolds everything you need: a `docs/public/` folder (plus `docs/internal/` for private docs), starter pages, `clearify.config.ts`, `CHANGELOG.md`, and `ROADMAP.md`.
 
 ## Configuration
 

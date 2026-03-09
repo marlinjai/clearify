@@ -268,11 +268,13 @@ When making changes to this project, keep the documentation in sync:
 
 1. **Changelog** — After any user-facing change, add a bullet under \`## [Unreleased]\` in \`CHANGELOG.md\` using [Keep a Changelog](https://keepachangelog.com/) format (\`Added\`, \`Changed\`, \`Fixed\`, \`Removed\`).
 
-2. **Docs pages** — When a feature or behavior changes, update the relevant page in \`docs/public/\`. If a new feature has no page, create one.
+2. **Roadmap** — When a planned feature is implemented, move it from \`Planned\` or \`In Progress\` to \`Completed\` in \`ROADMAP.md\`. When new work is decided, add it to \`Planned\`.
 
-3. **Config docs** — When config options are added or changed, update \`docs/public/configuration.md\` with the new option, type, default, and description.
+3. **Docs pages** — When a feature or behavior changes, update the relevant page in \`docs/public/\`. If a new feature has no page, create one.
+
+4. **Config docs** — When config options are added or changed, update \`docs/public/configuration.md\` with the new option, type, default, and description.
 ${hasInternal ? `
-4. **Architecture decisions** — For significant design decisions, add an entry to \`docs/internal/\` explaining the context, decision, and trade-offs.
+5. **Architecture decisions** — For significant design decisions, add an entry to \`docs/internal/\` explaining the context, decision, and trade-offs.
 ` : ''}`;
       writeFileSync(claudeRulesPath, rulesContent);
       console.log('  Created .claude/rules/clearify-docs.md');

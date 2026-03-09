@@ -1,33 +1,34 @@
 ---
-title: Changelog & Docs Automation
-description: Automatic changelog and documentation updates with Claude Code
+title: Changelog & Roadmap
+description: Automatic changelog and roadmap rendering from root-level markdown files
 order: 6
-summary: How Clearify automates changelog generation and documentation updates using Claude Code post-commit hooks to keep docs in sync with code changes.
-category: changelog
-tags: [clearify, changelog, automation, claude-code]
+summary: How Clearify auto-detects CHANGELOG.md and ROADMAP.md at the project root and renders them as /changelog and /roadmap pages with zero configuration.
+category: documentation
+tags: [clearify, changelog, roadmap, automation]
 projects: [clearify]
 status: active
 ---
 
-# Changelog & Docs Automation
+# Changelog & Roadmap
 
-Clearify keeps your changelog and documentation in sync with your code — automatically.
+Clearify auto-detects two root-level markdown files and renders them as pages — no configuration needed.
 
-## Auto-generated on init
+| File | Route | Purpose |
+|------|-------|---------|
+| `CHANGELOG.md` | `/changelog` | What shipped — release history |
+| `ROADMAP.md` | `/roadmap` | What's coming — planned and in-progress work |
 
-Running `pnpm exec clearify init` scaffolds a starter `CHANGELOG.md` at your project root alongside the docs folder and config file. The changelog follows the [Keep a Changelog](https://keepachangelog.com) format out of the box.
+Both are scaffolded by `clearify init`, watched during development (hot reload on save), included in `clearify check` link validation, and indexed for search.
 
-## Auto-detected as a docs page
+## CHANGELOG.md
 
-Clearify automatically detects `CHANGELOG.md` at your project root and serves it as a `/changelog` page. No configuration needed.
+### Auto-detected as a docs page
 
 1. Place a `CHANGELOG.md` in your project root (or let `clearify init` create one)
 2. Run `clearify dev` or `clearify build`
 3. The changelog appears in the sidebar at `/changelog`
 
-The file is watched during development — edits trigger a hot reload.
-
-## Recommended format
+### Recommended format
 
 We recommend the [Keep a Changelog](https://keepachangelog.com) format:
 
@@ -45,82 +46,70 @@ We recommend the [Keep a Changelog](https://keepachangelog.com) format:
 ### Added
 
 - Initial release
-
-### Changed
-
-- Updated dependency X
-
-### Fixed
-
-- Bug in feature Y
 ```
 
-## Claude Code hook
+### Semantic Release
 
-Clearify includes a Claude Code hook that fires after every git commit and instructs Claude to:
+If you use [semantic-release](https://github.com/semantic-release/semantic-release), it automatically updates `CHANGELOG.md` on every release. Add `docs/**` to your workflow's `paths-ignore` so doc-only edits don't trigger the release pipeline, while changelog and roadmap changes (at root) still do:
 
-1. **Update CHANGELOG.md** — append an entry under `[Unreleased]` with what changed
-2. **Update relevant docs** — check if committed changes affect any existing documentation (guides, API references, architecture docs, roadmap, etc.) and update them to reflect the current state
-3. **Rebuild docs** — run `pnpm run build` so the docs site is always current
-
-### Setup
-
-Add this to your project's `.claude/settings.json`:
-
-```json
-{
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash .claude/scripts/post-commit-changelog.sh",
-            "timeout": 5
-          }
-        ]
-      }
-    ]
-  }
-}
+```yaml
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
 ```
 
-The hook script lives at `.claude/scripts/post-commit-changelog.sh`. Copy it from the Clearify project or create your own.
+## ROADMAP.md
 
-### Workflow
+### Convention
+
+The roadmap represents **decided work only** — items that have passed the research and decision phase. It lives at the project root for visibility on GitHub and in the docs site.
+
+### Recommended format
+
+```markdown
+# Roadmap
+
+## Planned
+
+- Feature A — brief description
+- Feature B — brief description
+
+## In Progress
+
+- Feature C — brief description
+
+## Completed
+
+- Feature D — shipped in v1.5
+```
+
+Projects with version-based roadmaps can use version headers (`## v2.0`, `## v2.1`) with checkboxes instead. Clearify renders whatever markdown is there — no enforced schema.
+
+### Lifecycle
 
 ```
-You: "Implement feature X"
-Claude: [implements, commits]
-Hook fires:
-  → "Update CHANGELOG.md with this change"
-  → "Update any docs pages affected by this change"
-  → "Rebuild docs"
-Claude: [updates changelog, updates docs, runs pnpm run build]
+Research → Decision → ROADMAP.md → Implementation → CHANGELOG.md
+                      Planned →
+                      In Progress →
+                      Completed ──────────────────→ Released
 ```
 
-The changelog and documentation stay in sync with code — without manual effort.
+Items enter as **Planned**, move to **In Progress** during development, then to **Completed** when done. On release, they appear in the changelog.
 
-### What gets updated
+## Claude Code rules
 
-The hook is context-aware. After a commit, Claude checks:
+`clearify init` scaffolds a `.claude/rules/clearify-docs.md` file that instructs Claude to keep the changelog, roadmap, and docs in sync when making changes. This works with any Claude Code workflow — no hooks or scripts required.
 
-- **CHANGELOG.md** — always updated with what changed
-- **Getting started / setup guides** — if installation steps or config changed
-- **API / usage docs** — if public interfaces or behavior changed
-- **Architecture docs** — if internal structure or patterns changed
-- **Roadmap** — if a planned feature was implemented (can be marked as done)
+## Per-project support
 
-Only pages that are actually affected by the commit get updated.
-
-## Per-project changelogs
-
-Every project using Clearify gets this automatically. Either run `pnpm exec clearify init` (creates CHANGELOG.md for you) or add one manually:
+Every project using Clearify gets this automatically:
 
 ```bash
-cd projects/data-table
-echo "# Changelog" > CHANGELOG.md
+cd my-project
+pnpm exec clearify init
+# → Creates CHANGELOG.md, ROADMAP.md, docs/, config
 pnpm exec clearify dev
-# → /changelog page appears in sidebar
+# → /changelog and /roadmap appear in sidebar
 ```

@@ -53,7 +53,7 @@ import { defineConfig } from '@marlinjai/clearify';
 
 export default defineConfig({
   name: 'Data Table',
-  exclude: ['ROADMAP.md', '**/design-*.md'],
+  exclude: ['**/design-*.md'],
 });
 ```
 

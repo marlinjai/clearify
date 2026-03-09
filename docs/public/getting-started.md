@@ -33,6 +33,7 @@ This creates:
 - `docs/internal/index.md` — internal docs section (use `--no-internal` to skip)
 - `clearify.config.ts` — project configuration with sections
 - `CHANGELOG.md` — a Keep a Changelog formatted changelog
+- `ROADMAP.md` — a roadmap with Planned / In Progress / Completed sections
 
 ## Start the dev server
 
@@ -62,7 +63,7 @@ docs/
 │   └── guides/
 │       ├── installation.md # /guides/installation
 │       └── configuration.md
-└── internal/               # Design docs, roadmaps (draft)
+└── internal/               # Design docs, decisions (draft)
     └── index.md
 ```
 

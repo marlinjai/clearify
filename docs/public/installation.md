@@ -13,7 +13,7 @@ status: active
 
 ## Requirements
 
-- Node.js 20 or later
+- Node.js 22 or later
 - npm, pnpm, or yarn
 
 ## Package Managers
