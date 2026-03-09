@@ -1,12 +1,3 @@
----
-title: Clearify Roadmap
-summary: Version-by-version roadmap for Clearify from v0.2.0 through v1.10+, tracking completed features and planned work including remote sections, hub embed, and diagram editor.
-category: roadmap
-tags: [clearify, roadmap, versioning, features]
-projects: [clearify]
-status: active
----
-
 # Clearify Roadmap
 
 > Last updated: 2026-03-03 — v1.10 Remote Sections & Hub Embed
