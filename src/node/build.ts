@@ -310,6 +310,12 @@ export async function buildSite() {
       alias: { '@clearify': resolve(root, '..') },
       dedupe,
     },
+    ssr: {
+      // Bundle all deps into the SSR output so pre-rendering works in any
+      // host project, even if it doesn't have react/react-router installed.
+      // The SSR bundle is temporary and deleted after pre-rendering.
+      noExternal: true,
+    },
     build: {
       outDir: ssrOutDir,
       ssr: resolveClientPath('entry-server.tsx'),
