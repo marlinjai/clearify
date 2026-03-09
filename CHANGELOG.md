@@ -1,3 +1,17 @@
+# [1.10.0](https://github.com/marlinjai/clearify/compare/v1.9.0...v1.10.0) (2026-03-09)
+
+
+### Bug Fixes
+
+* add visual hierarchy to sidebar nested groups and fix CLI version resolution ([48d38c3](https://github.com/marlinjai/clearify/commit/48d38c37cd0daae63f3abfd756d782e1e273c0de))
+* clean up stale references, dynamic CLI version, and correct changelog links ([5f2e991](https://github.com/marlinjai/clearify/commit/5f2e9911fce49c892127c48820642714c33a2051))
+* sidebar hierarchy styling, CLI version, navigation and check improvements ([4d6f15e](https://github.com/marlinjai/clearify/commit/4d6f15e30b2c31896933ee344c5a9ae7e0623b03))
+
+
+### Features
+
+* v1.10.0 — remote git sections and hub embed mode ([fcef188](https://github.com/marlinjai/clearify/commit/fcef188e44ea32d97b7f8d4b74cfaa77602cfcf4))
+
 ---
 title: Clearify Changelog
 summary: Version history for Clearify documentation site generator, tracking features from v0.1.0 through v1.10.0 including SSG, OpenAPI renderer, hub mode, remote git sections, and MDX components.
