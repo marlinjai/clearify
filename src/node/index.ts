@@ -5,8 +5,9 @@ import remarkGfm from 'remark-gfm';
 import remarkFrontmatter from 'remark-frontmatter';
 import remarkMdxFrontmatter from 'remark-mdx-frontmatter';
 import rehypeShiki from '@shikijs/rehype';
-import { resolve } from 'path';
+import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { createRequire } from 'module';
 import tailwindcss from '@tailwindcss/vite';
 import { clearifyPlugin } from '../vite-plugin/index.js';
 import { loadUserConfig, resolveConfig } from '../core/config.js';
@@ -30,9 +31,31 @@ function resolveClientPath(...segments: string[]) {
   return resolve(packageRoot, 'src', 'client', ...segments);
 }
 
+/**
+ * Resolve the canonical path for a package, ensuring only one copy is bundled.
+ * When the Vite root (src/client/) differs from the user's project root,
+ * packages like @mdx-js/react and react can be resolved from two different
+ * node_modules trees, creating duplicate React contexts that silently break
+ * MDXProvider / useMDXComponents pairing.
+ */
+function dedupeResolve() {
+  const require = createRequire(import.meta.url);
+  const dedupePkgs = ['@mdx-js/react', 'react', 'react-dom', 'react-router-dom'];
+  const alias: Record<string, string> = {};
+  for (const pkg of dedupePkgs) {
+    try {
+      alias[pkg] = dirname(require.resolve(`${pkg}/package.json`));
+    } catch {
+      // Package not installed — skip
+    }
+  }
+  return { alias, dedupe: dedupePkgs };
+}
+
 function createDevConfig(overrides: { userRoot?: string; mermaidStrategy?: 'client' | 'build' } & Partial<InlineConfig> = {}): InlineConfig {
   const root = resolveClientPath();
   const { userRoot, mermaidStrategy, ...viteOverrides } = overrides;
+  const { alias: dedupeAlias, dedupe } = dedupeResolve();
 
   return {
     root,
@@ -61,7 +84,9 @@ function createDevConfig(overrides: { userRoot?: string; mermaidStrategy?: 'clie
     resolve: {
       alias: {
         '@clearify': resolve(root, '..'),
+        ...dedupeAlias,
       },
+      dedupe,
     },
     ...viteOverrides,
   };
@@ -89,4 +114,4 @@ export async function createServer(options: { port?: number; host?: boolean } = 
 
 export { buildSite as build } from './build.js';
 export { init } from './init.js';
-export { checkLinks } from './check.js';
+export { checkLinks, checkFrontmatter } from './check.js';

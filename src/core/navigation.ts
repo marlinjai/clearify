@@ -55,6 +55,12 @@ export function scanDocs(docsDir: string, exclude: string[] = [], basePath: stri
         description: data.description,
         icon: data.icon,
         order: data.order,
+        summary: data.summary,
+        category: data.category,
+        tags: data.tags,
+        projects: data.projects,
+        status: data.status,
+        date: data.date,
       },
     };
   });

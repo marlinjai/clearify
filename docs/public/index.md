@@ -1,5 +1,5 @@
 ---
-title: Welcome to Clearify
+title: Clearify
 description: An open-source documentation site generator
 order: 0
 summary: Landing page for Clearify documentation, an open-source site generator that turns markdown files into beautiful documentation sites with zero config.

@@ -76,11 +76,19 @@ export interface NavigationItem {
   children?: NavigationItem[];
 }
 
+export type DocCategory = 'documentation' | 'internal' | 'plan' | 'research' | 'decision' | 'roadmap' | 'changelog';
+
 export interface PageFrontmatter {
   title?: string;
   description?: string;
   icon?: string;
   order?: number;
+  summary?: string;
+  category?: DocCategory;
+  tags?: string[];
+  projects?: string[];
+  status?: 'active' | 'superseded' | 'archived';
+  date?: string;
 }
 
 export interface RouteEntry {

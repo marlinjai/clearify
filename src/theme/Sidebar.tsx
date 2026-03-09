@@ -449,26 +449,26 @@ function NavItem({ item, depth, onNavigate, expandedGroups, onToggleGroup, group
             display: 'flex',
             alignItems: 'center',
             width: '100%',
-            padding: '0.4rem 0.75rem',
+            padding: depth === 0 ? '0.4rem 0.75rem' : '0.35rem 0.75rem',
             paddingLeft: `${0.75 + depth * 0.75}rem`,
             background: 'none',
             border: 'none',
             cursor: 'pointer',
-            fontSize: depth === 0 ? '0.6875rem' : '0.65rem',
+            fontSize: depth === 0 ? '0.6875rem' : '0.75rem',
             fontWeight: depth === 0 ? 600 : 500,
             textTransform: depth === 0 ? 'uppercase' : 'none',
-            letterSpacing: depth === 0 ? '0.06em' : '0.02em',
-            color: 'var(--clearify-text-tertiary)',
-            marginTop: depth === 0 ? '1.25rem' : '0.25rem',
+            letterSpacing: depth === 0 ? '0.06em' : '0.01em',
+            color: depth === 0 ? 'var(--clearify-text-tertiary)' : 'var(--clearify-text-secondary)',
+            marginTop: depth === 0 ? '1.25rem' : '0.375rem',
             borderRadius: 'var(--clearify-radius-sm)',
             transition: 'color 0.15s',
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--clearify-text-secondary)')}
-          onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--clearify-text-tertiary)')}
+          onMouseEnter={(e) => (e.currentTarget.style.color = depth === 0 ? 'var(--clearify-text-secondary)' : 'var(--clearify-text)')}
+          onMouseLeave={(e) => (e.currentTarget.style.color = depth === 0 ? 'var(--clearify-text-tertiary)' : 'var(--clearify-text-secondary)')}
         >
           <svg
-            width="12"
-            height="12"
+            width={depth === 0 ? '12' : '10'}
+            height={depth === 0 ? '12' : '10'}
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -480,6 +480,7 @@ function NavItem({ item, depth, onNavigate, expandedGroups, onToggleGroup, group
               transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
               transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)',
               flexShrink: 0,
+              opacity: depth === 0 ? 1 : 0.7,
             }}
           >
             <polyline points="9 18 15 12 9 6" />
