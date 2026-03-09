@@ -98,9 +98,40 @@ Research → Decision → ROADMAP.md → Implementation → CHANGELOG.md
 
 Items enter as **Planned**, move to **In Progress** during development, then to **Completed** when done. On release, they appear in the changelog.
 
-## Claude Code rules
+## Keeping the changelog up to date
 
-`clearify init` scaffolds a `.claude/rules/clearify-docs.md` file that instructs Claude to keep the changelog, roadmap, and docs in sync when making changes. This works with any Claude Code workflow — no hooks or scripts required.
+For projects using **semantic-release** (like Clearify itself), the changelog is updated automatically on every release — no manual effort needed.
+
+For projects **without semantic-release** (apps, services, internal tools), two mechanisms keep the changelog current:
+
+### Claude Code rules
+
+`clearify init` scaffolds a `.claude/rules/clearify-docs.md` file that instructs Claude to:
+
+1. Update `CHANGELOG.md` after any user-facing change (using Keep a Changelog format)
+2. Update `ROADMAP.md` when planned features are implemented or new work is decided
+3. Update relevant docs pages when features or behavior change
+
+Since Claude is typically the one committing code, this keeps the changelog in sync without manual effort. No hooks or scripts required.
+
+### Conventional commits
+
+All projects should enforce [Conventional Commits](https://www.conventionalcommits.org/) via [commitlint](https://commitlint.js.org/) + [husky](https://typicode.github.io/husky/). This ensures every commit message follows the `type(scope): description` format (`fix:`, `feat:`, `docs:`, `chore:`, etc.).
+
+Setup:
+
+```bash
+pnpm add -D husky @commitlint/cli @commitlint/config-conventional
+npx husky init
+echo 'npx --no -- commitlint --edit "$1"' > .husky/commit-msg
+echo "module.exports = { extends: ['@commitlint/config-conventional'] };" > commitlint.config.cjs
+```
+
+This matters even without semantic-release because:
+
+- Commit messages become parseable — you can always generate a changelog later with `npx conventional-changelog -p angular -i CHANGELOG.md -s`
+- Claude's rules produce conventional commits by default, and commitlint catches any that slip through
+- If you ever add semantic-release to a project, the entire commit history is already in the right format
 
 ## Per-project support
 
