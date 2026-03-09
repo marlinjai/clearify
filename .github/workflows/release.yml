@@ -2,13 +2,8 @@ name: Release
 on:
   push:
     branches: [main]
-    paths:
-      - 'src/**'
-      - 'package.json'
-      - 'tsconfig*.json'
-      - 'vite.config.*'
-      - '.releaserc'
-      - 'pnpm-lock.yaml'
+    paths-ignore:
+      - 'docs/**'
 
 permissions:
   contents: write
