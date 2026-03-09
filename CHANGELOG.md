@@ -1,3 +1,10 @@
+## [1.11.2](https://github.com/marlinjai/clearify/compare/v1.11.1...v1.11.2) (2026-03-09)
+
+
+### Bug Fixes
+
+* bundle all deps in SSR build for pre-rendering ([c8cc647](https://github.com/marlinjai/clearify/commit/c8cc647851ff08a2c0efef487e4944d922e46c2b))
+
 ## [1.11.1](https://github.com/marlinjai/clearify/compare/v1.11.0...v1.11.1) (2026-03-09)
 
 
