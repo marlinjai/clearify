@@ -74,14 +74,30 @@ Control page metadata with YAML frontmatter:
 ```yaml
 ---
 title: My Page Title
-description: A brief description
+description: A brief description for SEO and search
 order: 1
+icon: "📘"
+summary: A short summary shown in search results and cards
+category: documentation
+tags: [guide, setup]
+projects: [my-project]
+status: active
+date: 2026-03-01
 ---
 ```
 
-- `title` — page title (defaults to filename)
-- `description` — meta description for search
-- `order` — sort position in sidebar (lower = higher)
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `title` | `string` | Filename | Page title shown in sidebar and browser tab |
+| `description` | `string` | — | Meta description for SEO and search |
+| `order` | `number` | — | Sort position in sidebar (lower = higher) |
+| `icon` | `string` | — | Emoji or icon shown next to the page in navigation |
+| `summary` | `string` | — | Short summary for search results and card previews |
+| `category` | `string` | — | One of: `documentation`, `internal`, `plan`, `research`, `decision`, `roadmap`, `changelog` |
+| `tags` | `string[]` | — | Tags for categorization and search filtering |
+| `projects` | `string[]` | — | Related project names (useful in multi-project setups) |
+| `status` | `string` | — | Document status: `active`, `superseded`, or `archived` |
+| `date` | `string` | — | Document date in ISO format (e.g. `2026-03-01`) |
 
 ## Configuration
 

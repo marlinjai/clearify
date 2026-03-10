@@ -14,7 +14,8 @@
     "./config": {
       "types": "./dist/node/core/config.d.ts",
       "import": "./dist/node/core/config.js"
-    }
+    },
+    "./config-schema.json": "./dist/config-schema.json"
   },
   "files": [
     "bin",
@@ -24,6 +25,7 @@
   ],
   "scripts": {
     "build": "tsup",
+    "postbuild": "node scripts/generate-schema.mjs",
     "dev:self": "node bin/clearify.js dev",
     "prepare": "husky",
     "release": "semantic-release"
