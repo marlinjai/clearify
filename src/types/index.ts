@@ -111,15 +111,37 @@ export interface HubProject {
   group?: string;
   hubUrl?: string;
   hubName?: string;
-  mode?: 'link' | 'embed';
+  mode?: 'link' | 'embed' | 'inject';
   git?: RemoteGitSource;
   embedSections?: 'all' | 'public' | string[];
+  injectInto?: string;
+  docsPath?: string;
 }
 
 export interface HubConfig {
   projects: HubProject[];
   scan?: string;
   cacheDir?: string;
+}
+
+/** Tier 1+2 fields that can live in clearify.data.json for visual editing. */
+export interface ClearifyDataConfig {
+  name?: string;
+  siteUrl?: string;
+  theme?: {
+    primaryColor?: string;
+    mode?: 'light' | 'dark' | 'auto';
+  };
+  logo?: {
+    light?: string;
+    dark?: string;
+  };
+  links?: {
+    github?: string;
+    [key: string]: string | undefined;
+  };
+  sections?: SectionConfig[];
+  hub?: HubConfig;
 }
 
 export function defineConfig(config: Partial<ClearifyConfig>): Partial<ClearifyConfig> {

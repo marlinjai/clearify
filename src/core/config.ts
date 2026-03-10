@@ -1,10 +1,10 @@
 import { z } from 'zod';
 import { resolve, basename, dirname } from 'path';
 import { pathToFileURL } from 'url';
-import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync, renameSync, mkdirSync, rmSync, symlinkSync, readdirSync, statSync } from 'fs';
 import { tmpdir } from 'os';
 import { randomBytes } from 'crypto';
-import type { ClearifyConfig, HubProject, ResolvedSection, SectionConfig } from '../types/index.js';
+import type { ClearifyConfig, ClearifyDataConfig, HubProject, ResolvedSection, SectionConfig } from '../types/index.js';
 import { resolveRemoteSections } from './remote.js';
 
 const NavigationItemSchema: z.ZodType<any> = z.lazy(() =>
@@ -54,13 +54,15 @@ const HubProjectSchema = z.object({
   icon: z.string().optional(),
   tags: z.array(z.string()).optional(),
   group: z.string().optional(),
-  mode: z.enum(['link', 'embed']).optional(),
+  mode: z.enum(['link', 'embed', 'inject']).optional(),
   git: RemoteGitSourceSchema.optional(),
   embedSections: z.union([
     z.literal('all'),
     z.literal('public'),
     z.array(z.string()),
   ]).optional(),
+  injectInto: z.string().optional(),
+  docsPath: z.string().optional(),
 });
 
 const HubProjectPartialSchema = z.object({
@@ -110,6 +112,79 @@ const ClearifyConfigSchema = z.object({
   customCss: z.string().optional(),
   headTags: z.array(z.string()).optional(),
 });
+
+/** Zod schema for clearify.data.json — Tier 1+2 visual-config fields, all optional. */
+export const ClearifyDataSchema = z.object({
+  name: z.string().optional(),
+  siteUrl: z.string().optional(),
+  theme: z
+    .object({
+      primaryColor: z.string().optional(),
+      mode: z.enum(['light', 'dark', 'auto']).optional(),
+    })
+    .optional(),
+  logo: z
+    .object({
+      light: z.string().optional(),
+      dark: z.string().optional(),
+    })
+    .optional(),
+  links: z.record(z.string(), z.string()).optional(),
+  sections: z.array(SectionConfigSchema).optional(),
+  hub: HubConfigSchema,
+});
+
+/**
+ * Deep-merge utility where JSON (overlay) values win over base values.
+ * Plain objects merge recursively. Arrays are replaced entirely.
+ * Undefined values in the overlay are skipped.
+ */
+export function deepMergeJsonWins<T extends Record<string, any>>(
+  base: T,
+  json: Partial<T>,
+): T {
+  const result = { ...base };
+  for (const key of Object.keys(json) as (keyof T)[]) {
+    const jsonVal = json[key];
+    if (jsonVal === undefined) continue;
+
+    const baseVal = base[key];
+    if (
+      baseVal !== null &&
+      jsonVal !== null &&
+      typeof baseVal === 'object' &&
+      typeof jsonVal === 'object' &&
+      !Array.isArray(baseVal) &&
+      !Array.isArray(jsonVal)
+    ) {
+      result[key] = deepMergeJsonWins(baseVal, jsonVal as any);
+    } else {
+      result[key] = jsonVal as T[keyof T];
+    }
+  }
+  return result;
+}
+
+/** Load and validate clearify.data.json from a project root. Returns `{}` on missing/invalid file. */
+export function loadDataConfig(root: string): ClearifyDataConfig {
+  const dataPath = resolve(root, 'clearify.data.json');
+  if (!existsSync(dataPath)) return {};
+  try {
+    const raw = JSON.parse(readFileSync(dataPath, 'utf-8'));
+    return ClearifyDataSchema.parse(raw);
+  } catch {
+    return {};
+  }
+}
+
+/** Validate and atomically write clearify.data.json. */
+export function writeDataConfig(root: string, data: unknown): void {
+  const validated = ClearifyDataSchema.parse(data);
+  const dataPath = resolve(root, 'clearify.data.json');
+  const tmpPath = dataPath + '.tmp';
+  writeFileSync(tmpPath, JSON.stringify(validated, null, 2) + '\n', 'utf-8');
+  renameSync(tmpPath, dataPath);
+}
 
 export const defaultConfig: ClearifyConfig = {
   name: 'Documentation',
@@ -202,22 +277,28 @@ export async function loadUserConfig(root: string): Promise<Partial<ClearifyConf
     'clearify.config.mjs',
   ];
 
+  let tsConfig: Partial<ClearifyConfig> = {};
+
   for (const file of configFiles) {
     const configPath = resolve(root, file);
     if (existsSync(configPath)) {
       try {
         if (file.endsWith('.ts')) {
-          return await loadTsConfig(configPath);
+          tsConfig = await loadTsConfig(configPath);
+        } else {
+          const mod = await import(pathToFileURL(configPath).href);
+          tsConfig = mod.default ?? mod;
         }
-        const mod = await import(pathToFileURL(configPath).href);
-        return mod.default ?? mod;
+        break;
       } catch {
         // Config file exists but failed to load — will use defaults
       }
     }
   }
 
-  return {};
+  // Merge clearify.data.json on top (JSON wins)
+  const jsonData = loadDataConfig(root);
+  return deepMergeJsonWins(tsConfig, jsonData as Partial<ClearifyConfig>);
 }
 
 export function resolveConfig(userConfig: Partial<ClearifyConfig> = {}, root?: string): ClearifyConfig {
@@ -292,8 +373,69 @@ export async function resolveSections(config: ClearifyConfig, root: string): Pro
   ];
 }
 
+/**
+ * Build a staging directory that merges an original docsDir with injected project
+ * docs via symlinks. Directories that are ancestors of injection targets become
+ * real dirs with their children symlinked individually; everything else is symlinked
+ * as a whole.
+ */
+function buildStagingOverlay(
+  stagingDir: string,
+  originalDir: string,
+  injections: Map<string, string>,
+): void {
+  // Clean and recreate
+  if (existsSync(stagingDir)) {
+    rmSync(stagingDir, { recursive: true, force: true });
+  }
+  mkdirSync(stagingDir, { recursive: true });
+
+  // Compute which relative directory paths need to be "real dirs" because
+  // they are ancestors of (or equal to) injection target directories.
+  const ancestorDirs = new Set<string>();
+  for (const targetRelPath of injections.keys()) {
+    const parts = targetRelPath.split('/');
+    // Each prefix is an ancestor dir that must be real
+    for (let i = 1; i <= parts.length; i++) {
+      ancestorDirs.add(parts.slice(0, i).join('/'));
+    }
+  }
+
+  // Recursively mirror the original dir, creating real dirs where needed
+  // and symlinking everything else.
+  function mirrorDir(srcDir: string, destDir: string, relPrefix: string): void {
+    if (!existsSync(srcDir)) return;
+    const entries = readdirSync(srcDir);
+    for (const entry of entries) {
+      const srcPath = resolve(srcDir, entry);
+      const destPath = resolve(destDir, entry);
+      const relPath = relPrefix ? `${relPrefix}/${entry}` : entry;
+
+      if (ancestorDirs.has(relPath) && statSync(srcPath).isDirectory()) {
+        // This directory is an ancestor of an injection target — create a real dir
+        mkdirSync(destPath, { recursive: true });
+        mirrorDir(srcPath, destPath, relPath);
+      } else {
+        // Symlink the entry as-is (file or entire directory)
+        symlinkSync(srcPath, destPath);
+      }
+    }
+  }
+
+  mirrorDir(originalDir, stagingDir, '');
+
+  // Create injection symlinks
+  for (const [relPath, sourcePath] of injections) {
+    const destPath = resolve(stagingDir, relPath);
+    // Ensure parent dir exists
+    const parentDir = dirname(destPath);
+    mkdirSync(parentDir, { recursive: true });
+    symlinkSync(sourcePath, destPath);
+  }
+}
+
 export async function scanHubProjects(config: ClearifyConfig, root: string): Promise<ClearifyConfig> {
-  if (!config.hub?.scan && !config.hub?.projects?.some((p) => p.mode === 'embed')) {
+  if (!config.hub?.scan && !config.hub?.projects?.some((p) => p.mode === 'embed' || p.mode === 'inject')) {
     return config;
   }
 
@@ -386,12 +528,98 @@ export async function scanHubProjects(config: ClearifyConfig, root: string): Pro
     }
   }
 
+  // Process inject-mode projects: clone their repos, then overlay their docs
+  // into the target section's docsDir via a staging directory.
+  // Group injections by target section label.
+  const injectionsBySection = new Map<string, Map<string, string>>();
+
+  for (const project of merged) {
+    if (project.mode !== 'inject' || !project.git) continue;
+
+    const cacheDir = config.hub?.cacheDir
+      ? resolve(root, config.hub.cacheDir)
+      : resolve(root, 'node_modules/.cache/clearify-remote');
+
+    try {
+      const { resolveRemoteSource } = await import('./remote.js');
+      const { localPath, cached } = await resolveRemoteSource(project.git, cacheDir);
+
+      const docsPath = project.docsPath ?? 'docs';
+      const absoluteDocsPath = resolve(localPath, docsPath);
+
+      if (!existsSync(absoluteDocsPath)) {
+        console.warn(
+          `  ⚠ Hub inject "${project.name}": docs path "${docsPath}" not found in cloned repo.`,
+        );
+        continue;
+      }
+
+      const targetLabel = project.injectInto;
+      if (!targetLabel) {
+        console.warn(`  ⚠ Hub inject "${project.name}": missing injectInto field.`);
+        continue;
+      }
+
+      if (!injectionsBySection.has(targetLabel)) {
+        injectionsBySection.set(targetLabel, new Map());
+      }
+
+      const slugifiedName = slugify(project.name);
+      const relPath = project.group
+        ? `projects/${project.group}/${slugifiedName}`
+        : `projects/${slugifiedName}`;
+
+      injectionsBySection.get(targetLabel)!.set(relPath, absoluteDocsPath);
+
+      console.log(
+        `  Hub inject "${project.name}": ${cached ? 'cached' : 'cloned'} → ${relPath}`,
+      );
+    } catch (err) {
+      console.warn(
+        `  ⚠ Hub inject "${project.name}" failed:`,
+        err instanceof Error ? err.message : err,
+      );
+    }
+  }
+
+  // For each affected section, build a staging overlay and rewrite its docsDir
+  let modifiedSections = config.sections ? [...config.sections] : undefined;
+
+  if (injectionsBySection.size > 0 && modifiedSections) {
+    for (const [sectionLabel, injections] of injectionsBySection) {
+      const sectionIdx = modifiedSections.findIndex((s) => s.label === sectionLabel);
+      if (sectionIdx === -1) {
+        console.warn(`  ⚠ Hub inject: target section "${sectionLabel}" not found.`);
+        continue;
+      }
+
+      const section = modifiedSections[sectionIdx];
+      const sectionId = slugify(section.label);
+      const originalDocsDir = section.docsDir.startsWith('/')
+        ? section.docsDir
+        : resolve(root, section.docsDir);
+      const stagingDir = resolve(root, `node_modules/.cache/clearify-inject/${sectionId}`);
+
+      buildStagingOverlay(stagingDir, originalDocsDir, injections);
+
+      modifiedSections[sectionIdx] = {
+        ...section,
+        docsDir: stagingDir,
+      };
+
+      console.log(
+        `  Hub inject: staging overlay for "${sectionLabel}" → ${stagingDir}`,
+      );
+    }
+  }
+
   // Merge embed sections into host config
-  const finalSections = [...(config.sections ?? []), ...embedSections];
+  const finalSections = [...(modifiedSections ?? config.sections ?? []), ...embedSections];
+  const sectionsChanged = embedSections.length > 0 || injectionsBySection.size > 0;
 
   return {
     ...config,
-    ...(embedSections.length > 0 ? { sections: finalSections } : {}),
+    ...(sectionsChanged ? { sections: finalSections } : {}),
     hub: {
       ...config.hub,
       projects: merged,

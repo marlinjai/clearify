@@ -1,7 +1,9 @@
 import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite';
-import { resolve } from 'path';
-import { existsSync, readFileSync } from 'fs';
-import { loadUserConfig, resolveConfig, resolveSections, scanHubProjects } from '../core/config.js';
+import type { IncomingMessage } from 'http';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { existsSync, readFileSync, readdirSync, statSync } from 'fs';
+import { loadUserConfig, resolveConfig, resolveSections, scanHubProjects, loadDataConfig, writeDataConfig, deepMergeJsonWins, ClearifyDataSchema } from '../core/config.js';
 import { buildSectionData, type SectionData } from '../core/navigation.js';
 import type { ClearifyConfig, ResolvedSection, RouteEntry, SectionNavigation, NavigationItem } from '../types/index.js';
 import type { SearchEntry } from '../core/search.js';
@@ -28,6 +30,9 @@ const RESOLVED_VIRTUAL_OPENAPI_SPEC = '\0' + VIRTUAL_OPENAPI_SPEC;
 
 const VIRTUAL_HUB = 'virtual:clearify/hub';
 const RESOLVED_VIRTUAL_HUB = '\0' + VIRTUAL_HUB;
+
+const VIRTUAL_ADMIN_ENABLED = 'virtual:clearify/admin-enabled';
+const RESOLVED_VIRTUAL_ADMIN_ENABLED = '\0' + VIRTUAL_ADMIN_ENABLED;
 
 /** Walk navigation depth-first, returning the first leaf path. */
 function findFirstNavPath(items: NavigationItem[]): string | undefined {
@@ -288,6 +293,7 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
       if (id === VIRTUAL_MERMAID_SVGS) return RESOLVED_VIRTUAL_MERMAID_SVGS;
       if (id === VIRTUAL_OPENAPI_SPEC) return RESOLVED_VIRTUAL_OPENAPI_SPEC;
       if (id === VIRTUAL_HUB) return RESOLVED_VIRTUAL_HUB;
+      if (id === VIRTUAL_ADMIN_ENABLED) return RESOLVED_VIRTUAL_ADMIN_ENABLED;
       return null;
     },
 
@@ -313,6 +319,10 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
       if (id === RESOLVED_VIRTUAL_HUB) {
         const hubData = config.hub ?? null;
         return `export default ${JSON.stringify(hubData)};`;
+      }
+      if (id === RESOLVED_VIRTUAL_ADMIN_ENABLED) {
+        const enabled = resolvedViteConfig.command === 'serve';
+        return `export default ${enabled};`;
       }
       return null;
     },
@@ -502,6 +512,141 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
 
             server.ws.send({ type: 'full-reload' });
           });
+        }
+      });
+
+      // Watch clearify.data.json for live reload
+      const dataJsonPath = resolve(userRoot, 'clearify.data.json');
+      server.watcher.add(dataJsonPath);
+      server.watcher.on('change', (changedPath: string) => {
+        if (changedPath === dataJsonPath) {
+          // Invalidate all virtual modules and full-reload
+          for (const resolvedId of [
+            RESOLVED_VIRTUAL_CONFIG,
+            RESOLVED_VIRTUAL_ROUTES,
+            RESOLVED_VIRTUAL_NAVIGATION,
+            RESOLVED_VIRTUAL_SEARCH_INDEX,
+          ]) {
+            const mod = server.moduleGraph.getModuleById(resolvedId);
+            if (mod) server.moduleGraph.invalidateModule(mod);
+          }
+          server.ws.send({ type: 'full-reload' });
+        }
+      });
+
+      // --- Admin REST API middleware ---
+      function readJsonBody(req: IncomingMessage): Promise<any> {
+        return new Promise((resolve, reject) => {
+          const chunks: Buffer[] = [];
+          req.on('data', (chunk: Buffer) => chunks.push(chunk));
+          req.on('end', () => {
+            try {
+              resolve(JSON.parse(Buffer.concat(chunks).toString()));
+            } catch {
+              reject(new Error('Invalid JSON'));
+            }
+          });
+          req.on('error', reject);
+        });
+      }
+
+      server.middlewares.use(async (req, res, next) => {
+        const url = req.url?.split('?') ?? [''];
+        const pathname = url[0];
+        const query = new URLSearchParams(url[1] ?? '');
+
+        if (!pathname.startsWith('/__clearify/api/')) return next();
+
+        res.setHeader('Content-Type', 'application/json');
+
+        try {
+          // GET /__clearify/api/config → full resolved config
+          if (req.method === 'GET' && pathname === '/__clearify/api/config') {
+            res.end(JSON.stringify(config));
+            return;
+          }
+
+          // GET /__clearify/api/config/data → raw clearify.data.json
+          if (req.method === 'GET' && pathname === '/__clearify/api/config/data') {
+            const data = loadDataConfig(userRoot);
+            res.end(JSON.stringify(data));
+            return;
+          }
+
+          // PUT /__clearify/api/config/data → replace clearify.data.json
+          if (req.method === 'PUT' && pathname === '/__clearify/api/config/data') {
+            const body = await readJsonBody(req);
+            const result = ClearifyDataSchema.safeParse(body);
+            if (!result.success) {
+              res.statusCode = 400;
+              res.end(JSON.stringify({ error: 'Validation failed', issues: result.error.issues }));
+              return;
+            }
+            writeDataConfig(userRoot, body);
+            res.end(JSON.stringify({ ok: true }));
+            return;
+          }
+
+          // PATCH /__clearify/api/config/data → merge into clearify.data.json
+          if (req.method === 'PATCH' && pathname === '/__clearify/api/config/data') {
+            const body = await readJsonBody(req);
+            const existing = loadDataConfig(userRoot);
+            const merged = deepMergeJsonWins(existing, body);
+            const result = ClearifyDataSchema.safeParse(merged);
+            if (!result.success) {
+              res.statusCode = 400;
+              res.end(JSON.stringify({ error: 'Validation failed', issues: result.error.issues }));
+              return;
+            }
+            writeDataConfig(userRoot, merged);
+            res.end(JSON.stringify({ ok: true }));
+            return;
+          }
+
+          // GET /__clearify/api/config/schema → return JSON schema
+          if (req.method === 'GET' && pathname === '/__clearify/api/config/schema') {
+            const pkgDir = dirname(fileURLToPath(import.meta.url));
+            const schemaPath = resolve(pkgDir, '../../dist/config-schema.json');
+            if (existsSync(schemaPath)) {
+              res.end(readFileSync(schemaPath, 'utf-8'));
+            } else {
+              res.statusCode = 404;
+              res.end(JSON.stringify({ error: 'Schema file not found' }));
+            }
+            return;
+          }
+
+          // GET /__clearify/api/fs/dirs → list subdirectories of ?root= param
+          if (req.method === 'GET' && pathname === '/__clearify/api/fs/dirs') {
+            const rootParam = query.get('root') ?? '.';
+            const target = resolve(userRoot, rootParam);
+            // Security: ensure target is within userRoot
+            if (!target.startsWith(userRoot)) {
+              res.statusCode = 403;
+              res.end(JSON.stringify({ error: 'Path outside project root' }));
+              return;
+            }
+            if (!existsSync(target)) {
+              res.end(JSON.stringify({ dirs: [] }));
+              return;
+            }
+            const dirs = readdirSync(target).filter((entry) => {
+              try {
+                return statSync(resolve(target, entry)).isDirectory();
+              } catch {
+                return false;
+              }
+            });
+            res.end(JSON.stringify({ dirs }));
+            return;
+          }
+
+          // Unknown API route
+          res.statusCode = 404;
+          res.end(JSON.stringify({ error: 'Not found' }));
+        } catch (err: any) {
+          res.statusCode = err.message === 'Invalid JSON' ? 400 : 500;
+          res.end(JSON.stringify({ error: err.message ?? 'Internal server error' }));
         }
       });
 

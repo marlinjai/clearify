@@ -7,11 +7,19 @@ import routes from 'virtual:clearify/routes';
 import config from 'virtual:clearify/config';
 // @ts-expect-error virtual module
 import sections from 'virtual:clearify/navigation';
+// @ts-expect-error virtual module
+import adminEnabled from 'virtual:clearify/admin-enabled';
 import { Layout } from '../theme/Layout.js';
 import { Head } from '../theme/Head.js';
 import { NotFound } from '../theme/NotFound.js';
 import { mdxComponents } from '../theme/MDXComponents.js';
 import '../theme/styles/globals.css';
+
+const AdminLayout = React.lazy(() => import('../theme/admin/AdminLayout.js'));
+const AdminDashboard = React.lazy(() => import('../theme/admin/AdminDashboard.js'));
+const ProjectsManager = React.lazy(() => import('../theme/admin/ProjectsManager.js'));
+const SectionsManager = React.lazy(() => import('../theme/admin/SectionsManager.js'));
+const SiteSettings = React.lazy(() => import('../theme/admin/SiteSettings.js'));
 
 interface RouteEntry {
   path: string;
@@ -74,24 +82,59 @@ function PageWrapper({ loader, fallbackFrontmatter }: { loader: () => Promise<an
   );
 }
 
+function AdminDisabled() {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', color: 'var(--clearify-text-secondary)', fontFamily: 'var(--font-sans)' }}>
+      Admin panel is only available in dev mode.
+    </div>
+  );
+}
+
 function AppRoutes() {
   return (
-    <Layout config={config} sections={sections}>
-      <Routes>
-        {(routes as RouteEntry[]).map((route) =>
-          route.redirectTo ? (
-            <Route key={route.path} path={route.path} element={<Navigate to={route.redirectTo} replace />} />
-          ) : (
-            <Route
-              key={route.path}
-              path={route.path}
-              element={<PageWrapper loader={route.component!} fallbackFrontmatter={route.frontmatter} />}
-            />
-          )
-        )}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </Layout>
+    <Routes>
+      {/* Admin routes — outside Layout, lazy-loaded */}
+      {adminEnabled ? (
+        <Route
+          path="/admin"
+          element={
+            <React.Suspense fallback={<div style={{ padding: '2rem', color: 'var(--clearify-text-secondary)' }}>Loading...</div>}>
+              <AdminLayout />
+            </React.Suspense>
+          }
+        >
+          <Route index element={<AdminDashboard />} />
+          <Route path="projects" element={<ProjectsManager />} />
+          <Route path="sections" element={<SectionsManager />} />
+          <Route path="settings" element={<SiteSettings />} />
+        </Route>
+      ) : (
+        <Route path="/admin/*" element={<AdminDisabled />} />
+      )}
+
+      {/* Docs routes — wrapped in Layout */}
+      <Route
+        path="*"
+        element={
+          <Layout config={config} sections={sections}>
+            <Routes>
+              {(routes as RouteEntry[]).map((route) =>
+                route.redirectTo ? (
+                  <Route key={route.path} path={route.path} element={<Navigate to={route.redirectTo} replace />} />
+                ) : (
+                  <Route
+                    key={route.path}
+                    path={route.path}
+                    element={<PageWrapper loader={route.component!} fallbackFrontmatter={route.frontmatter} />}
+                  />
+                )
+              )}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Layout>
+        }
+      />
+    </Routes>
   );
 }
 
