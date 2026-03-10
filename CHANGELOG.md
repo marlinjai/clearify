@@ -1,3 +1,10 @@
+# [1.12.0](https://github.com/marlinjai/clearify/compare/v1.11.2...v1.12.0) (2026-03-10)
+
+
+### Features
+
+* add admin panel for visual config editing ([f851f2a](https://github.com/marlinjai/clearify/commit/f851f2adcc2d7482f499456a369a912113b55aa6))
+
 ## [1.11.2](https://github.com/marlinjai/clearify/compare/v1.11.1...v1.11.2) (2026-03-09)
 
 
