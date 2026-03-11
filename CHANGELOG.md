@@ -1,6 +1,18 @@
 # [1.13.0](https://github.com/marlinjai/clearify/compare/v1.12.0...v1.13.0) (2026-03-11)
 
 
+### Bug Fixes
+
+* revert manual version bump, let semantic-release handle versioning ([efb8abb](https://github.com/marlinjai/clearify/commit/efb8abb87f268eb8e1f2940fcb6e7c920258853b))
+
+
+### Features
+
+* add includeReadme config option to auto-include README.md as docs landing page ([5a6c974](https://github.com/marlinjai/clearify/commit/5a6c9744de53d5ce845ce9ecda84db2e11e9e371))
+
+# [1.13.0](https://github.com/marlinjai/clearify/compare/v1.12.0...v1.13.0) (2026-03-11)
+
+
 ### Features
 
 * add `includeReadme` config option to auto-include README.md as the docs landing page ([#readme](https://github.com/marlinjai/clearify))
