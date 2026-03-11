@@ -65,6 +65,7 @@ export interface ClearifyConfig {
   hubProject?: Omit<HubProject, 'name'>;
   customCss?: string;
   headTags?: string[];
+  includeReadme?: boolean;
 }
 
 export interface NavigationItem {

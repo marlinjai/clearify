@@ -193,6 +193,7 @@ export async function buildSite() {
   const rootFiles = {
     changelogPath: resolve(userRoot, 'CHANGELOG.md'),
     roadmapPath: resolve(userRoot, 'ROADMAP.md'),
+    ...(config.includeReadme ? { readmePath: resolve(userRoot, 'README.md') } : {}),
   };
 
   // Build SectionData[] for production sections

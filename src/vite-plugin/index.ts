@@ -70,6 +70,7 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
     return {
       changelogPath: resolve(userRoot, 'CHANGELOG.md'),
       roadmapPath: resolve(userRoot, 'ROADMAP.md'),
+      ...(config.includeReadme ? { readmePath: resolve(userRoot, 'README.md') } : {}),
     };
   }
 
@@ -335,7 +336,7 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
 
       // Also watch root-level CHANGELOG.md and ROADMAP.md
       const rootFiles = getRootFiles();
-      for (const rootFile of [rootFiles.changelogPath, rootFiles.roadmapPath]) {
+      for (const rootFile of [rootFiles.changelogPath, rootFiles.roadmapPath, rootFiles.readmePath]) {
         if (rootFile && existsSync(rootFile)) {
           server.watcher.add(rootFile);
         }
@@ -497,8 +498,9 @@ export function clearifyPlugin(options: ClearifyPluginOptions = {}): Plugin[] {
       server.watcher.on('all', (event, path) => {
         const isChangelog = path === rootFiles.changelogPath;
         const isRoadmap = path === rootFiles.roadmapPath;
+        const isReadme = path === rootFiles.readmePath;
         const isInSection = visibleSections.some((s) => path.startsWith(s.docsDir));
-        if (!isChangelog && !isRoadmap && !isInSection) return;
+        if (!isChangelog && !isRoadmap && !isReadme && !isInSection) return;
         if (!path.endsWith('.md') && !path.endsWith('.mdx')) return;
 
         if (event === 'add' || event === 'unlink' || event === 'change') {

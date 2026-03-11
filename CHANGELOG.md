@@ -1,3 +1,10 @@
+# [1.13.0](https://github.com/marlinjai/clearify/compare/v1.12.0...v1.13.0) (2026-03-11)
+
+
+### Features
+
+* add `includeReadme` config option to auto-include README.md as the docs landing page ([#readme](https://github.com/marlinjai/clearify))
+
 # [1.12.0](https://github.com/marlinjai/clearify/compare/v1.11.2...v1.12.0) (2026-03-10)
 
 

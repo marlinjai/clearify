@@ -111,6 +111,7 @@ const ClearifyConfigSchema = z.object({
   hubProject: HubProjectPartialSchema,
   customCss: z.string().optional(),
   headTags: z.array(z.string()).optional(),
+  includeReadme: z.boolean().default(false),
 });
 
 /** Zod schema for clearify.data.json — Tier 1+2 visual-config fields, all optional. */

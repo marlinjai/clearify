@@ -189,6 +189,16 @@ export interface SectionData {
 export interface RootFileOptions {
   changelogPath?: string;
   roadmapPath?: string;
+  readmePath?: string;
+}
+
+/**
+ * Extract the title from a README's first `# heading`.
+ * Falls back to "Overview" if no heading is found.
+ */
+function extractReadmeTitle(content: string): string {
+  const match = content.match(/^#\s+(.+)$/m);
+  return match ? match[1].trim() : 'Overview';
 }
 
 export function buildSectionData(
@@ -200,6 +210,26 @@ export function buildSectionData(
 
   // Attach root-level files only to primary section (basePath = "/")
   if (section.basePath === '/') {
+    // Include README.md as the landing/overview page when configured
+    if (rootFiles?.readmePath && existsSync(rootFiles.readmePath)) {
+      // Only add if there isn't already an index page at the section root
+      const hasIndex = docs.some((d) => d.routePath === '/');
+      if (!hasIndex) {
+        const content = readFileSync(rootFiles.readmePath, 'utf-8');
+        const { data } = matter(content);
+        const title = extractReadmeTitle(content);
+        docs.unshift({
+          filePath: rootFiles.readmePath,
+          routePath: '/',
+          frontmatter: {
+            title: data.title ?? title,
+            description: data.description ?? 'Project overview',
+            order: -1,
+          },
+        });
+      }
+    }
+
     if (rootFiles?.changelogPath && existsSync(rootFiles.changelogPath)) {
       const content = readFileSync(rootFiles.changelogPath, 'utf-8');
       const { data } = matter(content);

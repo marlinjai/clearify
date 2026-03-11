@@ -20,6 +20,7 @@
 - [x] Exclude patterns for navigation filtering
 - [x] Configurable port (default 4747)
 - [x] CHANGELOG.md auto-detection → `/changelog` page
+- [x] README.md auto-inclusion as docs landing page (`includeReadme: true`)
 - [x] Claude Code hook for automatic changelog + docs updates
 
 ## v1.0 — Production Ready

@@ -14,6 +14,7 @@ An open-source documentation site generator. Turn markdown into beautiful docs.
 - **OpenAPI API Reference** — custom-built renderer for OpenAPI specs with code examples, schema viewer, and full design system integration
 - **Multi-section support** — pill-based section switcher (e.g. public docs + internal docs)
 - **Auto changelog** — drop a `CHANGELOG.md` in your project root, it appears as `/changelog`
+- **README as landing page** — optionally include your project's `README.md` as the docs overview page
 
 ## Quick Start
 
