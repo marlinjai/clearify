@@ -1,10 +1,10 @@
 ---
 title: Custom OpenAPI Reference Renderer — Implementation Plan
 summary: Task-by-task implementation plan to replace @scalar/api-reference-react with custom React components that render OpenAPI specs using Clearify's design system, CSS variables, and Shiki for code highlighting.
-category: plan
+type: plan
 tags: [clearify, openapi, implementation, react, shiki]
 projects: [clearify]
-status: active
+status: draft
 date: 2026-02-16
 ---
 

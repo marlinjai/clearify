@@ -3,10 +3,9 @@ title: Deployment
 description: How to deploy a Clearify documentation site
 order: 7
 summary: Deploy your Clearify docs site to Cloudflare Pages, Vercel, Netlify, or any static host.
-category: documentation
+type: documentation
 tags: [clearify, deployment, cloudflare, ci-cd]
 projects: [clearify]
-status: active
 ---
 
 # Deployment

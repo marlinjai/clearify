@@ -1,10 +1,10 @@
 ---
 title: "Decision: Root-Level ROADMAP.md Convention"
 summary: Clearify will auto-detect and render ROADMAP.md from the repo root at /roadmap, mirroring the existing CHANGELOG.md pattern. The roadmap represents decided work only — research and exploration happen upstream.
-category: decision
+type: plan
 tags: [clearify, roadmap, convention, lifecycle]
 projects: [clearify]
-status: active
+status: draft
 date: 2026-03-09
 ---
 

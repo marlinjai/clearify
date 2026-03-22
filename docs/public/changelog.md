@@ -3,10 +3,9 @@ title: Changelog & Roadmap
 description: Automatic changelog and roadmap rendering from root-level markdown files
 order: 6
 summary: How Clearify auto-detects CHANGELOG.md and ROADMAP.md at the project root and renders them as /changelog and /roadmap pages with zero configuration.
-category: documentation
+type: documentation
 tags: [clearify, changelog, roadmap, automation]
 projects: [clearify]
-status: active
 ---
 
 # Changelog & Roadmap

@@ -1,10 +1,10 @@
 ---
 title: "Visual Config Editing — Design & Implementation Plan"
 summary: Split Clearify config into a machine-writable data layer (JSON) and a code layer (TS), then build an integrated admin panel for managing hub projects, sections, and settings — first in dev-mode, later via a Git gateway on deployed sites.
-category: plan
+type: plan
 tags: [clearify, config, admin-ui, git-gateway, hub]
 projects: [clearify]
-status: active
+status: draft
 date: 2026-03-09
 ---
 

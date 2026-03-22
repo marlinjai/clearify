@@ -1,6 +1,6 @@
 ---
 title: "Edge Preview Layer — Detailed Design (v2.5 Phase 3)"
-category: plan
+type: plan
 status: draft
 date: 2026-03-08
 tags: [editing, edge, preview, v2.5]

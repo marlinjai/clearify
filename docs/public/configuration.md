@@ -3,10 +3,9 @@ title: Configuration
 description: How to configure Clearify
 order: 4
 summary: Configuration reference for Clearify, covering clearify.config.ts options for branding, navigation overrides, theming, and advanced features.
-category: documentation
+type: documentation
 tags: [clearify, configuration, config, theming]
 projects: [clearify]
-status: active
 ---
 
 # Configuration

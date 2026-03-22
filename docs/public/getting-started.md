@@ -3,10 +3,9 @@ title: Getting Started
 description: How to set up Clearify in your project
 order: 1
 summary: Getting started guide for Clearify, covering installation, creating your first docs folder, and running the dev server.
-category: documentation
+type: documentation
 tags: [clearify, getting-started, setup, quickstart]
 projects: [clearify]
-status: active
 ---
 
 # Getting Started
@@ -78,10 +77,9 @@ description: A brief description for SEO and search
 order: 1
 icon: "📘"
 summary: A short summary shown in search results and cards
-category: documentation
+type: documentation
 tags: [guide, setup]
 projects: [my-project]
-status: active
 date: 2026-03-01
 ---
 ```

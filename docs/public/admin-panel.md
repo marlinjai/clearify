@@ -3,10 +3,9 @@ title: Admin Panel
 description: Built-in visual editor for managing your Clearify site configuration
 order: 5
 summary: Guide to the built-in admin panel for managing projects, sections, and site settings through a visual interface during development.
-category: documentation
+type: documentation
 tags: [clearify, admin, configuration, ui]
 projects: [clearify]
-status: active
 ---
 
 # Admin Panel

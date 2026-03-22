@@ -1,6 +1,6 @@
 ---
 title: OpenAPI Auth Management UI Design
-category: plan
+type: plan
 status: draft
 date: 2026-03-08
 tags: [openapi, auth, v2.0]

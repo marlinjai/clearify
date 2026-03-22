@@ -1,6 +1,6 @@
 ---
 title: "AI-Native Documentation Features"
-category: plan
+type: plan
 status: draft
 date: 2026-03-08
 tags: [ai, rag, mcp, v3.0]

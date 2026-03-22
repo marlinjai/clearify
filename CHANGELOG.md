@@ -62,9 +62,8 @@
 ---
 title: Clearify Changelog
 summary: Version history for Clearify documentation site generator, tracking features from v0.1.0 through v1.10.0 including SSG, OpenAPI renderer, hub mode, remote git sections, and MDX components.
-category: changelog
+type: changelog
 tags: [clearify, changelog, releases, documentation-tooling]
-status: active
 date: 2026-03-02
 ---
 

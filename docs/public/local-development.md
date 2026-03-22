@@ -3,10 +3,9 @@ title: Local Development
 description: Using Clearify across projects with pnpm link
 order: 5
 summary: Guide for using Clearify in local development across multiple standalone projects using pnpm link, since there is no shared monorepo workspace.
-category: documentation
+type: documentation
 tags: [clearify, local-development, pnpm-link, workflow]
 projects: [clearify]
-status: active
 ---
 
 # Local Development

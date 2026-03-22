@@ -1,10 +1,10 @@
 ---
 title: In-Place Documentation Editing — Implementation Plan
 summary: Plan for allowing authenticated users to edit documentation in-place on deployed Clearify sites, reducing friction for small fixes. Evaluates three architecture options with git as source of truth.
-category: plan
+type: plan
 tags: [clearify, in-place-editing, cms, git, implementation]
 projects: [clearify]
-status: active
+status: draft
 date: 2026-03-03
 ---
 

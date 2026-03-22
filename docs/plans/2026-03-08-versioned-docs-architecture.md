@@ -1,6 +1,6 @@
 ---
 title: Versioned Documentation Architecture
-category: plan
+type: plan
 status: draft
 date: 2026-03-08
 tags: [versioning, v2.1]

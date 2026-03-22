@@ -1,6 +1,6 @@
 ---
 title: "v3.0 Plugin System Design"
-category: plan
+type: plan
 status: draft
 date: 2026-03-08
 tags: [plugins, extensibility, v3.0]
