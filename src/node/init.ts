@@ -1,9 +1,31 @@
-import { resolve } from 'path';
-import { existsSync, mkdirSync, writeFileSync } from 'fs';
+import { resolve, basename } from 'path';
+import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'fs';
+
+function detectProjectName(): string {
+  const cwd = process.cwd();
+  const pkgPath = resolve(cwd, 'package.json');
+  if (existsSync(pkgPath)) {
+    try {
+      const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
+      if (pkg.name) {
+        const raw = pkg.name.replace(/^@[^/]+\//, '');
+        return raw
+          .replace(/[-_]/g, ' ')
+          .replace(/\b\w/g, (c: string) => c.toUpperCase());
+      }
+    } catch {
+      // ignore
+    }
+  }
+  return basename(cwd)
+    .replace(/[-_]/g, ' ')
+    .replace(/\b\w/g, (c: string) => c.toUpperCase());
+}
 
 export interface InitOptions {
   noInternal?: boolean;
   noClaudeRules?: boolean;
+  hub?: boolean;
 }
 
 export async function init(options: InitOptions = {}) {
@@ -289,4 +311,22 @@ ${hasInternal ? `
     npx clearify dev        Start the dev server
     npx clearify build      Build for production
 `);
+
+  // Hub registration
+  if (options.hub) {
+    const { registerWithHub } = await import('./hub-register.js');
+    await registerWithHub({ projectName: detectProjectName() });
+  } else {
+    const { createInterface } = await import('readline');
+    const rl = createInterface({ input: process.stdin, output: process.stdout });
+    const answer = await new Promise<string>((resolve) => {
+      rl.question('  Register this project with a documentation hub? [y/N] ', resolve);
+    });
+    rl.close();
+
+    if (answer.toLowerCase() === 'y') {
+      const { registerWithHub } = await import('./hub-register.js');
+      await registerWithHub({ projectName: detectProjectName() });
+    }
+  }
 }

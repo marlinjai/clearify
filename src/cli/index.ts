@@ -44,12 +44,13 @@ cli
   });
 
 cli
-  .command('init', 'Scaffold a docs folder')
+  .command('init', 'Scaffold a docs folder and optionally register with a hub')
   .option('--no-internal', 'Skip creating the internal docs section')
   .option('--no-claude-rules', 'Skip creating .claude/rules/clearify-docs.md')
-  .action(async (options: { noInternal?: boolean; noClaudeRules?: boolean }) => {
+  .option('--hub', 'Register this project with a documentation hub')
+  .action(async (options: { noInternal?: boolean; noClaudeRules?: boolean; hub?: boolean }) => {
     const { init } = await import('../node/index.js');
-    await init({ noInternal: options.noInternal, noClaudeRules: options.noClaudeRules });
+    await init({ noInternal: options.noInternal, noClaudeRules: options.noClaudeRules, hub: options.hub });
   });
 
 cli
