@@ -23,7 +23,7 @@ function findSimilarRoutes(currentPath: string, maxResults = 5) {
   const normalizedCurrent = currentPath.toLowerCase().replace(/\/+$/, '') || '/';
 
   const scored = routes
-    .filter((r) => r.path !== normalizedCurrent)
+    .filter((r) => r.path !== normalizedCurrent && !r.redirectTo)
     .map((r) => {
       const normalizedRoute = r.path.toLowerCase().replace(/\/+$/, '') || '/';
       const distance = levenshtein(normalizedCurrent, normalizedRoute);
@@ -41,8 +41,8 @@ function findSimilarRoutes(currentPath: string, maxResults = 5) {
   return scored;
 }
 
-function formatTitle(route: { path: string; frontmatter: { title?: string } }): string {
-  if (route.frontmatter.title) return route.frontmatter.title;
+function formatTitle(route: { path: string; frontmatter?: { title?: string } }): string {
+  if (route.frontmatter?.title) return route.frontmatter.title;
   // Derive a title from the path
   const segments = route.path.split('/').filter(Boolean);
   if (segments.length === 0) return 'Home';
