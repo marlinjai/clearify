@@ -1,3 +1,10 @@
+## [1.14.1](https://github.com/marlinjai/clearify/compare/v1.14.0...v1.14.1) (2026-04-17)
+
+
+### Bug Fixes
+
+* guard NotFound against redirect routes with no frontmatter ([2ea6439](https://github.com/marlinjai/clearify/commit/2ea643932dc3813d7e2ae7d279a8d1597c03c8b5))
+
 # [1.14.0](https://github.com/marlinjai/clearify/compare/v1.13.0...v1.14.0) (2026-04-07)
 
 
