@@ -1,3 +1,10 @@
+## [1.14.2](https://github.com/marlinjai/clearify/compare/v1.14.1...v1.14.2) (2026-04-18)
+
+
+### Bug Fixes
+
+* harden docs-trigger curl + correct cacheDir default in docs ([aa2d1fa](https://github.com/marlinjai/clearify/commit/aa2d1fa5fb8634ace5a5cd48d2e5c06f76c581b9))
+
 ## [1.14.1](https://github.com/marlinjai/clearify/compare/v1.14.0...v1.14.1) (2026-04-17)
 
 
