@@ -328,7 +328,7 @@ jobs:
     steps:
       - name: Trigger hub rebuild
         run: |
-          curl -X POST \\
+          curl --fail-with-body -X POST \\
             -H "Authorization: token \${{ secrets.HUB_DISPATCH_TOKEN }}" \\
             -H "Accept: application/vnd.github.v3+json" \\
             https://api.github.com/repos/${hub.owner}/${hub.repo}/dispatches \\

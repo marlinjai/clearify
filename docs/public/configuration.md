@@ -279,7 +279,7 @@ The scanner uses `name` from the child config and `href` from `hubProject.href` 
 |--------|------|---------|-------------|
 | `hub.projects` | `HubProject[]` | `[]` | Manually listed projects |
 | `hub.scan` | `string` | — | Glob pattern to find child `clearify.config.ts` files |
-| `hub.cacheDir` | `string` | `'.clearify-cache'` | Directory for cloned remote repositories (embed/inject modes) |
+| `hub.cacheDir` | `string` | `'node_modules/.cache/clearify-remote'` | Directory for cloned remote repositories (embed/inject modes) |
 
 ### HubProject fields
 
