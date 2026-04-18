@@ -4,11 +4,13 @@ summary: Split Clearify config into a machine-writable data layer (JSON) and a c
 type: plan
 tags: [clearify, config, admin-ui, git-gateway, hub]
 projects: [clearify]
-status: draft
+status: completed
 date: 2026-03-09
 ---
 
 # Visual Config Editing — Design & Implementation Plan
+
+> Shipped in v1.12 (Phases 1-3). Phase 4 (git-gateway) remains out of scope.
 
 > Status: **Active** | Created: 2026-03-09
 

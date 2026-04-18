@@ -4,11 +4,13 @@ summary: Task-by-task implementation plan to replace @scalar/api-reference-react
 type: plan
 tags: [clearify, openapi, implementation, react, shiki]
 projects: [clearify]
-status: draft
+status: completed
 date: 2026-02-16
 ---
 
 # Custom OpenAPI Reference Renderer — Implementation Plan
+
+> Shipped in v1.6.
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 

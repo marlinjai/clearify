@@ -181,6 +181,8 @@ When editing a page from a remote git section (e.g., Brain Core docs embedded in
 
 ### Phase 3 — Instant Preview Layer (Option C, if demand warrants)
 
+Detailed design: see [Edge Preview Layer Design](./2026-03-08-edge-preview-layer-design.md).
+
 Only build this when users say "I need instant editing in production."
 
 **Architecture:**

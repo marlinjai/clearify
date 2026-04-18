@@ -22,8 +22,6 @@ date: 2026-03-01
 
 **Testing:** No test framework exists. Verify visually — create a test `.md` file with a `clearify-diagram` code block, run `clearify dev`, interact with the editor, and verify save writes back to the file.
 
-**Design doc:** `docs/plans/2026-03-01-visual-diagram-editor-design.md` (to be created)
-
 ---
 
 ## Important Context for the Implementer

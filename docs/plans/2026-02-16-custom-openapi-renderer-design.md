@@ -4,11 +4,13 @@ summary: Design document for replacing @scalar/api-reference-react with a custom
 type: plan
 tags: [clearify, openapi, api-reference, design, react]
 projects: [clearify]
-status: draft
+status: completed
 date: 2026-02-16
 ---
 
 # Custom OpenAPI Reference Renderer for Clearify
+
+> Shipped in v1.6.
 
 **Date:** 2026-02-16
 **Status:** Approved

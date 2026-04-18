@@ -1,6 +1,6 @@
 # Clearify Roadmap
 
-> Last updated: 2026-03-03 — v1.10 Remote Sections & Hub Embed
+> Last updated: 2026-04-18, v1.14.2
 
 ## v0.2.0 — Done
 
@@ -133,6 +133,36 @@ Replaced `@scalar/api-reference-react` with a fully custom-built renderer using 
 - [x] `HubProject.mode: 'embed'` — clone remote project, read its Clearify config, inject sections
 - [x] `HubProject.embedSections` filter — `'all'`, `'public'`, or specific labels
 - [x] `HubConfig.cacheDir` — override cache location
+
+## v1.11: Auto-Render ROADMAP
+
+### ROADMAP Integration: Done
+- [x] Auto-detect `ROADMAP.md` at project root and render at `/roadmap`
+- [x] Roadmap entry added to `clearify init` rules template
+- [x] Bundle all deps in SSR build for pre-rendering (fixes nested-dep resolution at build time)
+
+## v1.12: Admin Panel & Visual Config Editing
+
+### Admin Panel: Done
+- [x] Admin panel for visual config editing (Phases 1-3 of `2026-03-09-visual-config-editing-design.md`)
+- [x] Split config into machine-writable data layer (JSON) and code layer (TS)
+- [x] Manage hub projects, sections, and settings without hand-editing `clearify.config.ts`
+- [ ] Phase 4 (git-gateway for deployed sites): out of scope
+
+## v1.13: README Auto-Inclusion
+
+### includeReadme: Done
+- [x] `includeReadme` config option, auto-includes `README.md` as the docs landing page
+- [x] Reverted manual version bump, semantic-release owns versioning end-to-end
+
+## v1.14: Hub Provisioning Simplification
+
+### Hub Register: Done
+- [x] `clearify hub-register` simplified, removed in-CLI secret encryption, delegated to Terraform
+- [x] `hub-model.md` doc page explaining embed, dispatch, and `init --hub`
+- [x] Infra hub registration wiring (Terraform owns `HUB_DISPATCH_TOKEN` lifecycle)
+- [x] Harden docs-trigger curl, correct `cacheDir` default in docs (v1.14.2)
+- [x] Guard `NotFound` against redirect routes with no frontmatter (v1.14.1)
 
 ## v2.0 — Try It Out & Auth (OpenAPI Phase 2-3)
 
