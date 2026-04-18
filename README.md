@@ -1,42 +1,33 @@
 # Clearify
 
-An open-source documentation site generator. Turn markdown into beautiful docs.
-
-## Features
-
-- **Zero config** — drop markdown files in `docs/public/` and go
-- **MDX support** — use React components in your docs (Callout, Tabs, Steps, Cards, CodeGroup, Accordion, Badge, Tooltip, Columns, Frame)
-- **Mermaid diagrams** — fenced `mermaid` code blocks render as SVG, with optional build-time pre-rendering via Puppeteer
-- **Built-in search** — instant full-text search across all pages and API endpoints
-- **Dark mode** — automatic light/dark theme switching
-- **Syntax highlighting** — beautiful code blocks with Shiki (dual light/dark themes)
-- **SSG & SEO** — pre-rendered HTML, Open Graph, Twitter Cards, JSON-LD, sitemap, robots.txt
-- **OpenAPI API Reference** — custom-built renderer for OpenAPI specs with code examples, schema viewer, and full design system integration
-- **Multi-section support** — pill-based section switcher (e.g. public docs + internal docs)
-- **Auto changelog** — drop a `CHANGELOG.md` in your project root, it appears as `/changelog`
-- **README as landing page** — optionally include your project's `README.md` as the docs overview page
+An open-source documentation site generator. Turn markdown into beautiful docs. Run one site per project, or aggregate many repos into a single hub.
 
 ## Quick Start
 
-Install Clearify as a dev dependency:
-
 ```bash
 pnpm add -D @marlinjai/clearify
-```
-
-Scaffold your project:
-
-```bash
 pnpm exec clearify init
-```
-
-Start the dev server:
-
-```bash
 pnpm exec clearify dev
 ```
 
 Your docs are live at `http://localhost:4747`.
+
+## Hub mode
+
+Hub mode aggregates docs from many repos into one site. Each sub-repo owns its `docs/public/` folder. The hub clones only the docs from each registered repo, assembles them, and deploys once. To add a project to an existing hub, run `clearify init --hub`. See [Hub Model](./docs/public/hub-model.md) for the full onboarding walkthrough and provisioning paths.
+
+## Features
+
+- Zero config: drop markdown in `docs/public/` and go
+- MDX support (Callout, Tabs, Steps, Cards, CodeGroup, Accordion, Badge, Tooltip, Columns, Frame)
+- Mermaid diagrams (client or build-time via Puppeteer)
+- Built-in full-text search
+- Dark mode, syntax highlighting (Shiki, dual themes)
+- SSG and SEO: pre-rendered HTML, Open Graph, Twitter Cards, JSON-LD, sitemap, robots.txt
+- OpenAPI API Reference: custom renderer with code examples and schema viewer
+- Multi-section support (pill-based section switcher)
+- Hub mode: aggregate many repos into one site with sparse checkout and dispatch-triggered rebuilds
+- Auto changelog, README as landing page
 
 ## Configuration
 
@@ -51,13 +42,8 @@ export default defineConfig({
     { label: 'Docs', docsDir: './docs/public' },
     { label: 'Internal', docsDir: './docs/internal', basePath: '/internal', draft: true },
   ],
-  theme: {
-    primaryColor: '#3B82F6',
-    mode: 'auto',
-  },
-  openapi: {
-    spec: './docs/openapi.json',
-  },
+  theme: { primaryColor: '#3B82F6', mode: 'auto' },
+  openapi: { spec: './docs/openapi.json' },
 });
 ```
 
@@ -68,12 +54,20 @@ export default defineConfig({
 | `clearify dev` | Start Vite-powered dev server with HMR |
 | `clearify build` | Build static documentation site |
 | `clearify init` | Scaffold a docs folder (use `--no-internal` to skip internal section) |
+| `clearify init --hub` | Scaffold and register the project with an existing hub (prompts for hub owner/repo) |
 | `clearify check` | Check for broken internal links |
 | `clearify openapi:generate` | Generate OpenAPI spec from a NestJS app |
 
+## Requirements
+
+- Node.js 22 or later
+- npm, pnpm, or yarn
+- For hub onboarding: a GitHub account and (for CLI-assisted secret provisioning) a GitHub OAuth App. See [Installation](./docs/public/installation.md) for prerequisites per path.
+
 ## Links
 
-- [Documentation](https://github.com/marlinjai/clearify)
+- [Documentation](https://docs.lumitra.co/clearify)
+- [Hub Model](./docs/public/hub-model.md)
 - [GitHub](https://github.com/marlinjai/clearify)
 - [Changelog](./CHANGELOG.md)
 

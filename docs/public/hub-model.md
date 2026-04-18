@@ -194,66 +194,64 @@ During `docs:build`, Clearify reads `clearify.data.json`, walks `hub.projects`, 
 
 A GitHub Personal Access Token with `Contents: Write` scope on the hub repo (classic tokens: `repo` scope). Stored as a GitHub Actions secret on every sub-repo. The curl call above reads it from `secrets.HUB_DISPATCH_TOKEN`. Without it, the dispatch call gets 401 and the hub never rebuilds.
 
-Distribution is handled by Terraform (see next section), not by the CLI.
+There are three paths to get this secret onto every sub-repo. See below.
 
-## `clearify init --hub`
+## Provisioning HUB_DISPATCH_TOKEN
 
-One command to register a new project with the hub. Run it in a fresh repo after `clearify init`, or pass `--hub` to `init` directly.
+This secret is the one thing that has to be on every sub-repo for hub mode to work. There are three paths to get it there. They trade automation for setup cost. Pick the one that matches where you are.
 
-```bash
-pnpm exec clearify init --hub
+### Decision tree
+
+```
+Starting a new hub, one or two sub-repos?
+  -> Path 1: Manual. Click through GitHub UI. Move on.
+
+Onboarding a handful of sub-repos, comfortable with a CLI?
+  -> Path 2: CLI-assisted. Run clearify init --hub --auto-secret.
+
+Operating a hub with 5+ sub-repos, care about rotation?
+  -> Path 3: Terraform. Declare the repos, apply once, rotate in one place.
 ```
 
-### What happens, step by step
+You can mix paths. Start with Manual on repo 1, graduate to Terraform when you have 5. The secret itself is identical: a PAT with `Contents: Write` on the hub repo. What differs is who writes it onto each sub-repo.
 
-1. **Detects the current project.** Reads `package.json` for the name (or falls back to the directory name). Parses the `origin` remote to get `owner/repo`. Errors out if not a GitHub repo.
+### Path 1: Manual (GitHub UI)
 
-2. **Prompts for the hub.** Asks for the hub repository as `owner/repo` (e.g. `marlinjai/ERP-suite`). No discovery API (yet): you type it.
+Lowest-ceremony path. For one-off onboarding.
 
-3. **Opens GitHub OAuth via device flow.** Requires `CLEARIFY_GITHUB_CLIENT_ID` to be set in your environment (the client ID of a GitHub OAuth App with `repo` scope). The CLI hits `https://github.com/login/device/code`, prints a user code, opens your browser to the verification URL, and polls for the token. See GitHub's docs on [OAuth App device flow](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps#device-flow) for how this works.
+1. Create a fine-grained PAT at https://github.com/settings/personal-access-tokens/new. Scope: `Contents: Read and write` on the hub repo only. Expiration: 90 days.
+2. Copy the token to your secret manager (you reuse it for every sub-repo and for rotation).
+3. In the sub-repo, Settings: Secrets and variables: Actions: New repository secret. Name `HUB_DISPATCH_TOKEN`, value the PAT.
+4. Push a doc change. Confirm `Docs Trigger` runs green.
 
-4. **Writes the registry.** Reads `clearify.data.json` from the hub repo via the GitHub Contents API (`GET /repos/{owner}/{repo}/contents/clearify.data.json`), appends a new `HubProject` entry (mode `embed`, `git: { repo, ref: main, path: docs/public }`), and commits it back via `PUT`. If the project name already exists, it updates the entry in place.
+Stop using this path when you have added the same PAT to 3+ repos by hand. Switch to Path 3.
 
-5. **Generates local files.** Creates `clearify.config.ts` with a `hubProject` block (description, status), plus `.github/workflows/docs-trigger.yml` wired to the hub repo you selected. Skips either file if it already exists.
+### Path 2: CLI-assisted (`clearify init --hub --auto-secret`)
 
-6. **Prints next steps.** Points you at the Terraform deployment that distributes `HUB_DISPATCH_TOKEN`.
+Status: planned. The CLI currently scaffolds config and workflow files but does not write the Actions secret. The `--auto-secret` flag will restore secret provisioning via the GitHub Secrets API after OAuth device flow.
 
-### What it does NOT do (yet)
-
-The v1.14.0 implementation writes the registry and the local files. It does not create the `HUB_DISPATCH_TOKEN` secret on the new repo. Secret distribution is delegated to Terraform. See the next section.
-
-The earlier plan (see `hub-evolution.md`) aspired to zero manual steps including secret creation via the GitHub Secrets API, but the simpler implementation that shipped delegates that bit to infrastructure-as-code, which was already managing the token across all other sub-repos.
-
-### Required env var
+Prerequisites (see [Installation](./installation.md#prerequisites-for-hub-mode)): a GitHub OAuth App with `repo` scope, `CLEARIFY_GITHUB_CLIENT_ID` exported.
 
 ```bash
-export CLEARIFY_GITHUB_CLIENT_ID=Iv1.abc123def456
-pnpm exec clearify init --hub
+export CLEARIFY_GITHUB_CLIENT_ID=Iv1.abc123
+pnpm exec clearify init --hub --auto-secret
 ```
 
-If `CLEARIFY_GITHUB_CLIENT_ID` is unset, the command exits with an error. The client ID corresponds to a GitHub OAuth App you (the hub owner) create once and reuse across every `init --hub` invocation.
+The CLI prompts for the hub repo, opens a browser for device flow, then appends a `HubProject` entry to the hub's `clearify.data.json`, writes local `clearify.config.ts` and `.github/workflows/docs-trigger.yml`, and `PUT`s `HUB_DISPATCH_TOKEN` on the sub-repo via the Secrets API.
 
-## `HUB_DISPATCH_TOKEN` via Terraform
+Without `--auto-secret`, `clearify init --hub` does everything except the secret. Finish with Path 1 or Path 3.
 
-Be direct about the current reality: the CLI does not push the token to the sub-repo. That step is managed in the infra repo at `/deployments/hub-dispatch/` and is currently a manual `terraform apply` after `clearify init --hub`.
+Stop using this path when you operate a hub with 5+ sub-repos and need atomic rotation. Switch to Path 3.
 
-### The Terraform deployment
+### Path 3: Terraform (`github_actions_secret`)
 
-`github.tf` declares one `github_actions_secret` resource per sub-repo, all sharing the same `var.hub_dispatch_token` value (sourced from Infisical).
+Recommended for 5+ sub-repos or any operator who cares about rotation correctness. One Terraform deployment declares every sub-repo, one `terraform apply` writes the same secret value to all of them.
+
+Example at `infra/deployments/hub-dispatch/github.tf`:
 
 ```hcl
 locals {
-  hub_repos = toset([
-    "analytics-platform",
-    "brain-core",
-    "clearify",
-    "email-editor",
-    "framer-clone",
-    "infra",
-    "marlinjai-data-table",
-    "receipt-ocr-app",
-    "storage-brain",
-  ])
+  hub_repos = toset(["analytics-platform", "brain-core", "clearify", "storage-brain"])
 }
 
 resource "github_actions_secret" "hub_dispatch_token" {
@@ -264,27 +262,54 @@ resource "github_actions_secret" "hub_dispatch_token" {
 }
 ```
 
-One token in Infisical, one apply, all repos get the secret.
+`var.hub_dispatch_token` comes from your secret manager (Infisical, Vault, etc).
 
-### Onboarding a new project, the manual last mile
+Onboarding a new sub-repo:
 
-1. Run `clearify init --hub` in the new project. Registry entry written, workflow generated, code pushed.
-2. Open `infra/deployments/hub-dispatch/github.tf`.
-3. Add the new repo's name to `local.hub_repos`.
-4. From that directory, run:
+1. Run `clearify init --hub` (no `--auto-secret`) in the new project. Config and workflow written.
+2. Add the new repo name to `local.hub_repos` in the Terraform file.
+3. Apply:
    ```bash
    cd infra/deployments/hub-dispatch
-   ../../scripts/tfrun.sh apply
+   terraform apply
    ```
-5. Terraform creates `HUB_DISPATCH_TOKEN` on the new repo. The dispatch workflow can now fire.
+4. The new repo now has `HUB_DISPATCH_TOKEN`. Dispatch will fire on the next doc push.
 
-Commit the Terraform change in the same PR as your project registration. The new repo does not need to be touched again.
+Commit the Terraform change in the same PR as the sub-repo's config, so the pipeline turns on and the infra is in sync in one reviewable unit.
 
-### Why Terraform and not the CLI
+## Rotation
 
-The token is a long-lived secret (PAT with write access to a critical repo). Rotating it in 10 places is painful. With Terraform, you rotate in Infisical, re-apply once, and every sub-repo gets the new value atomically. The CLI could PUT secrets via the GitHub API, but then you'd have two code paths for managing the same thing, and secret rotation would stop being a one-command operation. Delegating to the infrastructure layer is the right tradeoff at this scale.
+The PAT in `HUB_DISPATCH_TOKEN` is long-lived write access to the hub repo. Treat it like any production secret: rotate every 90 days, and immediately if a sub-repo is archived, transferred, or forked to an untrusted party.
+
+### General flow
+
+1. Create a new PAT with the same permissions (`Contents: Write` on the hub repo).
+2. Update it everywhere (see per-path instructions).
+3. Verify: push a doc change on one sub-repo, confirm the hub's `Deploy Docs` run fires.
+4. Revoke the old PAT at https://github.com/settings/personal-access-tokens.
+
+### Per-path rotation
+
+- **Path 1 (Manual):** update the secret on each sub-repo by hand. Painful above 2 repos. Migrate to Path 3 before your first rotation.
+- **Path 2 (CLI-assisted):** run `clearify hub rotate` (planned) against each sub-repo. Writes a new value via the Secrets API. Faster than Path 1, still per-repo.
+- **Path 3 (Terraform):** update the PAT value in your secret manager, run `terraform apply` in `infra/deployments/hub-dispatch`. Every sub-repo in `local.hub_repos` gets the new value atomically.
+
+This is the core reason Path 3 exists. A 10-repo hub goes from a 20-minute manual rotation to a 30-second apply.
 
 ## Troubleshooting
+
+### Which provisioning path am I on?
+
+Before debugging the dispatch, identify how the secret got onto the sub-repo. Different paths fail differently.
+
+- Check `infra/deployments/hub-dispatch/github.tf` (or wherever your Terraform lives). If the sub-repo is in `local.hub_repos`, you are on Path 3. Debug by running `terraform plan` and checking for drift.
+- Check your shell history (or ask the person who onboarded the repo) for `clearify init --hub --auto-secret`. If it was used, you are on Path 2.
+- Otherwise, you are on Path 1. The secret was clicked in by hand. Go to Settings: Secrets and variables: Actions on the sub-repo and confirm `HUB_DISPATCH_TOKEN` is listed.
+
+Common mode of failure per path:
+- Path 1: the operator forgot to add the secret after running `clearify init --hub`. Symptom: workflow runs, curl returns 401 silently (unless you have `--fail-with-body`).
+- Path 2: OAuth token expired or the OAuth App lost `repo` scope. Symptom: re-running `clearify init --hub --auto-secret` errors on the secret-write step.
+- Path 3: the repo name is missing from `local.hub_repos` or the apply was never run. Symptom: secret is simply absent.
 
 ### "My docs don't appear on the hub"
 

@@ -32,18 +32,18 @@ export default defineConfig({
 | `docsDir` | `string` | `'./docs'` | Path to docs folder (used when no `sections` defined) |
 | `outDir` | `string` | `'./docs-dist'` | Build output directory |
 | `port` | `number` | `4747` | Dev server port |
-| `siteUrl` | `string` | — | Production URL for canonical links, sitemap, and OG tags |
+| `siteUrl` | `string` | - | Production URL for canonical links, sitemap, and OG tags |
 | `theme.primaryColor` | `string` | `'#3B82F6'` | Primary brand color |
 | `theme.mode` | `'light' \| 'dark' \| 'auto'` | `'auto'` | Color scheme |
 | `navigation` | `NavigationItem[]` | `null` | Override auto-generated sidebar navigation |
 | `exclude` | `string[]` | `[]` | Glob patterns to exclude files from navigation and routing |
 | `mermaid.strategy` | `'client' \| 'build'` | `'client'` | Mermaid rendering strategy (see below) |
-| `links` | `Record<string, string>` | — | Links shown in header/footer (e.g. `{ github: 'https://...' }`) |
-| `logo` | `{ light?: string; dark?: string }` | — | Logo images for light and dark mode (paths relative to project root) |
-| `customCss` | `string` | — | Path to a custom CSS file to load after built-in styles |
+| `links` | `Record<string, string>` | - | Links shown in header/footer (e.g. `{ github: 'https://...' }`) |
+| `logo` | `{ light?: string; dark?: string }` | - | Logo images for light and dark mode (paths relative to project root) |
+| `customCss` | `string` | - | Path to a custom CSS file to load after built-in styles |
 | `headTags` | `string[]` | `[]` | Raw HTML strings injected into the `<head>` of every page (e.g. analytics scripts) |
-| `openapi` | `{ spec, basePath?, generatePages? }` | — | OpenAPI spec path and options for auto-generated API reference pages |
-| `hub` | `HubConfig` | — | Enable Hub Mode for multi-project dashboards (see [Hub Mode](#hub-mode)) |
+| `openapi` | `{ spec, basePath?, generatePages? }` | - | OpenAPI spec path and options for auto-generated API reference pages |
+| `hub` | `HubConfig` | - | Enable Hub Mode for multi-project dashboards (see [Hub Mode](#hub-mode)) |
 
 ## Mermaid Diagrams
 
@@ -72,10 +72,10 @@ pnpm add puppeteer
 
 For projects that need a machine-writable data layer (e.g. visual editors, CI pipelines), Clearify supports splitting configuration across two files:
 
-- **`clearify.config.ts`** — code-level options: plugins, custom logic, navigation overrides, mermaid strategy
-- **`clearify.data.json`** — data-level options: name, siteUrl, theme, logo, links, sections, hub
+- **`clearify.config.ts`** (code-level options): plugins, custom logic, navigation overrides, mermaid strategy
+- **`clearify.data.json`** (data-level options): name, siteUrl, theme, logo, links, sections, hub
 
-When both files exist, they are merged automatically. **JSON values win** for any field present in both files — this lets tooling safely write to `clearify.data.json` without touching the TypeScript config.
+When both files exist, they are merged automatically. **JSON values win** for any field present in both files. This lets tooling safely write to `clearify.data.json` without touching the TypeScript config.
 
 ### Which fields go where
 
@@ -119,7 +119,7 @@ export default defineConfig({
 });
 ```
 
-The `$schema` field enables autocomplete and validation in VS Code — it has no effect at runtime.
+The `$schema` field enables autocomplete and validation in VS Code. It has no effect at runtime.
 
 ## Sections
 
@@ -141,13 +141,13 @@ export default defineConfig({
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `label` | `string` | — | Display name in the section switcher pill |
-| `docsDir` | `string` | — | Path to this section's markdown files |
+| `label` | `string` | - | Display name in the section switcher pill |
+| `docsDir` | `string` | - | Path to this section's markdown files |
 | `basePath` | `string` | `'/'` (first) or `'/<id>'` | URL prefix for this section's routes |
 | `draft` | `boolean` | `false` | Draft sections are shown in dev but excluded from production builds |
 | `sitemap` | `boolean` | `!draft` | Whether to include this section's routes in `sitemap.xml` |
 | `exclude` | `string[]` | `[]` | Additional glob patterns to exclude (merged with top-level `exclude`) |
-| `git` | `RemoteGitSource` | — | Clone a remote Git repo as the source for this section (see [Remote Sections](#remote-sections)) |
+| `git` | `RemoteGitSource` | - | Clone a remote Git repo as the source for this section (see [Remote Sections](#remote-sections)) |
 
 ### Remote Sections
 
@@ -178,9 +178,9 @@ When `git` is present, Clearify clones the repository at build/dev time and uses
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `repo` | `string` | — | Git repository URL (required) |
+| `repo` | `string` | - | Git repository URL (required) |
 | `ref` | `string` | `'main'` | Branch, tag, or commit to check out |
-| `path` | `string` | — | Subdirectory within the repo to use (enables sparse checkout) |
+| `path` | `string` | - | Subdirectory within the repo to use (enables sparse checkout) |
 | `sparse` | `boolean` | `false` | Use sparse checkout to clone only the specified `path` |
 
 ## SEO
@@ -203,7 +203,9 @@ The build generates:
 
 ## Hub Mode
 
-Hub Mode turns a Clearify site into a project dashboard — ideal for monorepos or multi-project portfolios. It renders a grid of project cards with status badges, descriptions, and links.
+For onboarding and provisioning paths, see [Hub Model](./hub-model.md). This section is the config reference.
+
+Hub Mode turns a Clearify site into a project dashboard: ideal for monorepos or multi-project portfolios. It renders a grid of project cards with status badges, descriptions, and links.
 
 Each hub project has a `mode` that controls how it connects to the hub:
 
@@ -278,28 +280,28 @@ The scanner uses `name` from the child config and `href` from `hubProject.href` 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `hub.projects` | `HubProject[]` | `[]` | Manually listed projects |
-| `hub.scan` | `string` | — | Glob pattern to find child `clearify.config.ts` files |
+| `hub.scan` | `string` | - | Glob pattern to find child `clearify.config.ts` files |
 | `hub.cacheDir` | `string` | `'node_modules/.cache/clearify-remote'` | Directory for cloned remote repositories (embed/inject modes) |
 
 ### HubProject fields
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `name` | `string` | — | Project name (required in manual mode, auto-detected in scan mode) |
-| `description` | `string` | — | Short project description |
-| `href` | `string` | — | Link to the project's docs site |
-| `repo` | `string` | — | GitHub repository URL |
+| `name` | `string` | - | Project name (required in manual mode, auto-detected in scan mode) |
+| `description` | `string` | - | Short project description |
+| `href` | `string` | - | Link to the project's docs site |
+| `repo` | `string` | - | GitHub repository URL |
 | `status` | `'active' \| 'beta' \| 'planned' \| 'deprecated'` | `'active'` | Project status badge |
-| `icon` | `string` | — | Emoji or icon character |
-| `tags` | `string[]` | — | Category tags shown on the card |
-| `group` | `string` | — | Group name for organizing projects in the hub grid |
-| `hubUrl` | `string` | — | URL of the parent hub site (enables sidebar backlink) |
+| `icon` | `string` | - | Emoji or icon character |
+| `tags` | `string[]` | - | Category tags shown on the card |
+| `group` | `string` | - | Group name for organizing projects in the hub grid |
+| `hubUrl` | `string` | - | URL of the parent hub site (enables sidebar backlink) |
 | `hubName` | `string` | `'Hub'` | Display name for the hub backlink (e.g. `'ERP Suite'`) |
 | `mode` | `'link' \| 'embed' \| 'inject'` | `'link'` | How this project integrates with the hub (see above) |
-| `git` | `RemoteGitSource` | — | Remote repository to clone for embed/inject modes |
+| `git` | `RemoteGitSource` | - | Remote repository to clone for embed/inject modes |
 | `embedSections` | `'all' \| 'public' \| string[]` | `'all'` | Which sections to import in embed mode |
-| `injectInto` | `string` | — | Section ID to inject docs into (inject mode) |
-| `docsPath` | `string` | — | Subdirectory within the cloned repo containing docs (inject mode) |
+| `injectInto` | `string` | - | Section ID to inject docs into (inject mode) |
+| `docsPath` | `string` | - | Subdirectory within the cloned repo containing docs (inject mode) |
 
 ### Hub backlink
 
@@ -339,15 +341,15 @@ export default defineConfig({
 
 The `embedSections` field controls which sections from the remote project are imported:
 
-- `'all'` (default) — import every section defined in the remote config
-- `'public'` — import only non-draft sections
-- `string[]` — import specific sections by ID (e.g. `['docs', 'api']`)
+- `'all'` (default): import every section defined in the remote config
+- `'public'`: import only non-draft sections
+- `string[]`: import specific sections by ID (e.g. `['docs', 'api']`)
 
 The remote project must have its own `clearify.config.ts` with `sections` defined. Each imported section appears as a new tab in the hub site's section switcher.
 
 ### Inject Mode
 
-Inject mode clones a remote project's docs and symlinks them into an existing section's navigation tree — no new tabs are created. This is ideal for aggregating docs from many small projects into a single section.
+Inject mode clones a remote project's docs and symlinks them into an existing section's navigation tree. No new tabs are created. This is ideal for aggregating docs from many small projects into a single section.
 
 ```typescript
 export default defineConfig({
@@ -384,7 +386,7 @@ export default defineConfig({
 |-------|-------------|
 | `injectInto` | The section ID (derived from the section's `label`) where the docs will appear |
 | `docsPath` | Path within the cloned repo to the markdown files |
-| `group` | Optional subdirectory name — groups this project's docs under a folder in the sidebar |
+| `group` | Optional subdirectory name that groups this project's docs under a folder in the sidebar |
 
 Clearify creates a staging directory that overlays the injected docs onto the target section's `docsDir` via symlinks. The target section sees the injected files as if they were local, so navigation, search, and routing work normally.
 
@@ -423,6 +425,6 @@ order: 0
 
 Hub Mode ships three components that render automatically from the `virtual:clearify/hub` module:
 
-- **`ProjectGrid`** — responsive grid layout (3 columns, collapses to 2 → 1 on smaller screens)
-- **`ProjectCard`** — card with name, description, status badge, tags, and optional GitHub link
-- **`StatusBadge`** — color-coded status pill (`active` green, `beta` indigo, `planned` amber, `deprecated` red)
+- **`ProjectGrid`**: responsive grid layout (3 columns, collapses to 2 then 1 on smaller screens)
+- **`ProjectCard`**: card with name, description, status badge, tags, and optional GitHub link
+- **`StatusBadge`**: color-coded status pill (`active` green, `beta` indigo, `planned` amber, `deprecated` red)
