@@ -1,3 +1,10 @@
+# [1.18.0](https://github.com/marlinjai/clearify/compare/v1.17.0...v1.18.0) (2026-04-19)
+
+
+### Features
+
+* **cli:** add --hub-token, --secret-mode, --secret-pat, --rotate-secret flags ([d15d514](https://github.com/marlinjai/clearify/commit/d15d514fd92c8ede251ee86b7e2136f30b4c79d4))
+
 # [1.17.0](https://github.com/marlinjai/clearify/compare/v1.16.0...v1.17.0) (2026-04-19)
 
 
