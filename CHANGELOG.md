@@ -1,3 +1,21 @@
+# [2.0.0](https://github.com/marlinjai/clearify/compare/v1.20.0...v2.0.0) (2026-04-19)
+
+
+* feat!: source+placement schema for hub projects ([0ed5d3c](https://github.com/marlinjai/clearify/commit/0ed5d3ca04e4e721d588dd9440ab3bf05072563f))
+
+
+### BREAKING CHANGES
+
+* HubProject.mode, HubProject.href, HubProject.git,
+HubProject.embedSections, HubProject.injectInto and HubProject.docsPath
+are removed. Replaced by HubProject.source (discriminated union on
+`kind`: `none`, `git`, `url`, `inline`) and HubProject.placement
+(discriminated union on `kind`: `card`, `tab`, `nested`). Run
+`node scripts/migrate-hub-schema.mjs <path-to-clearify.data.json>` on
+every hub registry file before upgrading. The script is idempotent.
+
+Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+
 # Unreleased
 
 ## Hub schema redesign: source + placement (v2.0.0, 2026-04-19)
