@@ -1,7 +1,7 @@
 import { resolve, basename } from 'path';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { execSync } from 'child_process';
-import type { HubProject } from '../types/index.js';
+import type { HubProject, HubProjectPartial } from '../types/index.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -339,12 +339,13 @@ async function updateHubRegistry(
     name: project.name,
     description: project.description,
     status: 'active',
-    mode: 'embed',
-    git: {
+    source: {
+      kind: 'git',
       repo: project.gitRepoUrl,
       ref: project.gitRef,
       path: project.docsPath,
     },
+    placement: { kind: 'tab' },
   };
 
   if (existingIdx >= 0) {
@@ -388,7 +389,7 @@ async function updateHubRegistry(
 
 function generateConfig(
   projectName: string,
-  hubProject: Omit<HubProject, 'name'> | undefined,
+  hubProject: HubProjectPartial | undefined,
 ): void {
   const cwd = process.cwd();
   const configPath = resolve(cwd, 'clearify.config.ts');
@@ -466,7 +467,7 @@ jobs:
 
 export async function registerWithHub(options: {
   projectName?: string;
-  hubProject?: Omit<HubProject, 'name'>;
+  hubProject?: HubProjectPartial;
   hubToken?: string;
   secretMode?: 'prompt' | 'auto' | 'manual' | 'skip';
   secretPat?: string;

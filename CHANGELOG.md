@@ -1,5 +1,26 @@
 # Unreleased
 
+## Hub schema redesign: source + placement (v2.0.0, 2026-04-19)
+
+Breaking change. The hub project schema no longer has a single `mode` enum. Every entry now declares `source` (where the content comes from: `none`, `git`, or the reserved `url` / `inline`) and `placement` (how it appears on the hub: `card`, `tab`, or `nested`). This unlocks the `git + card` combo we needed for standalone products (cloned for search, card links to their external canonical docs site) and kills the embed/inject redundancy.
+
+### Breaking
+
+* `HubProject.mode` removed. Replaced by `source` and `placement` discriminated unions. Migration script at `scripts/migrate-hub-schema.mjs` rewrites an existing `clearify.data.json` in place. Usage: `node scripts/migrate-hub-schema.mjs path/to/clearify.data.json`. Mapping: `mode: link` becomes `source: none + placement: card`, `mode: embed` becomes `source: git + placement: tab`, `mode: inject` becomes `source: git + placement: nested`.
+* `HubProject.href` removed at top level. Moved to `placement.href` for card placements.
+* `HubProject.git` removed at top level. Moved to `source.repo / ref / path / sparse` under `source.kind: 'git'`.
+* `HubProject.embedSections` removed. Moved to `placement.sections` under `placement.kind: 'tab'`.
+* `HubProject.injectInto / docsPath` removed. Moved to `placement.into / placement.docsPath / placement.group` under `placement.kind: 'nested'`.
+* `clearify init --hub` now writes the new shape (`source: git + placement: tab`) into the hub registry.
+* `source.kind: 'url'` and `'inline'` are typed in the schema but rejected at runtime with a clear error. Those sources will be implemented in a later release.
+
+### Added
+
+* `HubProjectSource` and `HubProjectPlacement` discriminated unions exported from `@marlinjai/clearify`.
+* `HubProjectPartial` type for the sub-project declaration block in `clearify.config.ts` (formerly `Omit<HubProject, 'name'>`).
+* Admin Projects form rewritten: two selects for `source.kind` and `placement.kind`, conditional fields per kind.
+* Unit tests for the migration script (old shape in, new shape out, idempotence) and the Zod schema (accept/reject per kind).
+
 ## Hub provisioning CLI (Phase B, 2026-04-19)
 
 End-to-end support for all three `HUB_DISPATCH_TOKEN` provisioning paths from the CLI. Previously only Path 3 (Terraform) worked without editing source; now Path 1 (manual) and Path 2 (CLI-assisted) are first-class and documented.

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import type { HubProject } from '../../types/index.js';
+import type { HubProject, HubProjectSource, HubProjectPlacement } from '../../types/index.js';
 import { Modal } from './components/Modal.js';
 import { ConfirmDialog } from './components/ConfirmDialog.js';
 import { useToast, ToastContainer } from './components/Toast.js';
@@ -16,23 +16,141 @@ const statusColors: Record<string, { bg: string; text: string }> = {
 };
 
 /* ------------------------------------------------------------------ */
-/*  Empty default                                                      */
+/*  Draft form shape                                                   */
 /* ------------------------------------------------------------------ */
-function emptyProject(): HubProject {
+/**
+ * The form state carries every field for every kind so the user can flip
+ * between kinds without losing input. We clean it to the discriminated-
+ * union shape before saving.
+ */
+interface DraftProject {
+  name: string;
+  description: string;
+  status: 'active' | 'beta' | 'planned' | 'deprecated';
+  icon?: string;
+  group?: string;
+  tags?: string[];
+  repo?: string;
+  sourceKind: HubProjectSource['kind'];
+  gitRepo: string;
+  gitRef: string;
+  gitPath: string;
+  urlUrl: string;
+  inlineMarkdown: string;
+  placementKind: HubProjectPlacement['kind'];
+  cardHref: string;
+  tabSections: 'all' | 'public';
+  nestedInto: string;
+  nestedDocsPath: string;
+  nestedGroup: string;
+}
+
+function emptyDraft(): DraftProject {
   return {
     name: '',
     description: '',
-    mode: 'link',
     status: 'active',
     icon: '',
     group: '',
-    href: '',
     tags: [],
-    git: { repo: '', ref: '' },
-    embedSections: 'all',
-    injectInto: '',
-    docsPath: 'docs',
+    repo: '',
+    sourceKind: 'none',
+    gitRepo: '',
+    gitRef: 'main',
+    gitPath: 'docs/public',
+    urlUrl: '',
+    inlineMarkdown: '',
+    placementKind: 'card',
+    cardHref: '',
+    tabSections: 'public',
+    nestedInto: '',
+    nestedDocsPath: 'docs',
+    nestedGroup: '',
   };
+}
+
+function projectToDraft(p: HubProject): DraftProject {
+  const d = emptyDraft();
+  d.name = p.name;
+  d.description = p.description;
+  d.status = p.status ?? 'active';
+  d.icon = p.icon ?? '';
+  d.group = p.group ?? '';
+  d.tags = p.tags ? [...p.tags] : [];
+  d.repo = p.repo ?? '';
+
+  d.sourceKind = p.source.kind;
+  if (p.source.kind === 'git') {
+    d.gitRepo = p.source.repo;
+    d.gitRef = p.source.ref ?? 'main';
+    d.gitPath = p.source.path ?? 'docs/public';
+  } else if (p.source.kind === 'url') {
+    d.urlUrl = p.source.url;
+  } else if (p.source.kind === 'inline') {
+    d.inlineMarkdown = p.source.markdown;
+  }
+
+  d.placementKind = p.placement.kind;
+  if (p.placement.kind === 'card') {
+    d.cardHref = p.placement.href;
+  } else if (p.placement.kind === 'tab') {
+    const s = p.placement.sections;
+    d.tabSections = s === 'all' ? 'all' : 'public';
+  } else if (p.placement.kind === 'nested') {
+    d.nestedInto = p.placement.into;
+    d.nestedDocsPath = p.placement.docsPath ?? 'docs';
+    d.nestedGroup = p.placement.group ?? '';
+  }
+  return d;
+}
+
+function draftToProject(d: DraftProject): HubProject {
+  let source: HubProjectSource;
+  if (d.sourceKind === 'git') {
+    const g: Extract<HubProjectSource, { kind: 'git' }> = {
+      kind: 'git',
+      repo: d.gitRepo,
+    };
+    if (d.gitRef && d.gitRef !== 'main') g.ref = d.gitRef;
+    if (d.gitPath) g.path = d.gitPath;
+    source = g;
+  } else if (d.sourceKind === 'url') {
+    source = { kind: 'url', url: d.urlUrl };
+  } else if (d.sourceKind === 'inline') {
+    source = { kind: 'inline', markdown: d.inlineMarkdown };
+  } else {
+    source = { kind: 'none' };
+  }
+
+  let placement: HubProjectPlacement;
+  if (d.placementKind === 'tab') {
+    const t: Extract<HubProjectPlacement, { kind: 'tab' }> = { kind: 'tab' };
+    if (d.tabSections && d.tabSections !== 'public') t.sections = d.tabSections;
+    placement = t;
+  } else if (d.placementKind === 'nested') {
+    const n: Extract<HubProjectPlacement, { kind: 'nested' }> = {
+      kind: 'nested',
+      into: d.nestedInto,
+    };
+    if (d.nestedDocsPath && d.nestedDocsPath !== 'docs') n.docsPath = d.nestedDocsPath;
+    if (d.nestedGroup) n.group = d.nestedGroup;
+    placement = n;
+  } else {
+    placement = { kind: 'card', href: d.cardHref };
+  }
+
+  const project: HubProject = {
+    name: d.name.trim(),
+    description: d.description.trim(),
+    source,
+    placement,
+  };
+  if (d.status && d.status !== 'active') project.status = d.status;
+  if (d.icon) project.icon = d.icon;
+  if (d.group) project.group = d.group;
+  if (d.tags && d.tags.length > 0) project.tags = d.tags;
+  if (d.repo) project.repo = d.repo;
+  return project;
 }
 
 /* ------------------------------------------------------------------ */
@@ -70,144 +188,138 @@ const primaryBtnStyle: React.CSSProperties = {
 };
 
 /* ------------------------------------------------------------------ */
-/*  Clean project for saving                                           */
+/*  Summary of the source+placement combo for the list view            */
 /* ------------------------------------------------------------------ */
-function cleanProject(draft: HubProject, original?: HubProject): HubProject {
-  const cleaned: HubProject = { ...draft };
-  const mode = cleaned.mode ?? 'link';
-  if (mode === 'link') {
-    delete cleaned.git;
-    delete cleaned.embedSections;
-    delete cleaned.injectInto;
-    delete cleaned.docsPath;
-    // Don't add mode: 'link' if original didn't have it (it's the default)
-    if (!original?.mode) delete cleaned.mode;
-  } else if (mode === 'embed') {
-    delete cleaned.href;
-    delete cleaned.injectInto;
-    delete cleaned.docsPath;
-  } else if (mode === 'inject') {
-    delete cleaned.href;
-    delete cleaned.embedSections;
-  }
-  if (!cleaned.icon) delete cleaned.icon;
-  if (!cleaned.group) delete cleaned.group;
-  if (!cleaned.href) delete cleaned.href;
-  if (cleaned.tags && cleaned.tags.length === 0) delete cleaned.tags;
-  if (cleaned.git && !cleaned.git.repo) delete cleaned.git;
-  if (cleaned.git && !cleaned.git.ref) delete cleaned.git.ref;
-  if (cleaned.status === 'active' && !original?.status) delete cleaned.status;
-
-  // Preserve original field ordering: rebuild using original's key order first
-  if (original) {
-    const ordered: any = {};
-    for (const key of Object.keys(original)) {
-      if (key in cleaned) ordered[key] = (cleaned as any)[key];
-    }
-    for (const key of Object.keys(cleaned)) {
-      if (!(key in ordered)) ordered[key] = (cleaned as any)[key];
-    }
-    return ordered as HubProject;
-  }
-  return cleaned;
+function combo(project: HubProject): string {
+  return `${project.source.kind} + ${project.placement.kind}`;
 }
 
 /* ------------------------------------------------------------------ */
 /*  Project form                                                       */
 /* ------------------------------------------------------------------ */
 function ProjectForm({
-  project,
+  draft,
   onChange,
   onSave,
   saving,
 }: {
-  project: HubProject;
-  onChange: (p: HubProject) => void;
+  draft: DraftProject;
+  onChange: (d: DraftProject) => void;
   onSave: () => void;
   saving: boolean;
 }) {
-  const mode = project.mode ?? 'link';
-
-  const set = <K extends keyof HubProject>(key: K, value: HubProject[K]) =>
-    onChange({ ...project, [key]: value });
+  const set = <K extends keyof DraftProject>(key: K, value: DraftProject[K]) =>
+    onChange({ ...draft, [key]: value });
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
       <div>
         <label style={labelStyle}>Name *</label>
-        <input style={inputStyle} value={project.name} onChange={(e) => set('name', e.target.value)} placeholder="my-project" />
+        <input style={inputStyle} value={draft.name} onChange={(e) => set('name', e.target.value)} placeholder="my-project" />
       </div>
       <div>
         <label style={labelStyle}>Description *</label>
-        <textarea style={{ ...inputStyle, minHeight: 72, resize: 'vertical' }} value={project.description} onChange={(e) => set('description', e.target.value)} placeholder="A short project description" />
+        <textarea style={{ ...inputStyle, minHeight: 72, resize: 'vertical' }} value={draft.description} onChange={(e) => set('description', e.target.value)} placeholder="A short project description" />
       </div>
       <div>
         <label style={labelStyle}>Icon</label>
-        <input style={inputStyle} value={project.icon ?? ''} onChange={(e) => set('icon', e.target.value)} placeholder="e.g. book, code, rocket" />
+        <input style={inputStyle} value={draft.icon ?? ''} onChange={(e) => set('icon', e.target.value)} placeholder="e.g. book, code, rocket" />
       </div>
       <div style={{ display: 'flex', gap: '0.75rem' }}>
         <div style={{ flex: 1 }}>
-          <label style={labelStyle}>Mode</label>
-          <select style={inputStyle} value={mode} onChange={(e) => set('mode', e.target.value as HubProject['mode'])}>
-            <option value="link">Link</option>
-            <option value="embed">Embed</option>
-            <option value="inject">Inject</option>
-          </select>
-        </div>
-        <div style={{ flex: 1 }}>
           <label style={labelStyle}>Status</label>
-          <select style={inputStyle} value={project.status ?? 'active'} onChange={(e) => set('status', e.target.value as HubProject['status'])}>
+          <select style={inputStyle} value={draft.status} onChange={(e) => set('status', e.target.value as DraftProject['status'])}>
             <option value="active">Active</option>
             <option value="beta">Beta</option>
             <option value="planned">Planned</option>
             <option value="deprecated">Deprecated</option>
           </select>
         </div>
-      </div>
-      <div>
-        <label style={labelStyle}>Group</label>
-        <input style={inputStyle} value={project.group ?? ''} onChange={(e) => set('group', e.target.value)} placeholder="e.g. backend, frontend" />
-      </div>
-
-      {mode === 'link' && (
-        <div>
-          <label style={labelStyle}>URL (href)</label>
-          <input style={inputStyle} value={project.href ?? ''} onChange={(e) => set('href', e.target.value)} placeholder="https://example.com/docs" />
+        <div style={{ flex: 1 }}>
+          <label style={labelStyle}>Group</label>
+          <input style={inputStyle} value={draft.group ?? ''} onChange={(e) => set('group', e.target.value)} placeholder="e.g. backend, frontend" />
         </div>
-      )}
+      </div>
 
-      {(mode === 'embed' || mode === 'inject') && (
+      <div style={{ display: 'flex', gap: '0.75rem' }}>
+        <div style={{ flex: 1 }}>
+          <label style={labelStyle}>Source</label>
+          <select
+            style={inputStyle}
+            value={draft.sourceKind}
+            onChange={(e) => set('sourceKind', e.target.value as HubProjectSource['kind'])}
+          >
+            <option value="none">none (no content pulled)</option>
+            <option value="git">git (sparse clone)</option>
+            <option value="url" disabled>url (reserved)</option>
+            <option value="inline" disabled>inline (reserved)</option>
+          </select>
+        </div>
+        <div style={{ flex: 1 }}>
+          <label style={labelStyle}>Placement</label>
+          <select
+            style={inputStyle}
+            value={draft.placementKind}
+            onChange={(e) => set('placementKind', e.target.value as HubProjectPlacement['kind'])}
+          >
+            <option value="card">card (grid entry, link out)</option>
+            <option value="tab">tab (full hub tab)</option>
+            <option value="nested">nested (into existing section)</option>
+          </select>
+        </div>
+      </div>
+
+      {draft.sourceKind === 'git' && (
         <>
           <div>
-            <label style={labelStyle}>Git Repo</label>
-            <input style={inputStyle} value={project.git?.repo ?? ''} onChange={(e) => set('git', { ...project.git, repo: e.target.value })} placeholder="org/repo" />
+            <label style={labelStyle}>Git repo *</label>
+            <input style={inputStyle} value={draft.gitRepo} onChange={(e) => set('gitRepo', e.target.value)} placeholder="https://github.com/org/repo.git" />
           </div>
-          <div>
-            <label style={labelStyle}>Git Ref</label>
-            <input style={inputStyle} value={project.git?.ref ?? ''} onChange={(e) => set('git', { ...project.git, repo: project.git?.repo ?? '', ref: e.target.value })} placeholder="main" />
+          <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Git ref</label>
+              <input style={inputStyle} value={draft.gitRef} onChange={(e) => set('gitRef', e.target.value)} placeholder="main" />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Git path</label>
+              <input style={inputStyle} value={draft.gitPath} onChange={(e) => set('gitPath', e.target.value)} placeholder="docs/public" />
+            </div>
           </div>
         </>
       )}
 
-      {mode === 'embed' && (
+      {draft.placementKind === 'card' && (
         <div>
-          <label style={labelStyle}>Embed Sections</label>
-          <select style={inputStyle} value={typeof project.embedSections === 'string' ? project.embedSections : 'all'} onChange={(e) => set('embedSections', e.target.value as 'all' | 'public')}>
-            <option value="all">All</option>
-            <option value="public">Public</option>
+          <label style={labelStyle}>Card href *</label>
+          <input style={inputStyle} value={draft.cardHref} onChange={(e) => set('cardHref', e.target.value)} placeholder="https://example.com/docs" />
+        </div>
+      )}
+
+      {draft.placementKind === 'tab' && (
+        <div>
+          <label style={labelStyle}>Tab sections</label>
+          <select style={inputStyle} value={draft.tabSections} onChange={(e) => set('tabSections', e.target.value as 'all' | 'public')}>
+            <option value="public">public (non-draft)</option>
+            <option value="all">all</option>
           </select>
         </div>
       )}
 
-      {mode === 'inject' && (
+      {draft.placementKind === 'nested' && (
         <>
           <div>
-            <label style={labelStyle}>Inject Into</label>
-            <input style={inputStyle} value={project.injectInto ?? ''} onChange={(e) => set('injectInto', e.target.value)} placeholder="section-id" />
+            <label style={labelStyle}>Nest into (section label) *</label>
+            <input style={inputStyle} value={draft.nestedInto} onChange={(e) => set('nestedInto', e.target.value)} placeholder="Documentation" />
           </div>
-          <div>
-            <label style={labelStyle}>Docs Path</label>
-            <input style={inputStyle} value={project.docsPath ?? 'docs'} onChange={(e) => set('docsPath', e.target.value)} placeholder="docs" />
+          <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Docs path (in cloned repo)</label>
+              <input style={inputStyle} value={draft.nestedDocsPath} onChange={(e) => set('nestedDocsPath', e.target.value)} placeholder="docs" />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Nested group (optional)</label>
+              <input style={inputStyle} value={draft.nestedGroup} onChange={(e) => set('nestedGroup', e.target.value)} placeholder="Services" />
+            </div>
           </div>
         </>
       )}
@@ -216,7 +328,7 @@ function ProjectForm({
         <label style={labelStyle}>Tags (comma-separated)</label>
         <input
           style={inputStyle}
-          value={(project.tags ?? []).join(', ')}
+          value={(draft.tags ?? []).join(', ')}
           onChange={(e) => set('tags', e.target.value.split(',').map((t) => t.trim()).filter(Boolean))}
           placeholder="api, docs, internal"
         />
@@ -224,7 +336,7 @@ function ProjectForm({
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.25rem' }}>
         <button style={primaryBtnStyle} onClick={onSave} disabled={saving}>
-          {saving ? 'Saving\u2026' : 'Save Project'}
+          {saving ? 'Saving...' : 'Save Project'}
         </button>
       </div>
     </div>
@@ -243,7 +355,7 @@ export function ProjectsManager() {
 
   // modal state
   const [editIndex, setEditIndex] = useState<number | null>(null); // null = closed, -1 = new
-  const [draft, setDraft] = useState<HubProject>(emptyProject());
+  const [draft, setDraft] = useState<DraftProject>(emptyDraft());
   const [saving, setSaving] = useState(false);
 
   // delete confirm
@@ -318,9 +430,20 @@ export function ProjectsManager() {
       show('Name and description are required', 'error');
       return;
     }
+    if (draft.sourceKind === 'git' && !draft.gitRepo.trim()) {
+      show('Git repo is required for git source', 'error');
+      return;
+    }
+    if (draft.placementKind === 'card' && !draft.cardHref.trim()) {
+      show('Card href is required for card placement', 'error');
+      return;
+    }
+    if (draft.placementKind === 'nested' && !draft.nestedInto.trim()) {
+      show('Nest-into section label is required for nested placement', 'error');
+      return;
+    }
 
-    const original = editIndex !== null && editIndex >= 0 ? projects[editIndex] : undefined;
-    const cleaned = cleanProject(draft, original);
+    const cleaned = draftToProject(draft);
     const next = [...projects];
     if (editIndex === -1) {
       next.push(cleaned);
@@ -360,18 +483,13 @@ export function ProjectsManager() {
 
   /* ---------- open modal ---------- */
   const openAdd = () => {
-    setDraft(emptyProject());
+    setDraft(emptyDraft());
     setEditIndex(-1);
   };
 
   const openEdit = (index: number) => {
     const p = projects[index];
-    setDraft({
-      ...emptyProject(),
-      ...p,
-      git: p.git ? { ...p.git } : { repo: '', ref: '' },
-      tags: p.tags ? [...p.tags] : [],
-    });
+    setDraft(projectToDraft(p));
     setEditIndex(index);
   };
 
@@ -415,7 +533,7 @@ export function ProjectsManager() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
             <thead>
               <tr style={{ backgroundColor: 'var(--clearify-bg-secondary)', borderBottom: '1px solid var(--clearify-border)' }}>
-                {['Name', 'Description', 'Mode', 'Group', 'Status', ''].map((h) => (
+                {['Name', 'Description', 'Source + Placement', 'Group', 'Status', ''].map((h) => (
                   <th key={h} style={{ textAlign: 'left', padding: '0.625rem 0.75rem', fontWeight: 600, color: 'var(--clearify-text-secondary)', fontSize: '0.8125rem' }}>{h}</th>
                 ))}
               </tr>
@@ -438,8 +556,8 @@ export function ProjectsManager() {
                     <td style={{ padding: '0.625rem 0.75rem', color: 'var(--clearify-text-secondary)', maxWidth: 250, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {p.description}
                     </td>
-                    <td style={{ padding: '0.625rem 0.75rem', color: 'var(--clearify-text-secondary)' }}>{p.mode ?? 'link'}</td>
-                    <td style={{ padding: '0.625rem 0.75rem', color: 'var(--clearify-text-secondary)' }}>{p.group ?? '\u2014'}</td>
+                    <td style={{ padding: '0.625rem 0.75rem', color: 'var(--clearify-text-secondary)' }}>{combo(p)}</td>
+                    <td style={{ padding: '0.625rem 0.75rem', color: 'var(--clearify-text-secondary)' }}>{p.group ?? '-'}</td>
                     <td style={{ padding: '0.625rem 0.75rem' }}>
                       <span style={{ display: 'inline-block', padding: '0.125rem 0.5rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 600, backgroundColor: colors.bg, color: colors.text }}>
                         {st}
@@ -512,7 +630,7 @@ export function ProjectsManager() {
 
       {/* Edit / Add modal */}
       <Modal open={editIndex !== null} onClose={() => setEditIndex(null)} title={editIndex === -1 ? 'Add Project' : `Edit: ${editIndex !== null && editIndex >= 0 ? projects[editIndex]?.name ?? '' : ''}`}>
-        <ProjectForm project={draft} onChange={setDraft} onSave={handleSave} saving={saving} />
+        <ProjectForm draft={draft} onChange={setDraft} onSave={handleSave} saving={saving} />
       </Modal>
 
       {/* Delete confirmation */}

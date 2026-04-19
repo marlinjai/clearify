@@ -45,29 +45,49 @@ const OpenAPIConfigSchema = z.object({
   generatePages: z.boolean().default(true),
 }).optional();
 
+const HubProjectSourceSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('none') }),
+  z.object({
+    kind: z.literal('git'),
+    repo: z.string(),
+    ref: z.string().optional(),
+    path: z.string().optional(),
+    sparse: z.boolean().optional(),
+  }),
+  z.object({ kind: z.literal('url'), url: z.string() }),
+  z.object({ kind: z.literal('inline'), markdown: z.string() }),
+]);
+
+const HubProjectPlacementSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('card'), href: z.string() }),
+  z.object({
+    kind: z.literal('tab'),
+    sections: z
+      .union([z.literal('all'), z.literal('public'), z.array(z.string())])
+      .optional(),
+  }),
+  z.object({
+    kind: z.literal('nested'),
+    into: z.string(),
+    docsPath: z.string().optional(),
+    group: z.string().optional(),
+  }),
+]);
+
 const HubProjectSchema = z.object({
   name: z.string(),
   description: z.string(),
-  href: z.string().optional(),
   repo: z.string().optional(),
   status: z.enum(['active', 'beta', 'planned', 'deprecated']).default('active'),
   icon: z.string().optional(),
   tags: z.array(z.string()).optional(),
   group: z.string().optional(),
-  mode: z.enum(['link', 'embed', 'inject']).optional(),
-  git: RemoteGitSourceSchema.optional(),
-  embedSections: z.union([
-    z.literal('all'),
-    z.literal('public'),
-    z.array(z.string()),
-  ]).optional(),
-  injectInto: z.string().optional(),
-  docsPath: z.string().optional(),
+  source: HubProjectSourceSchema,
+  placement: HubProjectPlacementSchema,
 });
 
 const HubProjectPartialSchema = z.object({
   description: z.string(),
-  href: z.string().optional(),
   repo: z.string().optional(),
   status: z.enum(['active', 'beta', 'planned', 'deprecated']).default('active'),
   icon: z.string().optional(),
@@ -435,8 +455,24 @@ function buildStagingOverlay(
   }
 }
 
+/**
+ * True if a project's source is a reserved `url` or `inline` kind.
+ * Those are typed for future use but rejected at runtime with a clear error
+ * at the points where consumers would read content.
+ */
+function isReservedSource(source: HubProject['source']): boolean {
+  return source.kind === 'url' || source.kind === 'inline';
+}
+
 export async function scanHubProjects(config: ClearifyConfig, root: string): Promise<ClearifyConfig> {
-  if (!config.hub?.scan && !config.hub?.projects?.some((p) => p.mode === 'embed' || p.mode === 'inject')) {
+  const hasGitTabOrNested =
+    config.hub?.projects?.some(
+      (p) =>
+        p.source.kind === 'git' &&
+        (p.placement.kind === 'tab' || p.placement.kind === 'nested'),
+    ) ?? false;
+
+  if (!config.hub?.scan && !hasGitTabOrNested) {
     return config;
   }
 
@@ -454,15 +490,17 @@ export async function scanHubProjects(config: ClearifyConfig, root: string): Pro
 
         const name = childConfig.name ?? basename(dirname(configPath));
         const hp = childConfig.hubProject;
+        const href = childConfig.siteUrl;
         scannedProjects.push({
           name,
           description: hp.description,
-          href: hp.href ?? childConfig.siteUrl,
           repo: hp.repo,
           status: hp.status,
           icon: hp.icon,
           tags: hp.tags,
           group: hp.group,
+          source: { kind: 'none' },
+          placement: { kind: 'card', href: href ?? '#' },
         });
       } catch {
         // Skip configs that fail to load
@@ -477,11 +515,22 @@ export async function scanHubProjects(config: ClearifyConfig, root: string): Pro
     ...(config.hub?.projects ?? []),
   ];
 
-  // Process embed-mode projects: clone their repos, read their configs,
-  // and inject their sections into the host config's sections array.
+  // Reject reserved source kinds at build time with a clear error.
+  for (const project of merged) {
+    if (isReservedSource(project.source)) {
+      throw new Error(
+        `Hub project "${project.name}": source.kind "${project.source.kind}" is reserved and not implemented. ` +
+          `Use source.kind "none" or "git".`,
+      );
+    }
+  }
+
+  // Process tab-placement projects with git source: clone their repos, read
+  // their configs, and inject their sections into the host config's sections
+  // array.
   const embedSections: SectionConfig[] = [];
   for (const project of merged) {
-    if (project.mode !== 'embed' || !project.git) continue;
+    if (project.source.kind !== 'git' || project.placement.kind !== 'tab') continue;
 
     const cacheDir = config.hub?.cacheDir
       ? resolve(root, config.hub.cacheDir)
@@ -489,7 +538,8 @@ export async function scanHubProjects(config: ClearifyConfig, root: string): Pro
 
     try {
       const { resolveRemoteSource } = await import('./remote.js');
-      const { localPath } = await resolveRemoteSource(project.git, cacheDir);
+      const { kind: _kind, ...gitSource } = project.source;
+      const { localPath } = await resolveRemoteSource(gitSource, cacheDir);
 
       // Read the remote project's clearify config to discover its sections
       const remoteConfig = await loadUserConfig(localPath);
@@ -497,8 +547,8 @@ export async function scanHubProjects(config: ClearifyConfig, root: string): Pro
         { label: remoteConfig.name ?? project.name, docsDir: remoteConfig.docsDir ?? './docs' },
       ];
 
-      // Filter sections based on embedSections
-      const filter = project.embedSections ?? 'public';
+      // Filter sections based on placement.sections
+      const filter = project.placement.sections ?? 'public';
       const filtered = remoteSections.filter((s) => {
         if (filter === 'all') return true;
         if (filter === 'public') return !s.draft;
@@ -520,22 +570,22 @@ export async function scanHubProjects(config: ClearifyConfig, root: string): Pro
         });
       }
 
-      console.log(`  Hub embed "${project.name}": ${filtered.length} sections pulled`);
+      console.log(`  Hub tab "${project.name}": ${filtered.length} sections pulled`);
     } catch (err) {
       console.warn(
-        `  ⚠ Hub embed "${project.name}" failed:`,
+        `  Hub tab "${project.name}" failed:`,
         err instanceof Error ? err.message : err,
       );
     }
   }
 
-  // Process inject-mode projects: clone their repos, then overlay their docs
-  // into the target section's docsDir via a staging directory.
-  // Group injections by target section label.
+  // Process nested-placement projects with git source: clone their repos,
+  // then overlay their docs into the target section's docsDir via a staging
+  // directory. Group injections by target section label.
   const injectionsBySection = new Map<string, Map<string, string>>();
 
   for (const project of merged) {
-    if (project.mode !== 'inject' || !project.git) continue;
+    if (project.source.kind !== 'git' || project.placement.kind !== 'nested') continue;
 
     const cacheDir = config.hub?.cacheDir
       ? resolve(root, config.hub.cacheDir)
@@ -543,41 +593,39 @@ export async function scanHubProjects(config: ClearifyConfig, root: string): Pro
 
     try {
       const { resolveRemoteSource } = await import('./remote.js');
-      const { localPath, cached } = await resolveRemoteSource(project.git, cacheDir);
+      const { kind: _kind, ...gitSource } = project.source;
+      const { localPath, cached } = await resolveRemoteSource(gitSource, cacheDir);
 
-      const docsPath = project.docsPath ?? 'docs';
+      const docsPath = project.placement.docsPath ?? 'docs';
       const absoluteDocsPath = resolve(localPath, docsPath);
 
       if (!existsSync(absoluteDocsPath)) {
         console.warn(
-          `  ⚠ Hub inject "${project.name}": docs path "${docsPath}" not found in cloned repo.`,
+          `  Hub nested "${project.name}": docs path "${docsPath}" not found in cloned repo.`,
         );
         continue;
       }
 
-      const targetLabel = project.injectInto;
-      if (!targetLabel) {
-        console.warn(`  ⚠ Hub inject "${project.name}": missing injectInto field.`);
-        continue;
-      }
+      const targetLabel = project.placement.into;
 
       if (!injectionsBySection.has(targetLabel)) {
         injectionsBySection.set(targetLabel, new Map());
       }
 
       const slugifiedName = slugify(project.name);
-      const relPath = project.group
-        ? `projects/${project.group}/${slugifiedName}`
+      const groupSeg = project.placement.group;
+      const relPath = groupSeg
+        ? `projects/${groupSeg}/${slugifiedName}`
         : `projects/${slugifiedName}`;
 
       injectionsBySection.get(targetLabel)!.set(relPath, absoluteDocsPath);
 
       console.log(
-        `  Hub inject "${project.name}": ${cached ? 'cached' : 'cloned'} → ${relPath}`,
+        `  Hub nested "${project.name}": ${cached ? 'cached' : 'cloned'} to ${relPath}`,
       );
     } catch (err) {
       console.warn(
-        `  ⚠ Hub inject "${project.name}" failed:`,
+        `  Hub nested "${project.name}" failed:`,
         err instanceof Error ? err.message : err,
       );
     }

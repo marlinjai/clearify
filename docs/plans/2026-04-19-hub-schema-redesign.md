@@ -1,12 +1,14 @@
 ---
 title: Hub Schema Redesign (source/placement split)
 type: plan
-status: draft
+status: completed
 date: 2026-04-19
 tags: [clearify, hub, schema, breaking-change]
 projects: [clearify]
 summary: Decompose hub project mode into source (content) + placement (UI) axes, eliminating the inject/embed redundancy and unlocking the "cloned but external-canonical" case needed for standalone products.
 ---
+
+> Shipped in v2.0.0 (2026-04-19). Hard cut: no backwards-compat shim, migration script at `scripts/migrate-hub-schema.mjs`. Reserved `source.kind` values `url` / `inline` are typed but throw at build time.
 
 # Hub Schema Redesign (source/placement split)
 

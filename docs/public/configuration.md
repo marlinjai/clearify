@@ -207,13 +207,14 @@ For onboarding and provisioning paths, see [Hub Model](./hub-model.md). This sec
 
 Hub Mode turns a Clearify site into a project dashboard: ideal for monorepos or multi-project portfolios. It renders a grid of project cards with status badges, descriptions, and links.
 
-Each hub project has a `mode` that controls how it connects to the hub:
+Each hub project has two fields (`source` and `placement`) that together control how it connects to the hub. See [Hub Model](./hub-model.md#two-axes-source-and-placement) for the full list of kinds and combinations.
 
-| Mode | What it does | Creates new tabs? | Requires |
-|------|-------------|-------------------|----------|
-| `'link'` (default) | Card links to an external URL | No | `href` |
-| `'embed'` | Clones remote repo, imports its sections as new tabs | Yes | `git.repo` |
-| `'inject'` | Clones remote repo, symlinks docs into an existing section's nav tree | No | `git.repo`, `injectInto`, `docsPath` |
+| Common combo | `source.kind` | `placement.kind` | Creates a tab? |
+|--------------|---------------|-------------------|----------------|
+| External link card | `none` | `card` | No |
+| First-party tab | `git` | `tab` | Yes |
+| Nested under an existing section | `git` | `nested` | No |
+| Cloned for search, card links out | `git` | `card` | No |
 
 ### Manual project list
 
@@ -227,16 +228,19 @@ export default defineConfig({
       {
         name: 'Storage Brain',
         description: 'File storage & processing service',
-        href: 'https://storage-brain.example.com',
         status: 'active',
         icon: '🧠',
         tags: ['cloudflare', 'r2'],
+        source: { kind: 'none' },
+        placement: { kind: 'card', href: 'https://storage-brain.example.com' },
       },
       {
         name: 'Data Table',
         description: 'Notion-like database component',
         status: 'beta',
         tags: ['react', 'component'],
+        source: { kind: 'none' },
+        placement: { kind: 'card', href: 'https://data-table.example.com' },
       },
     ],
   },
@@ -273,7 +277,7 @@ export default defineConfig({
 });
 ```
 
-The scanner uses `name` from the child config and `href` from `hubProject.href` (falling back to `siteUrl`). Manual `hub.projects` entries override scanned ones by name.
+The scanner uses `name` from the child config and `siteUrl` as the card href, assigning `source: { kind: 'none' }` and `placement: { kind: 'card' }` automatically. Manual `hub.projects` entries override scanned ones by name.
 
 ### Hub config options
 
@@ -281,27 +285,42 @@ The scanner uses `name` from the child config and `href` from `hubProject.href` 
 |--------|------|---------|-------------|
 | `hub.projects` | `HubProject[]` | `[]` | Manually listed projects |
 | `hub.scan` | `string` | - | Glob pattern to find child `clearify.config.ts` files |
-| `hub.cacheDir` | `string` | `'node_modules/.cache/clearify-remote'` | Directory for cloned remote repositories (embed/inject modes) |
+| `hub.cacheDir` | `string` | `'node_modules/.cache/clearify-remote'` | Directory for cloned remote repositories (any project with `source.kind: 'git'`) |
 
 ### HubProject fields
+
+Required on every entry: `name`, `description`, `source`, `placement`.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `name` | `string` | - | Project name (required in manual mode, auto-detected in scan mode) |
 | `description` | `string` | - | Short project description |
-| `href` | `string` | - | Link to the project's docs site |
-| `repo` | `string` | - | GitHub repository URL |
+| `source` | `HubProjectSource` | - | Where the content comes from (see below) |
+| `placement` | `HubProjectPlacement` | - | How it shows up in the hub UI (see below) |
+| `repo` | `string` | - | GitHub repository URL shown as a link on the card |
 | `status` | `'active' \| 'beta' \| 'planned' \| 'deprecated'` | `'active'` | Project status badge |
 | `icon` | `string` | - | Emoji or icon character |
 | `tags` | `string[]` | - | Category tags shown on the card |
 | `group` | `string` | - | Group name for organizing projects in the hub grid |
 | `hubUrl` | `string` | - | URL of the parent hub site (enables sidebar backlink) |
 | `hubName` | `string` | `'Hub'` | Display name for the hub backlink (e.g. `'ERP Suite'`) |
-| `mode` | `'link' \| 'embed' \| 'inject'` | `'link'` | How this project integrates with the hub (see above) |
-| `git` | `RemoteGitSource` | - | Remote repository to clone for embed/inject modes |
-| `embedSections` | `'all' \| 'public' \| string[]` | `'all'` | Which sections to import in embed mode |
-| `injectInto` | `string` | - | Section ID to inject docs into (inject mode) |
-| `docsPath` | `string` | - | Subdirectory within the cloned repo containing docs (inject mode) |
+
+#### `source` shape
+
+| `kind` | Additional fields |
+|--------|-------------------|
+| `'none'` | (none) |
+| `'git'` | `repo` (required), `ref` (default `'main'`), `path` (default `'docs/public'`), `sparse` (default `true` when `path` is set) |
+| `'url'` | `url`. Reserved, not implemented; throws at build time. |
+| `'inline'` | `markdown`. Reserved, not implemented; throws at build time. |
+
+#### `placement` shape
+
+| `kind` | Additional fields |
+|--------|-------------------|
+| `'card'` | `href` (required). Card click opens this URL. |
+| `'tab'` | `sections?: 'all' \| 'public' \| string[]` (default `'public'`). Which sections from the cloned config to import as tabs. |
+| `'nested'` | `into` (required, target section label), `docsPath?` (default `'docs'`), `group?` (optional subfolder name). |
 
 ### Hub backlink
 
@@ -318,9 +337,9 @@ export default defineConfig({
 });
 ```
 
-### Embed Mode
+### `source: git` + `placement: tab`
 
-Embed mode clones a remote project's repository and imports its Clearify sections as new tabs in the hub site. This is useful when you want a unified docs site that aggregates content from multiple repos.
+Clones a remote project's repository and imports its Clearify sections as new tabs in the hub site. Useful when you want a unified docs site that aggregates content from multiple repos.
 
 ```typescript
 export default defineConfig({
@@ -330,26 +349,25 @@ export default defineConfig({
       {
         name: 'Storage Brain',
         description: 'File storage & processing service',
-        mode: 'embed',
-        git: { repo: 'https://github.com/acme/storage-brain.git' },
-        embedSections: 'public',
+        source: { kind: 'git', repo: 'https://github.com/acme/storage-brain.git' },
+        placement: { kind: 'tab', sections: 'public' },
       },
     ],
   },
 });
 ```
 
-The `embedSections` field controls which sections from the remote project are imported:
+The `placement.sections` field controls which sections from the remote project are imported:
 
-- `'all'` (default): import every section defined in the remote config
-- `'public'`: import only non-draft sections
-- `string[]`: import specific sections by ID (e.g. `['docs', 'api']`)
+- `'public'` (default): import only non-draft sections
+- `'all'`: import every section defined in the remote config
+- `string[]`: import specific sections by label (e.g. `['Docs', 'API']`)
 
 The remote project must have its own `clearify.config.ts` with `sections` defined. Each imported section appears as a new tab in the hub site's section switcher.
 
-### Inject Mode
+### `source: git` + `placement: nested`
 
-Inject mode clones a remote project's docs and symlinks them into an existing section's navigation tree. No new tabs are created. This is ideal for aggregating docs from many small projects into a single section.
+Clones a remote project's docs and symlinks them into an existing section's navigation tree. No new tabs are created. Ideal for aggregating docs from many small projects into a single section.
 
 ```typescript
 export default defineConfig({
@@ -362,33 +380,39 @@ export default defineConfig({
       {
         name: 'Storage Brain',
         description: 'File storage & processing service',
-        mode: 'inject',
-        git: { repo: 'https://github.com/acme/storage-brain.git' },
-        injectInto: 'projects',
-        docsPath: 'docs/public',
-        group: 'Services',
+        source: { kind: 'git', repo: 'https://github.com/acme/storage-brain.git' },
+        placement: { kind: 'nested', into: 'Projects', docsPath: 'docs/public', group: 'Services' },
       },
       {
         name: 'Data Table',
         description: 'Notion-like database component',
-        mode: 'inject',
-        git: { repo: 'https://github.com/acme/data-table.git' },
-        injectInto: 'projects',
-        docsPath: 'docs',
-        group: 'Components',
+        source: { kind: 'git', repo: 'https://github.com/acme/data-table.git' },
+        placement: { kind: 'nested', into: 'Projects', docsPath: 'docs', group: 'Components' },
       },
     ],
   },
 });
 ```
 
-| Field | Description |
-|-------|-------------|
-| `injectInto` | The section ID (derived from the section's `label`) where the docs will appear |
-| `docsPath` | Path within the cloned repo to the markdown files |
-| `group` | Optional subdirectory name that groups this project's docs under a folder in the sidebar |
-
 Clearify creates a staging directory that overlays the injected docs onto the target section's `docsDir` via symlinks. The target section sees the injected files as if they were local, so navigation, search, and routing work normally.
+
+### `source: git` + `placement: card`
+
+Unlocked by the v2.0 schema: clone a repo so its docs land in the hub's global search index, while the card still links out to the project's canonical docs site.
+
+```typescript
+{
+  name: 'Receipt OCR App',
+  description: 'Receipt scanning & expense tracking with AI chat',
+  source: {
+    kind: 'git',
+    repo: 'https://github.com/marlinjai/receipt-ocr-app.git',
+    ref: 'main',
+    path: 'docs/public',
+  },
+  placement: { kind: 'card', href: 'https://docs.receipts.lumitra.co' },
+}
+```
 
 ### Sidebar nesting
 

@@ -1,7 +1,7 @@
 ---
 title: Hub Model
 description: How Clearify aggregates documentation from multiple repos into a single hub site
-summary: Embed vs link modes, sparse checkout, the dispatch rebuild pipeline, and `clearify init --hub`.
+summary: Source + placement axes, sparse checkout, the dispatch rebuild pipeline, and `clearify init --hub`.
 order: 5
 tags: [hub, embed, dispatch, multi-repo]
 type: documentation
@@ -18,72 +18,111 @@ The model exists to fight drift. When every project ships its own docs site, you
 
 Contrast with the "every project runs its own docs" pattern: there you maintain N pipelines, pay for N static hosts, and users have to know which project lives where. With the hub model, users open one site and find everything. Developers push docs to their own repo, a dispatch fires, the hub rebuilds. That's it.
 
-## The three project modes
+## Two axes: source and placement
 
-Every entry in the hub's `hub.projects` array has a `mode` that controls how it integrates. The modes are defined in `HubProject` in `src/types/index.ts`.
+Every entry in the hub's `hub.projects` array has two independent fields that together describe how the project integrates:
 
-### `link`
+1. **`source`** describes where the content comes from.
+2. **`placement`** describes how it shows up in the hub UI.
 
-A card on the hub's project grid that links out to an external URL. No clone, no docs imported. Use `link` when the project has its own documentation site you don't want to replace (external open-source tools, third-party services, anything living on a domain you don't control).
+They are orthogonal: you can clone a repo for its docs (source: git) but present it as a simple link card (placement: card). That combination is real, needed for standalone products that also want their docs searchable on the hub. See the full schema in `HubProject` in `src/types/index.ts`.
+
+### Source kinds
+
+| `source.kind` | Behavior |
+|---------------|----------|
+| `none` | No content pulled. Use with `placement: card` for pure external links. |
+| `git` | Sparse-clone a repo subdirectory. Fields: `repo` (required), `ref` (default `main`), `path` (default `docs/public`), `sparse` (default `true` when `path` is set). |
+| `url` | Reserved for future remote-docs fetch. Typed but rejected at runtime. |
+| `inline` | Reserved for future inline markdown. Typed but rejected at runtime. |
+
+### Placement kinds
+
+| `placement.kind` | Behavior |
+|------------------|----------|
+| `card` | Grid entry only, clicking the card links to `placement.href` (external URL). No new tab. |
+| `tab` | Full tab in the hub nav, rendering the cloned sections. Optional `placement.sections` narrows which sections to import (`all`, `public`, or an explicit list). |
+| `nested` | Folded into an existing hub section as a subfolder. Requires `placement.into` (the target section's label). Optional `placement.docsPath` (subdir in the cloned repo) and `placement.group` (subfolder name). |
+
+### Common combinations
+
+| Situation | `source` | `placement` |
+|-----------|----------|-------------|
+| External docs site, just a card link | `none` | `card` |
+| First-party project, full structure preserved as a tab | `git` | `tab` |
+| Many small projects aggregated into one section | `git` | `nested` |
+| Standalone product: cloned for search, card links out | `git` | `card` |
+
+### Examples
+
+Standalone product cloned for search, card linking to external docs:
 
 ```typescript
 {
-  name: 'Acme API',
-  description: 'Third-party API we integrate with',
-  mode: 'link',
-  href: 'https://api.acme.com/docs',
+  name: 'Receipt OCR App',
+  description: 'Receipt scanning & expense tracking with AI chat',
   status: 'active',
+  source: {
+    kind: 'git',
+    repo: 'https://github.com/marlinjai/receipt-ocr-app.git',
+    ref: 'main',
+    path: 'docs/public',
+  },
+  placement: {
+    kind: 'card',
+    href: 'https://docs.receipts.lumitra.co',
+  },
 }
 ```
 
-`link` is the default when `mode` is omitted and `href` is set.
-
-### `embed`
-
-Clones the sub-repo via sparse checkout, reads its `clearify.config.ts`, and imports each of its sections as a new tab in the hub. This is the default mode for first-party projects that should be part of the hub. Every `embed` entry needs `git: { repo, ref, path }`.
+First-party project rendered as a hub tab:
 
 ```typescript
 {
   name: 'Storage Brain',
   description: 'File storage and processing service',
-  mode: 'embed',
-  git: {
+  status: 'active',
+  source: {
+    kind: 'git',
     repo: 'https://github.com/marlinjai/storage-brain.git',
     ref: 'main',
     path: 'docs/public',
   },
-  embedSections: 'public',
-  status: 'active',
+  placement: { kind: 'tab', sections: 'public' },
 }
 ```
 
-Use `embed` when the sub-project has its own section structure (e.g. "API Reference", "Guides", "Internal") and you want those structures preserved as separate tabs in the hub.
-
-### `inject`
-
-Clones the sub-repo, then overlays its docs into an existing hub section via symlinks. No new tab is created: the sub-repo's pages show up inside a folder of the hub's own navigation tree. Use `inject` when you want many small projects aggregated under a single "Projects" or "Architecture" section rather than each getting its own tab.
+Nested under an existing section:
 
 ```typescript
 {
   name: 'Brain Core',
   description: 'Shared infrastructure for Brain services',
-  mode: 'inject',
-  git: { repo: 'https://github.com/marlinjai/brain-core.git' },
-  injectInto: 'architecture',
-  docsPath: 'docs',
-  group: 'Services',
+  status: 'active',
+  source: {
+    kind: 'git',
+    repo: 'https://github.com/marlinjai/brain-core.git',
+  },
+  placement: {
+    kind: 'nested',
+    into: 'Architecture',
+    docsPath: 'docs',
+    group: 'Services',
+  },
 }
 ```
 
-`injectInto` is the slug of the target section (derived from the section's `label`). `docsPath` is the folder inside the cloned repo to pull from. `group` is an optional subdirectory name to nest the project under.
+External link card, no clone:
 
-### Choosing a mode
-
-| Situation | Mode |
-|-----------|------|
-| Project has its own docs site elsewhere, link to it | `link` |
-| First-party project, its own sections, full structure preserved | `embed` |
-| Many small projects, aggregated into one section | `inject` |
+```typescript
+{
+  name: 'Acme API',
+  description: 'Third-party API we integrate with',
+  status: 'active',
+  source: { kind: 'none' },
+  placement: { kind: 'card', href: 'https://api.acme.com/docs' },
+}
+```
 
 ## Sparse checkout
 
@@ -188,7 +227,7 @@ jobs:
       - run: npx wrangler pages deploy docs-dist --project-name=erp-suite-docs
 ```
 
-During `docs:build`, Clearify reads `clearify.data.json`, walks `hub.projects`, and for every `embed` or `inject` entry runs the sparse-checkout flow from the section above. Each project's docs get pulled fresh at build time, so what ships is always current.
+During `docs:build`, Clearify reads `clearify.data.json`, walks `hub.projects`, and for every entry with `source.kind: 'git'` runs the sparse-checkout flow from the section above. Each project's docs get pulled fresh at build time, so what ships is always current.
 
 **3. The secret: `HUB_DISPATCH_TOKEN`**
 
@@ -335,12 +374,12 @@ Walk the pipeline from the bottom up:
 
 4. **Check secret existence.** Go to the sub-repo's Settings: Secrets and variables: Actions. `HUB_DISPATCH_TOKEN` should be listed. If not, you forgot step 3 in the onboarding checklist (add the repo to `local.hub_repos` and apply).
 
-### "Hub build fails silently for one embed"
+### "Hub build fails silently for one project"
 
-When `scanHubProjects` hits an error cloning an embed entry, it logs a warning and continues. Look for lines like:
+When `scanHubProjects` hits an error cloning a git-source entry, it logs a warning and continues. Look for lines like:
 
 ```
-⚠ Hub embed "storage-brain" failed: Failed to clone remote repo ...
+Hub tab "storage-brain" failed: Failed to clone remote repo ...
 ```
 
 Common causes:

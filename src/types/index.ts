@@ -62,7 +62,7 @@ export interface ClearifyConfig {
     [key: string]: string | undefined;
   };
   hub?: HubConfig;
-  hubProject?: Omit<HubProject, 'name'>;
+  hubProject?: HubProjectPartial;
   customCss?: string;
   headTags?: string[];
   includeReadme?: boolean;
@@ -101,10 +101,44 @@ export interface RouteEntry {
   redirectTo?: string;
 }
 
+/**
+ * Where a hub project's content comes from.
+ *
+ * `none`: no content pulled, card links out only.
+ * `git`: sparse-clone a repo subdirectory.
+ * `url`: reserved for future remote-docs fetch, not implemented.
+ * `inline`: reserved for future inline markdown, not implemented.
+ */
+export type HubProjectSource =
+  | { kind: 'none' }
+  | {
+      kind: 'git';
+      repo: string;
+      /** branch, tag, or SHA. Default: 'main' */
+      ref?: string;
+      /** subdirectory to sparse-checkout. Default: 'docs/public' */
+      path?: string;
+      /** defaults to true when path is set */
+      sparse?: boolean;
+    }
+  | { kind: 'url'; url: string }
+  | { kind: 'inline'; markdown: string };
+
+/**
+ * How a hub project shows up in the hub UI.
+ *
+ * `card`: grid entry that links to an external href.
+ * `tab`: full tab in the hub nav, rendering the cloned sections.
+ * `nested`: folded into an existing hub section as a subfolder.
+ */
+export type HubProjectPlacement =
+  | { kind: 'card'; href: string }
+  | { kind: 'tab'; sections?: 'all' | 'public' | string[] }
+  | { kind: 'nested'; into: string; docsPath?: string; group?: string };
+
 export interface HubProject {
   name: string;
   description: string;
-  href?: string;
   repo?: string;
   status?: 'active' | 'beta' | 'planned' | 'deprecated';
   icon?: string;
@@ -112,11 +146,26 @@ export interface HubProject {
   group?: string;
   hubUrl?: string;
   hubName?: string;
-  mode?: 'link' | 'embed' | 'inject';
-  git?: RemoteGitSource;
-  embedSections?: 'all' | 'public' | string[];
-  injectInto?: string;
-  docsPath?: string;
+  source: HubProjectSource;
+  placement: HubProjectPlacement;
+}
+
+/**
+ * The subset of HubProject fields a sub-project can declare about itself in
+ * `clearify.config.ts`. The hub scanner composes this with the sub-project's
+ * `siteUrl` and assigns `source` + `placement` on its own side.
+ */
+export interface HubProjectPartial {
+  description: string;
+  repo?: string;
+  status?: 'active' | 'beta' | 'planned' | 'deprecated';
+  icon?: string;
+  tags?: string[];
+  group?: string;
+  /** URL of the parent hub site, used by the Sidebar back-link. */
+  hubUrl?: string;
+  /** Display name for the Sidebar back-link. Default: 'Hub'. */
+  hubName?: string;
 }
 
 export interface HubConfig {

@@ -8,6 +8,22 @@ interface ProjectGridProps {
   children?: React.ReactNode;
 }
 
+function projectHref(project: HubProject): string | undefined {
+  if (project.placement.kind === 'card') return project.placement.href;
+  if (project.placement.kind === 'tab') {
+    // Default to the project's own tab path on the hub
+    const slug = project.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+    return `/${slug}`;
+  }
+  if (project.placement.kind === 'nested') {
+    return `/${project.placement.into}`;
+  }
+  return undefined;
+}
+
 function ProjectGridInner({ cols, projects }: { cols: number; projects: HubProject[] }) {
   return (
     <div
@@ -23,7 +39,7 @@ function ProjectGridInner({ cols, projects }: { cols: number; projects: HubProje
           key={project.name}
           name={project.name}
           description={project.description}
-          href={project.href}
+          href={projectHref(project)}
           repo={project.repo}
           status={project.status}
           icon={project.icon}

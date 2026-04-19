@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
-import type { NavigationItem, SectionNavigation, HubProject } from '../types/index.js';
+import type { NavigationItem, SectionNavigation, HubProjectPartial } from '../types/index.js';
 
 interface SidebarProps {
   sections: SectionNavigation[];
   open: boolean;
   onClose: () => void;
-  hubProject?: Omit<HubProject, 'name'>;
+  hubProject?: HubProjectPartial;
 }
 
 function findActiveSection(pathname: string, sections: SectionNavigation[]): string {
