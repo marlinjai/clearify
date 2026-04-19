@@ -28,7 +28,8 @@
     "postbuild": "node scripts/generate-schema.mjs",
     "dev:self": "node bin/clearify.js dev",
     "prepare": "husky",
-    "release": "semantic-release"
+    "release": "semantic-release",
+    "test": "vitest run"
   },
   "dependencies": {
     "@inquirer/password": "^5.0.11",
@@ -82,7 +83,8 @@
     "puppeteer": "^24.37.2",
     "semantic-release": "^25.0.3",
     "tsup": "^8.3.6",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vitest": "^4.1.4"
   },
   "packageManager": "pnpm@9.15.0",
   "license": "MIT",

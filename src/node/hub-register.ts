@@ -128,6 +128,13 @@ async function secretExists(
   return res.status === 200;
 }
 
+/**
+ * Internal handles exposed for unit tests. Not part of the public API.
+ * Tree-shakeable; consumers that import this package's types index do not
+ * reach this symbol.
+ */
+export const __internal = { encryptSecret };
+
 // ---------------------------------------------------------------------------
 // Interactive Prompt Helpers
 // ---------------------------------------------------------------------------
