@@ -1,3 +1,10 @@
+# [1.15.0](https://github.com/marlinjai/clearify/compare/v1.14.2...v1.15.0) (2026-04-19)
+
+
+### Features
+
+* **hub:** add libsodium and inquirer for CLI secret provisioning ([7dbc13e](https://github.com/marlinjai/clearify/commit/7dbc13ea857937786f321c0b63cd62116ceece02))
+
 ## [1.14.2](https://github.com/marlinjai/clearify/compare/v1.14.1...v1.14.2) (2026-04-18)
 
 
