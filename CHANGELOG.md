@@ -1,3 +1,10 @@
+# [1.20.0](https://github.com/marlinjai/clearify/compare/v1.19.0...v1.20.0) (2026-04-19)
+
+
+### Features
+
+* **hub:** graceful degradation when OAuth client ID is unset ([6cb1411](https://github.com/marlinjai/clearify/commit/6cb14115e31541c7659ce776c3093e4946f22653))
+
 # [1.19.0](https://github.com/marlinjai/clearify/compare/v1.18.0...v1.19.0) (2026-04-19)
 
 
