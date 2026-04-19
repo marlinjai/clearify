@@ -1,3 +1,10 @@
+# [1.17.0](https://github.com/marlinjai/clearify/compare/v1.16.0...v1.17.0) (2026-04-19)
+
+
+### Features
+
+* **hub:** add interactive prompt helpers for secret provisioning ([6f73594](https://github.com/marlinjai/clearify/commit/6f73594566e8486441283f699d634221c0b257d3))
+
 # [1.16.0](https://github.com/marlinjai/clearify/compare/v1.15.0...v1.16.0) (2026-04-19)
 
 
