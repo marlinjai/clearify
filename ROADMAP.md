@@ -1,6 +1,6 @@
 # Clearify Roadmap
 
-> Last updated: 2026-04-18, v1.14.2
+> Last updated: 2026-04-19, v1.19.0
 
 ## v0.2.0 — Done
 
@@ -163,6 +163,18 @@ Replaced `@scalar/api-reference-react` with a fully custom-built renderer using 
 - [x] Infra hub registration wiring (Terraform owns `HUB_DISPATCH_TOKEN` lifecycle)
 - [x] Harden docs-trigger curl, correct `cacheDir` default in docs (v1.14.2)
 - [x] Guard `NotFound` against redirect routes with no frontmatter (v1.14.1)
+
+## v1.15+ : Hub Provisioning CLI (Phase B)
+
+### Hub Provisioning: Shipped
+- [x] `--hub-token <pat>` flag (use a PAT directly instead of OAuth device flow)
+- [x] `--secret-mode {prompt,auto,manual,skip}` flag to pick the provisioning path
+- [x] `--secret-pat <pat>` flag for non-interactive `auto` mode
+- [x] `--rotate-secret` flag to overwrite existing `HUB_DISPATCH_TOKEN`
+- [x] libsodium sealed-box encryption for the GitHub Secrets API (dynamic import)
+- [x] Interactive prompt menu and hidden-password input via `@inquirer/password`
+- [x] Graceful degradation when `CLEARIFY_GITHUB_CLIENT_ID` is unset (no silent exit)
+- [x] Docs: `hub-model.md` Path 2 marked shipped, real flag names documented
 
 ## v2.0 — Try It Out & Auth (OpenAPI Phase 2-3)
 

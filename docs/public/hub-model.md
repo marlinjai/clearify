@@ -226,20 +226,32 @@ Lowest-ceremony path. For one-off onboarding.
 
 Stop using this path when you have added the same PAT to 3+ repos by hand. Switch to Path 3.
 
-### Path 2: CLI-assisted (`clearify init --hub --auto-secret`)
+### Path 2: CLI-assisted (`clearify init --hub --secret-mode=auto`)
 
-Status: planned. The CLI currently scaffolds config and workflow files but does not write the Actions secret. The `--auto-secret` flag will restore secret provisioning via the GitHub Secrets API after OAuth device flow.
+Status: shipped. The CLI scaffolds config and workflow files, updates the hub registry, and writes the Actions secret on the sub-repo via the GitHub Secrets API (libsodium sealed-box encryption, handled internally).
 
-Prerequisites (see [Installation](./installation.md#prerequisites-for-hub-mode)): a GitHub OAuth App with `repo` scope, `CLEARIFY_GITHUB_CLIENT_ID` exported.
+Prerequisites (see [Installation](./installation.md#prerequisites-for-hub-mode)): either `CLEARIFY_GITHUB_CLIENT_ID` set to a GitHub OAuth App client ID (device flow), or a pasted PAT via `--hub-token`.
 
 ```bash
+# Option A: OAuth device flow (recommended for humans)
 export CLEARIFY_GITHUB_CLIENT_ID=Iv1.abc123
-pnpm exec clearify init --hub --auto-secret
+pnpm exec clearify init --hub --secret-mode=auto
+
+# Option B: Pass a PAT directly, no OAuth App needed
+pnpm exec clearify init --hub --hub-token $GITHUB_PAT --secret-mode=auto
+
+# Interactive menu (default): choose auto/manual/skip at runtime
+pnpm exec clearify init --hub
 ```
 
-The CLI prompts for the hub repo, opens a browser for device flow, then appends a `HubProject` entry to the hub's `clearify.data.json`, writes local `clearify.config.ts` and `.github/workflows/docs-trigger.yml`, and `PUT`s `HUB_DISPATCH_TOKEN` on the sub-repo via the Secrets API.
+Flags:
 
-Without `--auto-secret`, `clearify init --hub` does everything except the secret. Finish with Path 1 or Path 3.
+- `--secret-mode <mode>`: `prompt` (default, interactive menu), `auto` (encrypt + PUT via Secrets API), `manual` (print UI instructions), `skip` (leave to Terraform).
+- `--secret-pat <pat>`: PAT value to store as `HUB_DISPATCH_TOKEN`. Visible in `ps`; prefer `--secret-mode=prompt` for a hidden input.
+- `--hub-token <pat>`: PAT used for GitHub API calls (registry write, secret write). Use this when `CLEARIFY_GITHUB_CLIENT_ID` is not set.
+- `--rotate-secret`: overwrite an existing `HUB_DISPATCH_TOKEN` instead of skipping.
+
+The CLI prompts for the hub repo, authenticates (device flow or the passed `--hub-token`), appends a `HubProject` entry to the hub's `clearify.data.json`, writes local `clearify.config.ts` and `.github/workflows/docs-trigger.yml`, and (unless `--secret-mode=skip`) provisions `HUB_DISPATCH_TOKEN` on the sub-repo.
 
 Stop using this path when you operate a hub with 5+ sub-repos and need atomic rotation. Switch to Path 3.
 

@@ -1,3 +1,18 @@
+# Unreleased
+
+## Hub provisioning CLI (Phase B, 2026-04-19)
+
+End-to-end support for all three `HUB_DISPATCH_TOKEN` provisioning paths from the CLI. Previously only Path 3 (Terraform) worked without editing source; now Path 1 (manual) and Path 2 (CLI-assisted) are first-class and documented.
+
+### Added
+
+* `--hub-token <pat>` flag on `clearify init`: use a PAT directly instead of OAuth device flow, for environments where `CLEARIFY_GITHUB_CLIENT_ID` isn't set.
+* `--secret-mode <mode>` flag: `prompt` (interactive menu, default), `auto` (encrypt and PUT via the Secrets API), `manual` (print UI instructions), `skip` (leave to Terraform).
+* `--secret-pat <pat>` flag: PAT value to store as `HUB_DISPATCH_TOKEN` (visible in `ps`; prefer hidden prompt via `--secret-mode=prompt`).
+* `--rotate-secret` flag: overwrite an existing `HUB_DISPATCH_TOKEN` rather than skipping.
+* libsodium-based sealed-box encryption (`crypto_box_seal`) for the Secrets API, dynamically imported so the 500KB cost only lands when Path 2 runs.
+* Graceful failure when neither `CLEARIFY_GITHUB_CLIENT_ID` nor `--hub-token` is available: clear error listing both escape hatches instead of a silent exit.
+
 # [1.20.0](https://github.com/marlinjai/clearify/compare/v1.19.0...v1.20.0) (2026-04-19)
 
 
