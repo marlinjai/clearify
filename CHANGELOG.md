@@ -1,3 +1,10 @@
+# [1.19.0](https://github.com/marlinjai/clearify/compare/v1.18.0...v1.19.0) (2026-04-19)
+
+
+### Features
+
+* **hub:** integrate secret provisioning into registerWithHub ([da7361f](https://github.com/marlinjai/clearify/commit/da7361f1f2150cf72aab89e96a8f06b6b1fb3786))
+
 # [1.18.0](https://github.com/marlinjai/clearify/compare/v1.17.0...v1.18.0) (2026-04-19)
 
 
