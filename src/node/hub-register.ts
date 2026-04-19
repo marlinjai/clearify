@@ -449,6 +449,10 @@ jobs:
 export async function registerWithHub(options: {
   projectName?: string;
   hubProject?: Omit<HubProject, 'name'>;
+  hubToken?: string;
+  secretMode?: 'prompt' | 'auto' | 'manual' | 'skip';
+  secretPat?: string;
+  rotateSecret?: boolean;
 }): Promise<void> {
   const clientId = process.env.CLEARIFY_GITHUB_CLIENT_ID;
   if (!clientId) {

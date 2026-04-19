@@ -26,6 +26,22 @@ export interface InitOptions {
   noInternal?: boolean;
   noClaudeRules?: boolean;
   hub?: boolean;
+  /** PAT to use for GitHub API calls when CLEARIFY_GITHUB_CLIENT_ID is unset. */
+  hubToken?: string;
+  /**
+   * How to provision HUB_DISPATCH_TOKEN on the sub-repo. Defaults to 'prompt'
+   * during hub onboarding (interactive menu). Non-interactive modes: 'auto'
+   * (encrypt + PUT via Secrets API), 'manual' (print UI instructions), 'skip'
+   * (leave it to Terraform).
+   */
+  secretMode?: 'prompt' | 'auto' | 'manual' | 'skip';
+  /**
+   * The PAT value to store as HUB_DISPATCH_TOKEN. Visible in `ps` when passed
+   * as a flag; prefer --secret-mode=prompt for the hidden input path.
+   */
+  secretPat?: string;
+  /** Overwrite HUB_DISPATCH_TOKEN even if it already exists on the sub-repo. */
+  rotateSecret?: boolean;
 }
 
 export async function init(options: InitOptions = {}) {
@@ -313,9 +329,16 @@ ${hasInternal ? `
 `);
 
   // Hub registration
+  const secretMode = options.secretMode ?? 'prompt';
   if (options.hub) {
     const { registerWithHub } = await import('./hub-register.js');
-    await registerWithHub({ projectName: detectProjectName() });
+    await registerWithHub({
+      projectName: detectProjectName(),
+      hubToken: options.hubToken,
+      secretMode,
+      secretPat: options.secretPat,
+      rotateSecret: options.rotateSecret,
+    });
   } else {
     const { createInterface } = await import('readline');
     const rl = createInterface({ input: process.stdin, output: process.stdout });
@@ -326,7 +349,13 @@ ${hasInternal ? `
 
     if (answer.toLowerCase() === 'y') {
       const { registerWithHub } = await import('./hub-register.js');
-      await registerWithHub({ projectName: detectProjectName() });
+      await registerWithHub({
+        projectName: detectProjectName(),
+        hubToken: options.hubToken,
+        secretMode,
+        secretPat: options.secretPat,
+        rotateSecret: options.rotateSecret,
+      });
     }
   }
 }

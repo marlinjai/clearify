@@ -48,10 +48,42 @@ cli
   .option('--no-internal', 'Skip creating the internal docs section')
   .option('--no-claude-rules', 'Skip creating .claude/rules/clearify-docs.md')
   .option('--hub', 'Register this project with a documentation hub')
-  .action(async (options: { noInternal?: boolean; noClaudeRules?: boolean; hub?: boolean }) => {
-    const { init } = await import('../node/index.js');
-    await init({ noInternal: options.noInternal, noClaudeRules: options.noClaudeRules, hub: options.hub });
-  });
+  .option(
+    '--hub-token <pat>',
+    'GitHub PAT to use instead of OAuth device flow (for environments without CLEARIFY_GITHUB_CLIENT_ID set)',
+  )
+  .option(
+    '--secret-mode <mode>',
+    'How to provision HUB_DISPATCH_TOKEN: prompt (interactive, default), auto (encrypt + PUT via Secrets API), manual (print UI instructions), skip (leave it to Terraform)',
+    { default: 'prompt' },
+  )
+  .option(
+    '--secret-pat <pat>',
+    'PAT value to store as HUB_DISPATCH_TOKEN. Visible in `ps`; prefer --secret-mode=prompt for hidden input',
+  )
+  .option('--rotate-secret', 'Overwrite HUB_DISPATCH_TOKEN even if it already exists on the sub-repo')
+  .action(
+    async (options: {
+      noInternal?: boolean;
+      noClaudeRules?: boolean;
+      hub?: boolean;
+      hubToken?: string;
+      secretMode?: 'prompt' | 'auto' | 'manual' | 'skip';
+      secretPat?: string;
+      rotateSecret?: boolean;
+    }) => {
+      const { init } = await import('../node/index.js');
+      await init({
+        noInternal: options.noInternal,
+        noClaudeRules: options.noClaudeRules,
+        hub: options.hub,
+        hubToken: options.hubToken,
+        secretMode: options.secretMode,
+        secretPat: options.secretPat,
+        rotateSecret: options.rotateSecret,
+      });
+    },
+  );
 
 cli
   .command('check', 'Check for broken internal links and frontmatter issues')
