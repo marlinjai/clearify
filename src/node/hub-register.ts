@@ -62,6 +62,62 @@ async function ghApiFetch(
 }
 
 // ---------------------------------------------------------------------------
+// Secret Encryption (libsodium sealed-box)
+// ---------------------------------------------------------------------------
+
+/**
+ * Encrypt a secret value for a GitHub Actions repository secret using the
+ * repo's public key (NaCl sealed box). Matches the format GitHub expects on
+ * PUT /repos/{owner}/{repo}/actions/secrets/{name}.
+ */
+async function encryptSecret(plaintext: string, publicKey: string): Promise<string> {
+  const sodium = (await import('libsodium-wrappers')).default;
+  await sodium.ready;
+  const keyBytes = sodium.from_base64(publicKey, sodium.base64_variants.ORIGINAL);
+  const messageBytes = sodium.from_string(plaintext);
+  const sealed = sodium.crypto_box_seal(messageBytes, keyBytes);
+  return sodium.to_base64(sealed, sodium.base64_variants.ORIGINAL);
+}
+
+async function getRepoPublicKey(
+  token: string,
+  owner: string,
+  repo: string,
+): Promise<{ key_id: string; key: string }> {
+  const url = `https://api.github.com/repos/${owner}/${repo}/actions/secrets/public-key`;
+  const res = await ghApiFetch(url, {
+    headers: { Authorization: `token ${token}` },
+  });
+  if (res.status !== 200 || !res.data?.key || !res.data?.key_id) {
+    throw new Error(
+      `Failed to fetch public key for ${owner}/${repo}: ${res.status} ${JSON.stringify(res.data)}`,
+    );
+  }
+  return { key_id: res.data.key_id, key: res.data.key };
+}
+
+async function storeDispatchToken(
+  token: string,
+  owner: string,
+  repo: string,
+  secretValue: string,
+): Promise<void> {
+  const { key_id, key } = await getRepoPublicKey(token, owner, repo);
+  const encrypted_value = await encryptSecret(secretValue, key);
+  const url = `https://api.github.com/repos/${owner}/${repo}/actions/secrets/HUB_DISPATCH_TOKEN`;
+  const res = await ghApiFetch(url, {
+    method: 'PUT',
+    headers: { Authorization: `token ${token}` },
+    body: JSON.stringify({ encrypted_value, key_id }),
+  });
+  if (res.status !== 201 && res.status !== 204) {
+    throw new Error(
+      `Failed to write HUB_DISPATCH_TOKEN on ${owner}/${repo}: ${res.status} ${JSON.stringify(res.data)}`,
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
 // GitHub Device Flow OAuth
 // ---------------------------------------------------------------------------
 
