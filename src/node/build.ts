@@ -18,6 +18,7 @@ import { remarkMermaidToComponent, setPreRenderedMermaidSvgs, clearPreRenderedMe
 import { mermaidContentHash } from '../core/mermaid-utils.js';
 import type { RouteEntry } from '../types/index.js';
 import { parseOpenAPISpec } from '../core/openapi-parser.js';
+import { generateLlmsTxt, generateLlmsFullTxt, type LlmsDocEntry } from '../core/llms-txt.js';
 
 function findPackageRoot(): string {
   let dir = fileURLToPath(new URL('.', import.meta.url));
@@ -77,6 +78,36 @@ function generateSitemap(routes: { path: string }[], siteUrl?: string): string {
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls.join('\n')}
 </urlset>`;
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+/**
+ * Flatten scanned section data into the shape the llms.txt generators expect.
+ * Docs with a very high `order` (the injected CHANGELOG and ROADMAP) land in
+ * the optional bucket so the main index stays focused on the canonical docs.
+ */
+function collectLlmsDocs(sections: SectionData[]): LlmsDocEntry[] {
+  const out: LlmsDocEntry[] = [];
+  for (const sd of sections) {
+    for (const doc of sd.docs) {
+      const title = doc.frontmatter.title ?? 'Untitled';
+      const optional = (doc.frontmatter.order ?? 0) >= 9000;
+      const markdown = existsSync(doc.filePath) ? readFileSync(doc.filePath, 'utf-8') : '';
+      out.push({
+        title,
+        routePath: doc.routePath,
+        sectionLabel: sd.section.label,
+        markdown,
+        optional,
+      });
+    }
+  }
+  return out;
 }
 
 function generateRobotsTxt(siteUrl?: string): string {
@@ -399,7 +430,24 @@ export async function buildSite() {
   writeFileSync(resolve(outDir, 'sitemap.xml'), sitemap);
   console.log('  Generated sitemap.xml');
 
-  // --- Step 6: Cleanup SSR build ---
+  // --- Step 6: Generate llms.txt + llms-full.txt ---
+  if (config.generateLlmsTxt !== false) {
+    const llmsDocs = collectLlmsDocs(sectionDataList);
+    const llmsTxt = generateLlmsTxt(config, llmsDocs);
+    const llmsFullTxt = generateLlmsFullTxt(config, llmsDocs);
+
+    const llmsTxtPath = resolve(outDir, 'llms.txt');
+    const llmsFullTxtPath = resolve(outDir, 'llms-full.txt');
+    writeFileSync(llmsTxtPath, llmsTxt);
+    writeFileSync(llmsFullTxtPath, llmsFullTxt);
+
+    const llmsTxtSize = Buffer.byteLength(llmsTxt, 'utf-8');
+    const llmsFullSize = Buffer.byteLength(llmsFullTxt, 'utf-8');
+    console.log(`  Generated ${llmsTxtPath} (${formatBytes(llmsTxtSize)})`);
+    console.log(`  Generated ${llmsFullTxtPath} (${formatBytes(llmsFullSize)})`);
+  }
+
+  // --- Step 7: Cleanup SSR build ---
   rmSync(ssrOutDir, { recursive: true, force: true });
   console.log('  Cleaned up SSR build artifacts.');
 

@@ -132,6 +132,7 @@ const ClearifyConfigSchema = z.object({
   customCss: z.string().optional(),
   headTags: z.array(z.string()).optional(),
   includeReadme: z.boolean().default(false),
+  generateLlmsTxt: z.boolean().default(true),
 });
 
 /** Zod schema for clearify.data.json — Tier 1+2 visual-config fields, all optional. */
@@ -327,6 +328,14 @@ export function resolveConfig(userConfig: Partial<ClearifyConfig> = {}, root?: s
   // If name is still the default and we have a root, auto-detect from project
   if (!userConfig.name && root) {
     parsed.name = detectProjectName(root);
+  }
+  // llms.txt generation needs an absolute site URL so the emitted links are
+  // usable by AI crawlers. If the user explicitly opted out, skip the check.
+  if (parsed.generateLlmsTxt && !parsed.siteUrl) {
+    throw new Error(
+      'clearify config: `generateLlmsTxt` is enabled (default) but `siteUrl` is not set. ' +
+        'Set `siteUrl` to the production URL of your docs site, or set `generateLlmsTxt: false` to disable.',
+    );
   }
   return parsed as ClearifyConfig;
 }

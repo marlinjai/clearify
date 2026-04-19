@@ -66,6 +66,12 @@ export interface ClearifyConfig {
   customCss?: string;
   headTags?: string[];
   includeReadme?: boolean;
+  /**
+   * When true (default), `clearify build` writes `llms.txt` and
+   * `llms-full.txt` into the output directory for AI agents and crawlers.
+   * Requires `siteUrl` to be set. Set to `false` to skip generation.
+   */
+  generateLlmsTxt?: boolean;
 }
 
 export interface NavigationItem {

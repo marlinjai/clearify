@@ -211,7 +211,7 @@ Replaced `@scalar/api-reference-react` with a fully custom-built renderer using 
 - [x] Keyboard navigation in search results (arrow keys + Enter)
 - [x] Section-scoped search result badges
 - [ ] Search analytics — track what users search for
-- [ ] `llms.txt` auto-generation for AI discoverability
+- [x] `llms.txt` auto-generation for AI discoverability
 
 ### Analytics
 - [ ] Page view tracking (pluggable: Plausible, Umami, PostHog)

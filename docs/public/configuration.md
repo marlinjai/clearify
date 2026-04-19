@@ -43,6 +43,7 @@ export default defineConfig({
 | `customCss` | `string` | - | Path to a custom CSS file to load after built-in styles |
 | `headTags` | `string[]` | `[]` | Raw HTML strings injected into the `<head>` of every page (e.g. analytics scripts) |
 | `openapi` | `{ spec, basePath?, generatePages? }` | - | OpenAPI spec path and options for auto-generated API reference pages |
+| `generateLlmsTxt` | `boolean` | `true` | Emit `llms.txt` and `llms-full.txt` at build time for AI discoverability (see [llms.txt](./llms-txt.md)). Requires `siteUrl` |
 | `hub` | `HubConfig` | - | Enable Hub Mode for multi-project dashboards (see [Hub Mode](#hub-mode)) |
 
 ## Mermaid Diagrams

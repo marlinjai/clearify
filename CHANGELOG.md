@@ -18,6 +18,17 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
 
 # Unreleased
 
+## llms.txt and llms-full.txt at build time (2026-04-19)
+
+Clearify now emits two AI-native text files alongside the static site: `llms.txt` (a markdown index with one summary bullet per page) and `llms-full.txt` (the full markdown body of every page concatenated). Both use absolute URLs so AI agents like ChatGPT and Claude can consume the docs without crawling HTML. Enabled by default when `siteUrl` is set. Opt out with `generateLlmsTxt: false`.
+
+### Added
+
+* `generateLlmsTxt` config option (default `true`). When enabled, `clearify build` writes `llms.txt` and `llms-full.txt` to the build output directory next to `index.html`.
+* `src/core/llms-txt.ts`: pure `generateLlmsTxt(config, docs)` and `generateLlmsFullTxt(config, docs)` string builders for callers that want to use the same format outside the build pipeline.
+* Validation: clear error when `generateLlmsTxt` is true but `siteUrl` is unset.
+* Docs page at `/llms-txt` and a new row in the configuration reference table.
+
 ## Hub schema redesign: source + placement (v2.0.0, 2026-04-19)
 
 Breaking change. The hub project schema no longer has a single `mode` enum. Every entry now declares `source` (where the content comes from: `none`, `git`, or the reserved `url` / `inline`) and `placement` (how it appears on the hub: `card`, `tab`, or `nested`). This unlocks the `git + card` combo we needed for standalone products (cloned for search, card links to their external canonical docs site) and kills the embed/inject redundancy.

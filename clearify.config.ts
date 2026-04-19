@@ -2,6 +2,7 @@ import { defineConfig } from './src/types/index.js';
 
 export default defineConfig({
   name: 'Clearify',
+  siteUrl: 'https://clearify.lumitra.co',
   includeReadme: true,
   hubProject: {
     description: 'Documentation site generator (powers this site)',

@@ -15,6 +15,7 @@ export default defineConfig({
     'core/mermaid-renderer': 'src/core/mermaid-renderer.ts',
     'core/openapi-parser': 'src/core/openapi-parser.ts',
     'core/remote': 'src/core/remote.ts',
+    'core/llms-txt': 'src/core/llms-txt.ts',
     'vite-plugin/index': 'src/vite-plugin/index.ts',
     'types/index': 'src/types/index.ts',
     'presets/nestjs': 'src/presets/nestjs.ts',
