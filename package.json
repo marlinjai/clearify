@@ -31,6 +31,7 @@
     "release": "semantic-release"
   },
   "dependencies": {
+    "@inquirer/password": "^5.0.11",
     "@mdx-js/react": "^3.1.1",
     "@mdx-js/rollup": "^3.1.1",
     "@scalar/openapi-parser": "^0.10.7",
@@ -44,6 +45,7 @@
     "flexsearch": "^0.8.212",
     "globby": "^16.1.0",
     "gray-matter": "^4.0.3",
+    "libsodium-wrappers": "^0.8.4",
     "mermaid": "^11.0.0",
     "postcss": "^8.5.6",
     "react-router-dom": "^7.13.0",
