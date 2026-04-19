@@ -118,6 +118,53 @@ async function storeDispatchToken(
 }
 
 // ---------------------------------------------------------------------------
+// Interactive Prompt Helpers
+// ---------------------------------------------------------------------------
+
+async function promptSecretMode(): Promise<'auto' | 'manual' | 'skip'> {
+  const { createInterface } = await import('readline');
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+
+  console.log('\n  How would you like to provision HUB_DISPATCH_TOKEN on this sub-repo?');
+  console.log('    1) auto    paste a PAT now, Clearify encrypts and PUTs it via the Secrets API');
+  console.log('    2) manual  print instructions for the GitHub UI (I will paste it myself)');
+  console.log('    3) skip    leave it alone (I manage it via Terraform)\n');
+
+  const answer = await new Promise<string>((res) => {
+    rl.question('  Choose [1/2/3] (default: 2): ', res);
+  });
+  rl.close();
+
+  const trimmed = answer.trim();
+  if (trimmed === '1' || trimmed.toLowerCase() === 'auto') return 'auto';
+  if (trimmed === '3' || trimmed.toLowerCase() === 'skip') return 'skip';
+  return 'manual';
+}
+
+async function promptHiddenInput(prompt: string): Promise<string> {
+  const password = (await import('@inquirer/password')).default;
+  const value = await password({ message: prompt, mask: '*' });
+  if (!value) {
+    throw new Error('Empty input; aborting.');
+  }
+  return value;
+}
+
+function printManualSecretInstructions(
+  subRepo: { owner: string; repo: string },
+  hub: { owner: string; repo: string },
+): void {
+  const url = `https://github.com/${subRepo.owner}/${subRepo.repo}/settings/secrets/actions/new`;
+  console.log('\n  Manual secret provisioning');
+  console.log(`    1. Open: ${url}`);
+  console.log('    2. Secret name: HUB_DISPATCH_TOKEN');
+  console.log(
+    `    3. Value: a fine-grained PAT with "Contents: Read and Write" scope on ${hub.owner}/${hub.repo}, 90-day expiry.`,
+  );
+  console.log('    4. Save and push a doc change to verify the dispatch fires.\n');
+}
+
+// ---------------------------------------------------------------------------
 // GitHub Device Flow OAuth
 // ---------------------------------------------------------------------------
 
