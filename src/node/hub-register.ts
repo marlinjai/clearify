@@ -466,9 +466,15 @@ export async function registerWithHub(options: {
   rotateSecret?: boolean;
 }): Promise<void> {
   const clientId = process.env.CLEARIFY_GITHUB_CLIENT_ID;
-  if (!clientId) {
-    console.error('\n  Error: CLEARIFY_GITHUB_CLIENT_ID environment variable is not set.');
-    console.error('  Set it to your GitHub OAuth App client ID and try again.\n');
+  if (!clientId && !options.hubToken) {
+    console.error('\n  Error: no GitHub credentials available for hub onboarding.');
+    console.error('  Clearify needs one of these to write the hub registry entry:\n');
+    console.error('    1) Set CLEARIFY_GITHUB_CLIENT_ID to a GitHub OAuth App client ID');
+    console.error('       (create one at https://github.com/settings/applications/new,');
+    console.error('       scope "repo"), then re-run this command.');
+    console.error('    2) Pass --hub-token <pat> to use a Personal Access Token directly');
+    console.error('       (fine-grained PAT with "Contents: Read and Write" on the hub repo).');
+    console.error('');
     process.exit(1);
   }
 
@@ -487,9 +493,15 @@ export async function registerWithHub(options: {
   const hub = await promptHubRepo();
   console.log(`  Hub: ${hub.owner}/${hub.repo}\n`);
 
-  // 2. Authenticate via GitHub Device Flow
-  console.log('  Starting GitHub authentication...');
-  const token = await githubDeviceAuth(clientId);
+  // 2. Acquire a GitHub token. Prefer --hub-token if provided, otherwise device flow.
+  let token: string;
+  if (options.hubToken) {
+    console.log('  Using provided --hub-token for GitHub API calls.');
+    token = options.hubToken;
+  } else {
+    console.log('  Starting GitHub authentication...');
+    token = await githubDeviceAuth(clientId!);
+  }
 
   // 3. Update hub registry
   console.log('  Updating hub registry...');
