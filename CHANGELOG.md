@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/marlinjai/clearify/compare/v2.0.0...v2.1.0) (2026-04-19)
+
+
+### Features
+
+* generate llms.txt and llms-full.txt at build time ([790453a](https://github.com/marlinjai/clearify/commit/790453af0373cf9b77975561672c9a2bf9e4e11e))
+
 # [2.0.0](https://github.com/marlinjai/clearify/compare/v1.20.0...v2.0.0) (2026-04-19)
 
 
