@@ -1,3 +1,10 @@
+# [1.16.0](https://github.com/marlinjai/clearify/compare/v1.15.0...v1.16.0) (2026-04-19)
+
+
+### Features
+
+* **hub:** add libsodium-based secret encryption helpers ([c00e959](https://github.com/marlinjai/clearify/commit/c00e9597104c7e75d304d0c105ee2b81a6bcd9b2))
+
 # [1.15.0](https://github.com/marlinjai/clearify/compare/v1.14.2...v1.15.0) (2026-04-19)
 
 
