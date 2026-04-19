@@ -1,13 +1,15 @@
 ---
 title: Hub Evolution — Self-Registration & Sparse Sync
 type: plan
-status: decided
+status: completed
 date: 2026-04-07
 summary: Replace manual hub wiring with a clearify init command that self-registers projects via GitHub OAuth. Hub-only docs model, sparse checkout by default, no standalone per-project sites.
 tags: [clearify, hub, init, github-oauth, sparse-checkout, dx]
 ---
 
 # Hub Evolution — Self-Registration & Sparse Sync
+
+> Phase B wrapped 2026-04-19: CLI-assisted provisioning shipped end-to-end (see [2026-04-18-hub-provisioning-paths.md](./2026-04-18-hub-provisioning-paths.md) for the superseding plan).
 
 ## Context
 
