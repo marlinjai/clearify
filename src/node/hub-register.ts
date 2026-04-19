@@ -117,6 +117,17 @@ async function storeDispatchToken(
   }
 }
 
+async function secretExists(
+  token: string,
+  owner: string,
+  repo: string,
+  name: string,
+): Promise<boolean> {
+  const url = `https://api.github.com/repos/${owner}/${repo}/actions/secrets/${name}`;
+  const res = await ghApiFetch(url, { headers: { Authorization: `token ${token}` } });
+  return res.status === 200;
+}
+
 // ---------------------------------------------------------------------------
 // Interactive Prompt Helpers
 // ---------------------------------------------------------------------------
@@ -495,13 +506,54 @@ export async function registerWithHub(options: {
   generateConfig(projectName, options.hubProject);
   generateWorkflow(hub);
 
+  // 5. Provision HUB_DISPATCH_TOKEN on this sub-repo
+  if (options.secretMode !== 'skip') {
+    const mode =
+      options.secretMode === 'prompt' || options.secretMode === undefined
+        ? await promptSecretMode()
+        : options.secretMode;
+    if (mode === 'auto') {
+      if (!options.rotateSecret) {
+        const exists = await secretExists(
+          token,
+          currentRepo.owner,
+          currentRepo.repo,
+          'HUB_DISPATCH_TOKEN',
+        );
+        if (exists) {
+          console.log(
+            '  HUB_DISPATCH_TOKEN already exists on this sub-repo; pass --rotate-secret to overwrite',
+          );
+          printSuccessFooter(currentRepo);
+          return;
+        }
+      }
+      const secretValue =
+        options.secretPat ??
+        options.hubToken ??
+        (await promptHiddenInput('Paste the PAT to store as HUB_DISPATCH_TOKEN: '));
+      try {
+        await storeDispatchToken(token, currentRepo.owner, currentRepo.repo, secretValue);
+        console.log('  HUB_DISPATCH_TOKEN written to sub-repo');
+      } catch (err) {
+        console.warn(`  Could not write secret: ${(err as Error).message}`);
+        printManualSecretInstructions(currentRepo, hub);
+      }
+    } else if (mode === 'manual') {
+      printManualSecretInstructions(currentRepo, hub);
+    }
+  }
+
+  printSuccessFooter(currentRepo);
+}
+
+function printSuccessFooter(currentRepo: { owner: string; repo: string }): void {
   console.log(`
   Hub registration complete!
 
   Next steps:
     1. Review clearify.config.ts and update the hubProject description
-    2. Add "${currentRepo.repo}" to the repos list in infra/deployments/hub-dispatch/github.tf
-    3. Run: cd infra/deployments/hub-dispatch && ../../scripts/tfrun.sh apply
-    4. Commit the generated files and push to main
+    2. If you manage HUB_DISPATCH_TOKEN via Terraform, add "${currentRepo.repo}" to the repos list in infra/deployments/hub-dispatch/github.tf and apply
+    3. Commit the generated files and push to main
 `);
 }
