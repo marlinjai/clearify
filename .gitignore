@@ -5,3 +5,6 @@ docs-dist
 Mintlify scrape/
 
 .infisical.json
+
+# Claude Code agent worktrees (never commit)
+.claude/worktrees/
