@@ -3,7 +3,7 @@ import { readFileSync, existsSync } from 'fs';
 import matter from 'gray-matter';
 import { loadUserConfig, resolveConfig, resolveSections } from '../core/config.js';
 import { scanDocs, type DocFile } from '../core/navigation.js';
-import type { DocCategory } from '../types/index.js';
+import type { DocType, DocStatus } from '../types/index.js';
 
 interface BrokenLink {
   file: string;
@@ -20,10 +20,15 @@ export interface CheckOptions {
 // Frontmatter validation
 // ---------------------------------------------------------------------------
 
-const VALID_CATEGORIES: DocCategory[] = [
-  'documentation', 'internal', 'plan', 'research', 'decision', 'roadmap', 'changelog',
+// Vocabulary source of truth: knowledge-base/standards/document-lifecycle.md.
+// Keep these arrays in sync with the DocType / DocStatus unions in
+// ../types/index.ts and the tables in that standard.
+export const VALID_TYPES: DocType[] = [
+  'readme', 'documentation', 'plan', 'roadmap', 'changelog', 'handover',
 ];
-const VALID_STATUSES = ['active', 'superseded', 'archived'] as const;
+export const VALID_STATUSES: DocStatus[] = [
+  'draft', 'decided', 'in-progress', 'completed', 'archived', 'rejected',
+];
 
 interface FrontmatterIssue {
   file: string;
@@ -59,16 +64,20 @@ function validateFrontmatter(doc: DocFile, userRoot: string): FrontmatterIssue[]
 
   // --- Required field checks ------------------------------------------------
 
+  // `type` is always inferable from the file path (see the standard's
+  // graceful-fallback rules), so a missing `type` is never an error: it is a
+  // recommendation everywhere. title/summary remain stricter under
+  // docs/plans/ and docs/internal/.
   if (strict) {
-    // docs/plans/ and docs/internal/ — title, summary, category are required (errors)
+    // docs/plans/ and docs/internal/ — title, summary required (errors)
     if (!rawFm.title) {
       issues.push({ file: rel, field: 'title', message: 'missing required field', severity: 'error' });
     }
     if (!rawFm.summary) {
       issues.push({ file: rel, field: 'summary', message: 'missing required field', severity: 'error' });
     }
-    if (!rawFm.category) {
-      issues.push({ file: rel, field: 'category', message: 'missing required field', severity: 'error' });
+    if (!rawFm.type) {
+      issues.push({ file: rel, field: 'type', message: 'recommended field missing (inferred from path)', severity: 'warning' });
     }
   } else {
     // docs/public/ (and everything else) — title required, rest recommended
@@ -78,19 +87,19 @@ function validateFrontmatter(doc: DocFile, userRoot: string): FrontmatterIssue[]
     if (!rawFm.summary) {
       issues.push({ file: rel, field: 'summary', message: 'recommended field missing', severity: 'warning' });
     }
-    if (!rawFm.category) {
-      issues.push({ file: rel, field: 'category', message: 'recommended field missing', severity: 'warning' });
+    if (!rawFm.type) {
+      issues.push({ file: rel, field: 'type', message: 'recommended field missing (inferred from path)', severity: 'warning' });
     }
   }
 
   // --- Value validation (applies everywhere when field is present) -----------
 
-  if (rawFm.category !== undefined) {
-    if (!VALID_CATEGORIES.includes(rawFm.category as DocCategory)) {
+  if (rawFm.type !== undefined) {
+    if (!VALID_TYPES.includes(rawFm.type as DocType)) {
       issues.push({
         file: rel,
-        field: 'category',
-        message: `invalid value "${rawFm.category}" (allowed: ${VALID_CATEGORIES.join(', ')})`,
+        field: 'type',
+        message: `invalid value "${rawFm.type}" (allowed: ${VALID_TYPES.join(', ')})`,
         severity: 'error',
       });
     }
