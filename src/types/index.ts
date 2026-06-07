@@ -83,7 +83,36 @@ export interface NavigationItem {
   children?: NavigationItem[];
 }
 
-export type DocCategory = 'documentation' | 'internal' | 'plan' | 'research' | 'decision' | 'roadmap' | 'changelog';
+/**
+ * Document type vocabulary. Source of truth:
+ * knowledge-base/standards/document-lifecycle.md (the single contract both
+ * the Session Dashboard and Clearify read). Keep this union in sync with the
+ * "Type" table in that standard. `category` (the legacy field) and its values
+ * (`internal`, `research`, `decision`) were reconciled away in favor of `type`.
+ */
+export type DocType =
+  | 'readme'
+  | 'documentation'
+  | 'plan'
+  | 'roadmap'
+  | 'changelog'
+  | 'handover';
+
+/**
+ * Document status vocabulary. Source of truth:
+ * knowledge-base/standards/document-lifecycle.md.
+ *
+ * For `type: plan` this tracks the workflow lifecycle (all six values).
+ * For `type: documentation` only `draft` is meaningful (omitted = published).
+ * Status is optional on every type and a missing status is never filtered.
+ */
+export type DocStatus =
+  | 'draft'
+  | 'decided'
+  | 'in-progress'
+  | 'completed'
+  | 'archived'
+  | 'rejected';
 
 export interface PageFrontmatter {
   title?: string;
@@ -91,10 +120,12 @@ export interface PageFrontmatter {
   icon?: string;
   order?: number;
   summary?: string;
-  category?: DocCategory;
+  /** See {@link DocType}. Inferred from path when omitted. */
+  type?: DocType;
   tags?: string[];
   projects?: string[];
-  status?: 'active' | 'superseded' | 'archived';
+  /** See {@link DocStatus}. Missing status is treated as unset (not filtered). */
+  status?: DocStatus;
   date?: string;
 }
 

@@ -1,10 +1,10 @@
 ---
 title: Clearify — Design Document
 summary: Original design document for Clearify, an open-source documentation site generator. Covers goals (zero-config start, full control), tech stack (Vite, React, MDX, Shiki, FlexSearch, TailwindCSS), and architecture.
-type: documentation
+type: plan
 tags: [clearify, design, documentation-generator, vite, mdx]
 projects: [clearify]
-status: superseded
+status: archived
 date: 2025-02-08
 ---
 

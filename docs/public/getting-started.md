@@ -91,7 +91,7 @@ date: 2026-03-01
 | `order` | `number` | - | Sort position in sidebar (lower = higher) |
 | `icon` | `string` | - | Emoji or icon shown next to the page in navigation |
 | `summary` | `string` | - | Short summary for search results and card previews |
-| `type` | `string` | Inferred from path | One of: `documentation`, `plan`, `roadmap`, `changelog`, `readme` |
+| `type` | `string` | Inferred from path | One of: `readme`, `documentation`, `plan`, `roadmap`, `changelog`, `handover` |
 | `tags` | `string[]` | - | Tags for categorization and search filtering |
 | `projects` | `string[]` | - | Related project names (useful in multi-project setups) |
 | `status` | `string` | - | For `plan`: `draft`, `decided`, `in-progress`, `completed`, `archived`, `rejected`. For `documentation`: omit (published) or `draft` (admin-only). |

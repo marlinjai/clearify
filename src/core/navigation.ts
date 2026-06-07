@@ -2,13 +2,38 @@ import { resolve, relative, basename, dirname, extname } from 'path';
 import { readFileSync, existsSync } from 'fs';
 import matter from 'gray-matter';
 import { globbySync } from 'globby';
-import type { NavigationItem, PageFrontmatter, RouteEntry, ResolvedSection, SectionNavigation } from '../types/index.js';
+import type { NavigationItem, PageFrontmatter, RouteEntry, ResolvedSection, SectionNavigation, DocType } from '../types/index.js';
 import { buildSearchIndex, type SearchEntry } from './search.js';
 
 function toTitleCase(str: string): string {
   return str
     .replace(/[-_]/g, ' ')
     .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+/**
+ * Infer the document `type` from its file path when frontmatter omits it.
+ * Mirrors the path-inference rules in the shared contract:
+ * knowledge-base/standards/document-lifecycle.md (the single source of truth).
+ * Returns undefined when nothing matches, leaving `type` unset (never filtered).
+ */
+export function inferDocType(filePath: string): DocType | undefined {
+  const normalized = filePath.replace(/\\/g, '/').toLowerCase();
+  const file = basename(normalized, extname(normalized));
+
+  // Well-known filenames win first.
+  if (file === 'readme') return 'readme';
+  if (file === 'changelog' || file === 'changes') return 'changelog';
+  if (file === 'roadmap') return 'roadmap';
+
+  // Handovers: filename contains "handover" or lives in a /handovers/ dir.
+  if (file.includes('handover') || /\/handovers(\/|$)/.test(normalized)) return 'handover';
+
+  // Plans: pre-implementation docs live under these directories.
+  if (/\/(plans|specs|superpowers|research|decisions)(\/|$)/.test(normalized)) return 'plan';
+
+  // Everything else (docs/public/, docs/internal/, default fallback) is documentation.
+  return 'documentation';
 }
 
 function fileToRoutePath(filePath: string, docsDir: string, basePath: string = '/'): string {
@@ -56,7 +81,8 @@ export function scanDocs(docsDir: string, exclude: string[] = [], basePath: stri
         icon: data.icon,
         order: data.order,
         summary: data.summary,
-        category: data.category,
+        // `type` per the shared contract; inferred from path when omitted.
+        type: data.type ?? inferDocType(filePath),
         tags: data.tags,
         projects: data.projects,
         status: data.status,
