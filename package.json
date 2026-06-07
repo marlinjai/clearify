@@ -1,5 +1,8 @@
 {
   "name": "@marlinjai/clearify",
+  "publishConfig": {
+    "access": "public"
+  },
   "version": "2.1.0",
   "description": "An open-source documentation site generator. Turn markdown into beautiful docs.",
   "type": "module",
