@@ -32,7 +32,8 @@
     "dev:self": "node bin/clearify.js dev",
     "prepare": "husky",
     "release": "semantic-release",
-    "test": "vitest run"
+    "test": "vitest run",
+    "check:roadmap": "npx --yes github:marlinjai/actions-shared#roadmap-check-v1 --root ."
   },
   "dependencies": {
     "@inquirer/password": "^5.0.11",
