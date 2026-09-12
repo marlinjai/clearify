@@ -1,3 +1,21 @@
+# semantic-release on every push to main: version from the commit messages,
+# CHANGELOG.md, GitHub release, and the npm publish.
+#
+# The npm publish uses npm Trusted Publishing (OIDC): no NPM_TOKEN anywhere,
+# `id-token: write` below is the credential. @semantic-release/npm 13.1+
+# verifies the OIDC context itself (token exchange against the registry in
+# verifyConditions), then shells out to the npm CLI for the publish with its
+# own temporary userconfig, and the npm CLI performs the exchange again for the
+# publish itself, which needs npm >= 11.5.1. No registry-url on setup-node: the
+# plugin's --userconfig would bypass the npmrc it writes anyway. npm's old bypass-2FA
+# tokens stopped working for publish on 2026-07-31, which is why the previous
+# 1Password-loaded NPM_TOKEN went away.
+#
+# ONE-TIME npm-side setup (done by a human on npmjs.com, because it is an
+# account-level trust grant): @marlinjai/clearify > Settings > Trusted
+# Publisher > GitHub Actions: repository marlinjai/clearify, workflow
+# `.github/workflows/release.yml` (this file), no environment. Until that
+# exists the release job fails at its npm auth check.
 name: Release
 on:
   push:
@@ -9,7 +27,7 @@ permissions:
   contents: write
   issues: write
   pull-requests: write
-  id-token: write
+  id-token: write # required for npm Trusted Publishing (OIDC); no NPM_TOKEN needed
 
 jobs:
   release:
@@ -18,21 +36,15 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Load secrets from 1Password
-        uses: 1password/load-secrets-action@v2
-        with:
-          export-env: true
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          NPM_TOKEN: op://Dev Secrets/NPM Token/credential
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
+      # Trusted Publishing needs npm CLI >= 11.5.1; the bundled one is older.
+      - run: npm install -g npm@latest
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - run: pnpm release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ env.NPM_TOKEN }}
