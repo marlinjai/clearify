@@ -1,3 +1,10 @@
+# [2.2.0](https://github.com/marlinjai/clearify/compare/v2.1.0...v2.2.0) (2026-09-13)
+
+
+### Features
+
+* reconcile doc-classification vocabulary to shared standard ([feb575c](https://github.com/marlinjai/clearify/commit/feb575cf9fb0507ccac92affcf2bf38fd9f44d76))
+
 # [2.1.0](https://github.com/marlinjai/clearify/compare/v2.0.0...v2.1.0) (2026-04-19)
 
 
