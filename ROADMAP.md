@@ -178,16 +178,16 @@ Replaced `@scalar/api-reference-react` with a fully custom-built renderer using 
 ## v2.0 — Try It Out & Auth (OpenAPI Phase 2-3)
 
 ### API Playground
-- [ ] `TryItPanel` inside `OperationCard` — toggled by "Try It" button See [plan](docs/plans/2026-03-08-openapi-auth-ui-design.md). (2026-09-10)
-- [ ] Auto-generated forms from operation parameter + request body schemas (2026-09-10)
-- [ ] Configurable proxy URL (`openapi.proxyUrl` config option) (2026-09-10)
-- [ ] Response display with status code, headers, syntax-highlighted body (2026-09-10)
+- [ ] `TryItPanel` inside `OperationCard` — toggled by "Try It" button See [plan](docs/plans/2026-03-08-openapi-auth-ui-design.md). (2026-10-20)
+- [ ] Auto-generated forms from operation parameter + request body schemas (2026-10-20)
+- [ ] Configurable proxy URL (`openapi.proxyUrl` config option) (2026-10-20)
+- [ ] Response display with status code, headers, syntax-highlighted body (2026-10-20)
 
 ### Auth Management
-- [ ] `AuthManager` — persistent panel reading `components.securitySchemes` (2026-09-10)
-- [ ] Bearer token input, API key input, OAuth2 flow (2026-09-10)
-- [ ] Auth state injected into Try It requests and code examples (2026-09-10)
-- [ ] Server selector dropdown (from `spec.servers[]`) (2026-09-10)
+- [ ] `AuthManager` — persistent panel reading `components.securitySchemes` (2026-10-20)
+- [ ] Bearer token input, API key input, OAuth2 flow (2026-10-20)
+- [ ] Auth state injected into Try It requests and code examples (2026-10-20)
+- [ ] Server selector dropdown (from `spec.servers[]`) (2026-10-20)
 
 ## v2.1 — Power Features
 
@@ -200,78 +200,78 @@ Replaced `@scalar/api-reference-react` with a fully custom-built renderer using 
 - [x] Unified `docs/public/` + `docs/internal/` folder structure
 - [x] Draft sections excluded from production builds
 - [x] `clearify init --no-internal` flag
-- [ ] Versioned docs — version switcher, separate content per version See [plan](docs/plans/2026-03-08-versioned-docs-architecture.md). (2026-09-10)
-- [ ] Reusable snippets — define once, `<Snippet file="path" />` anywhere (2026-09-10)
-- [ ] Conditional content — show/hide based on context (version, audience) (2026-09-10)
-- [ ] Dropdown menus in header navigation (2026-09-10)
+- [ ] Versioned docs — version switcher, separate content per version See [plan](docs/plans/2026-03-08-versioned-docs-architecture.md). (2026-10-20)
+- [ ] Reusable snippets — define once, `<Snippet file="path" />` anywhere (2026-10-20)
+- [ ] Conditional content — show/hide based on context (version, audience) (2026-10-20)
+- [ ] Dropdown menus in header navigation (2026-10-20)
 
 ### Search & Discovery
 - [x] Keyboard navigation in search results (arrow keys + Enter)
 - [x] Section-scoped search result badges
-- [ ] Search analytics — track what users search for (2026-09-10)
+- [ ] Search analytics — track what users search for (2026-10-20)
 - [x] `llms.txt` auto-generation for AI discoverability
 
 ### Analytics
-- [ ] Page view tracking (pluggable: Plausible, Umami, PostHog) (2026-09-10)
-- [ ] Inline feedback widget (thumbs up/down per page) (2026-09-10)
-- [ ] Popular pages dashboard (2026-09-10)
+- [ ] Page view tracking (pluggable: Plausible, Umami, PostHog) (2026-10-20)
+- [ ] Inline feedback widget (thumbs up/down per page) (2026-10-20)
+- [ ] Popular pages dashboard (2026-10-20)
 
 ## v2.5 — In-Place Editing
 
 > See [2026-03-03-in-place-editing-plan.md](../plans/2026-03-03-in-place-editing-plan.md) for full architecture
 
 ### Phase 1: Local Dev Editing (quick win)
-- [ ] `POST /__clearify/save` endpoint on dev server — writes to `.md` file, Vite HMR reloads See [plan](docs/plans/2026-03-03-in-place-editing-plan.md). (2026-09-10)
-- [ ] Editor overlay component (CodeMirror split pane: source + live preview) (2026-09-10)
-- [ ] Floating "Edit" button on each page in dev mode (2026-09-10)
-- [ ] `editing.dev` config option (2026-09-10)
+- [ ] `POST /__clearify/save` endpoint on dev server — writes to `.md` file, Vite HMR reloads See [plan](docs/plans/2026-03-03-in-place-editing-plan.md). (2026-10-20)
+- [ ] Editor overlay component (CodeMirror split pane: source + live preview) (2026-10-20)
+- [ ] Floating "Edit" button on each page in dev mode (2026-10-20)
+- [ ] `editing.dev` config option (2026-10-20)
 
 ### Phase 2: Git-Backed Production Editing
-- [ ] GitHub OAuth flow for authentication (2026-09-10)
-- [ ] Save-to-GitHub via Contents API (browser → GitHub directly, no Clearify backend) (2026-09-10)
-- [ ] `editing.provider: 'github'` config with repo, branch, mode (direct commit or PR) (2026-09-10)
-- [ ] Remote section awareness — edits to embedded docs target the source repo (2026-09-10)
-- [ ] "Saved — rebuilding..." UI with commit link (2026-09-10)
-- [ ] Works with every deployment target (static site unchanged) (2026-09-10)
+- [ ] GitHub OAuth flow for authentication (2026-10-20)
+- [ ] Save-to-GitHub via Contents API (browser → GitHub directly, no Clearify backend) (2026-10-20)
+- [ ] `editing.provider: 'github'` config with repo, branch, mode (direct commit or PR) (2026-10-20)
+- [ ] Remote section awareness — edits to embedded docs target the source repo (2026-10-20)
+- [ ] "Saved — rebuilding..." UI with commit link (2026-10-20)
+- [ ] Works with every deployment target (static site unchanged) (2026-10-20)
 
 ### Phase 3: Instant Preview Layer (premium, only if demand warrants)
-- [ ] Worker middleware (`@marlinjai/clearify-edge`) in front of static assets See [plan](docs/plans/2026-03-08-edge-preview-layer-design.md). (2026-09-10)
-- [ ] Save drafts to Cloudflare KV (~5ms) for instant visibility (2026-09-10)
-- [ ] Async git commit + rebuild in background (2026-09-10)
-- [ ] KV cleanup after successful rebuild (TTL-based) (2026-09-10)
-- [ ] Server-side markdown rendering at the edge (2026-09-10)
-- [ ] Conflict resolution for concurrent edits (2026-09-10)
+- [ ] Worker middleware (`@marlinjai/clearify-edge`) in front of static assets See [plan](docs/plans/2026-03-08-edge-preview-layer-design.md). (2026-10-20)
+- [ ] Save drafts to Cloudflare KV (~5ms) for instant visibility (2026-10-20)
+- [ ] Async git commit + rebuild in background (2026-10-20)
+- [ ] KV cleanup after successful rebuild (TTL-based) (2026-10-20)
+- [ ] Server-side markdown rendering at the edge (2026-10-20)
+- [ ] Conflict resolution for concurrent edits (2026-10-20)
 
 **Why Phase 3 is different:** It transforms Clearify from a build tool into a runtime platform. The deployed site is no longer purely static — a Worker serves dynamic content from KV while git catches up. Only build this when instant editing becomes a real user demand.
 
 ## v3.0 — AI-Native & Ecosystem
 
 ### AI Features
-- [ ] AI chat over docs — RAG-powered Q&A widget See [plan](docs/plans/2026-03-08-ai-integration-design.md). (2026-09-10)
-- [ ] AI-generated summaries per page (2026-09-10)
-- [ ] MCP server — expose docs to AI agents (2026-09-10)
-- [ ] Markdown export endpoint for LLM consumption (2026-09-10)
+- [ ] AI chat over docs — RAG-powered Q&A widget See [plan](docs/plans/2026-03-08-ai-integration-design.md). (2026-10-20)
+- [ ] AI-generated summaries per page (2026-10-20)
+- [ ] MCP server — expose docs to AI agents (2026-10-20)
+- [ ] Markdown export endpoint for LLM consumption (2026-10-20)
 
 ### i18n
-- [ ] Multi-language support with language switcher (2026-09-10)
-- [ ] Per-language navigation and content (2026-09-10)
-- [ ] RTL layout support (Arabic, Hebrew) (2026-09-10)
+- [ ] Multi-language support with language switcher (2026-10-20)
+- [ ] Per-language navigation and content (2026-10-20)
+- [ ] RTL layout support (Arabic, Hebrew) (2026-10-20)
 
 ### Ecosystem
-- [ ] Plugin system (extend build pipeline, add custom transforms) See [plan](docs/plans/2026-03-08-plugin-system-design.md). (2026-09-10)
-- [ ] Community themes (swap default theme) (2026-09-10)
-- [ ] Monorepo support (multiple doc sites from one repo) (2026-09-10)
-- [ ] Migration tools (import from Mintlify, Docusaurus, GitBook) (2026-09-10)
+- [ ] Plugin system (extend build pipeline, add custom transforms) See [plan](docs/plans/2026-03-08-plugin-system-design.md). (2026-10-20)
+- [ ] Community themes (swap default theme) (2026-10-20)
+- [ ] Monorepo support (multiple doc sites from one repo) (2026-10-20)
+- [ ] Migration tools (import from Mintlify, Docusaurus, GitBook) (2026-10-20)
 
 ## Deferred — linked plans, not yet scheduled
 
 - [ ] Decide the disposition of branch `wip/hub-paths-reports-2026-04-18` (still present on
   origin): it preserves 4 hub-model report files from 2026-04-18 that were accidentally bundled
   into the vocabulary pull request and stripped back out. Keep as-is, turn into a proper pull
-  request, or drop the branch. Marlin's call. (2026-09-10)
+  request, or drop the branch. Marlin's call. (2026-10-20)
 
-- [ ] Bring the Clearify Pages deployments under Terraform (Cloudflare Pages project + domain + DNS + HUB_DISPATCH_TOKEN + API tokens via Infisical), the last piece of Marlin's stack not in the infra repo. See [plan](docs/plans/2026-04-19-clearify-iac-alignment.md). (2026-09-10)
-- [ ] Visual diagram editor: an interactive ReactFlow-based diagram/whiteboard editor with dev-server write-back to source markdown. See [plan](docs/plans/2026-03-01-visual-diagram-editor-plan.md). (2026-09-10)
+- [ ] Bring the Clearify Pages deployments under Terraform (Cloudflare Pages project + domain + DNS + HUB_DISPATCH_TOKEN + API tokens via Infisical), the last piece of Marlin's stack not in the infra repo. See [plan](docs/plans/2026-04-19-clearify-iac-alignment.md). (2026-10-20)
+- [ ] Visual diagram editor: an interactive ReactFlow-based diagram/whiteboard editor with dev-server write-back to source markdown. See [plan](docs/plans/2026-03-01-visual-diagram-editor-plan.md). (2026-10-20)
 
 ## Out of Scope
 
