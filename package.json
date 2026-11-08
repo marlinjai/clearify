@@ -91,6 +91,9 @@
     "vitest": "^4.1.12"
   },
   "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": "^22.18.0 || >=24.11.0"
+  },
   "license": "MIT",
   "author": "MarlinJai",
   "repository": {
