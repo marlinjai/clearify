@@ -1,3 +1,10 @@
+## [2.2.2](https://github.com/marlinjai/clearify/compare/v2.2.1...v2.2.2) (2026-11-08)
+
+
+### Bug Fixes
+
+* **deps:** clear dependabot alerts ([secure] 12, frontmatter 6, tsup 9) ([#9](https://github.com/marlinjai/clearify/issues/9)) ([80071df](https://github.com/marlinjai/clearify/commit/80071dfd6f30d02ffbc20c6ee5f4b0706f68567e))
+
 ## [2.2.1](https://github.com/marlinjai/clearify/compare/v2.2.0...v2.2.1) (2026-11-08)
 
 
