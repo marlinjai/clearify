@@ -1,3 +1,10 @@
+## [2.2.1](https://github.com/marlinjai/clearify/compare/v2.2.0...v2.2.1) (2026-11-08)
+
+
+### Bug Fixes
+
+* **deps:** ship the zod ^4.6.7 floor to npm ([#8](https://github.com/marlinjai/clearify/issues/8)) ([5d27500](https://github.com/marlinjai/clearify/commit/5d27500fe9d516880766de8a1c57a4074e1f1fbc))
+
 # [2.2.0](https://github.com/marlinjai/clearify/compare/v2.1.0...v2.2.0) (2026-09-13)
 
 
