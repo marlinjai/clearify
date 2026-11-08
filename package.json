@@ -82,11 +82,11 @@
     "@types/node": "^25.9.9",
     "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.7",
-    "esbuild": "^0.27.7",
+    "esbuild": "^0.28.2",
     "husky": "^9.1.7",
     "puppeteer": "^25.16.0",
     "semantic-release": "^25.0.9",
-    "tsup": "^8.5.1",
+    "tsup": "^9.0.0",
     "typescript": "^5.9.3",
     "vitest": "^4.1.12"
   },
