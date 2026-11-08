@@ -27,7 +27,7 @@ export class MermaidRenderer {
       <html><head></head><body>
         <div id="container"></div>
         <script type="module">
-          import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+          import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@12/dist/mermaid.esm.min.mjs';
           window.__mermaid = mermaid;
           window.__mermaidReady = true;
         </script>
