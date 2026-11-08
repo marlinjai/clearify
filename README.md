@@ -62,6 +62,7 @@ export default defineConfig({
 
 - Node.js 22 or later
 - npm, pnpm, or yarn
+- Zod 4.6.7 or later (clearify validates config with the Zod 4 API; versions below 4.6.6 are affected by GHSA-mrhx-c7xc-m3w5)
 - For hub onboarding: a GitHub account and (for CLI-assisted secret provisioning) a GitHub OAuth App. See [Installation](./docs/public/installation.md) for prerequisites per path.
 
 ## Links
